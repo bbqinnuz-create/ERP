@@ -1,0 +1,11 @@
+{
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "chat.promptFiles": true,
+  "chat.useAgentsMdFile": true,
+  "files.eol": "\n",
+  "editor.formatOnSave": true,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "vitest.enable": true,
+  "files.exclude": { "node_modules": true },
+  "search.exclude": { "node_modules": true, "data/*.db*": true }
+}

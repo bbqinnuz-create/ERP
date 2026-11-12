@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-i18n="app.title"></title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <h1 data-i18n="app.title"></h1>
+      <label class="language-picker">
+        <span data-i18n="language.label"></span>
+        <select id="language">
+          <option value="ru">RU</option>
+          <option value="uz">UZ</option>
+        </select>
+      </label>
+    </header>
+    <main>
+      <p id="message" role="status" aria-live="polite"></p>
+      <section id="login-view">
+        <h2 data-i18n="login.title"></h2>
+        <form id="login-form">
+          <label><span data-i18n="login.login"></span><input name="login" autocomplete="username" required></label>
+          <label><span data-i18n="login.password"></span><input name="password" type="password" autocomplete="current-password" required></label>
+          <button type="submit" data-i18n="login.submit"></button>
+        </form>
+      </section>
+      <section id="app-view" hidden>
+        <div class="session-bar">
+          <span id="current-user"></span>
+          <button id="logout" type="button" data-i18n="auth.logout"></button>
+        </div>
+        <nav id="navigation">
+          <button type="button" data-page="products" data-i18n="nav.products"></button>
+          <button type="button" data-page="stock" data-i18n="nav.stock"></button>
+          <button type="button" data-page="users" data-i18n="nav.users"></button>
+        </nav>
+        <section id="products-page" class="page">
+          <h2 data-i18n="products.title"></h2>
+          <form id="product-form" class="form-grid">
+            <label><span data-i18n="products.sku"></span><input name="sku" required></label>
+            <label><span data-i18n="products.name"></span><input name="name" required></label>
+            <label>
+              <span data-i18n="products.unit"></span>
+              <select id="product-unit-select" name="unit" required></select>
+            </label>
+            <label id="custom-unit-field" hidden>
+              <span data-i18n="products.custom_unit"></span>
+              <input name="custom_unit" maxlength="32">
+            </label>
+            <label><span data-i18n="products.base_price"></span><input name="base_price" type="number" min="0" step="1" required></label>
+            <button type="submit" data-i18n="products.create"></button>
+          </form>
+          <div class="table-wrap"><table><thead id="products-head"></thead><tbody id="products-body"></tbody></table></div>
+        </section>
+        <section id="stock-page" class="page" hidden>
+          <h2 data-i18n="stock.title"></h2>
+          <p data-i18n="stock.stage_note"></p>
+          <div class="table-wrap"><table><thead id="stock-head"></thead><tbody id="stock-body"></tbody></table></div>
+        </section>
+        <section id="users-page" class="page" hidden>
+          <h2 data-i18n="users.title"></h2>
+          <form id="user-form" class="form-grid">
+            <label><span data-i18n="users.login"></span><input name="login" autocomplete="off" required></label>
+            <label><span data-i18n="users.full_name"></span><input name="fullName" required></label>
+            <label><span data-i18n="users.password"></span><input name="password" type="password" autocomplete="new-password" minlength="5" required></label>
+            <label><span data-i18n="users.role"></span><select name="role"><option value="cashier" data-i18n="users.cashier"></option><option value="admin" data-i18n="users.admin"></option></select></label>
+            <label><span data-i18n="users.language"></span><select name="lang"><option value="ru">RU</option><option value="uz">UZ</option></select></label>
+            <button type="submit" data-i18n="users.create"></button>
+          </form>
+          <div class="table-wrap"><table><thead id="users-head"></thead><tbody id="users-body"></tbody></table></div>
+          <form id="user-edit-form" class="form-grid" hidden>
+            <h3 data-i18n="users.edit"></h3>
+            <label><span data-i18n="users.full_name"></span><input name="fullName" required></label>
+            <label><span data-i18n="users.role"></span><select name="role"><option value="cashier" data-i18n="users.cashier"></option><option value="admin" data-i18n="users.admin"></option></select></label>
+            <label><span data-i18n="users.language"></span><select name="lang"><option value="ru">RU</option><option value="uz">UZ</option></select></label>
+            <label class="permission-item"><input name="active" type="checkbox"><span data-i18n="users.active"></span></label>
+            <label><span data-i18n="users.new_password"></span><input name="password" type="password" autocomplete="new-password" minlength="5"></label>
+            <button type="submit" data-i18n="users.save_user"></button>
+          </form>
+          <section id="permission-editor" hidden>
+            <h3 data-i18n="users.permissions"></h3>
+            <p id="permission-user"></p>
+            <div id="permission-list" class="permission-grid"></div>
+            <button id="save-permissions" type="button" data-i18n="users.save_permissions"></button>
+          </section>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
