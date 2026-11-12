@@ -1,11 +1,13 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { readFileSync } from 'node:fs';
+import type { AddressInfo } from 'node:net';
 import { join } from 'node:path';
 import { TLSSocket } from 'node:tls';
 import { fileURLToPath } from 'node:url';
 import type { Db } from '../db/connection';
 import { AuthError, createUserForSession, listUsers, login, logout, setUserPermissions, updateUserForSession, withAuthorizedUser } from '../modules/auth/service';
 import { hasPermission, type Permission } from '../modules/auth/permissions';
+import { listLanConnectionAddresses } from './connection-info';
 import {
   getSettings,
   listProductUnits,
@@ -144,7 +146,13 @@ function listStock(db: Db): Record<string, unknown>[] {
     .all() as Record<string, unknown>[];
 }
 
-async function handleApi(db: Db, req: IncomingMessage, res: ServerResponse, now: () => number): Promise<void> {
+async function handleApi(
+  db: Db,
+  req: IncomingMessage,
+  res: ServerResponse,
+  now: () => number,
+  listenAddress: AddressInfo | string | null,
+): Promise<void> {
   const url = new URL(req.url ?? '/', 'http://localhost');
   const path = url.pathname;
   const method = req.method ?? 'GET';
@@ -176,6 +184,18 @@ async function handleApi(db: Db, req: IncomingMessage, res: ServerResponse, now:
   if (path === '/api/auth/status' && method === 'GET') {
     withAuthorizedUser(db, token, null, () => true, now(), false);
     sendJson(res, 200, { status: 'ok' });
+    return;
+  }
+  if (path === '/api/server-info' && method === 'GET') {
+    const addresses = withAuthorizedUser(db, token, null, (session) => {
+      if (session.user.role !== 'admin') throw new AuthError(403, 'auth.permission_denied');
+      if (!listenAddress || typeof listenAddress === 'string') return [];
+      return listLanConnectionAddresses(listenAddress.address, listenAddress.port);
+    }, now());
+    sendJson(res, 200, {
+      addresses,
+      warningKey: addresses.length === 0 ? 'connection.no_lan_addresses' : null,
+    });
     return;
   }
 
@@ -322,7 +342,8 @@ function serveStatic(req: IncomingMessage, res: ServerResponse): void {
 
 export function createWebServer(db: Db, options: ServerOptions = {}): Server {
   const now = options.now ?? Date.now;
-  return createServer((req, res) => {
+  let server: Server;
+  server = createServer((req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
@@ -333,7 +354,7 @@ export function createWebServer(db: Db, options: ServerOptions = {}): Server {
     }
     const path = req.url?.split('?')[0] ?? '/';
     if (path.startsWith('/api/')) {
-      void handleApi(db, req, res, now).catch((error: unknown) => respondError(res, error));
+      void handleApi(db, req, res, now, server.address()).catch((error: unknown) => respondError(res, error));
       return;
     }
     try {
@@ -342,4 +363,5 @@ export function createWebServer(db: Db, options: ServerOptions = {}): Server {
       respondError(res, error);
     }
   });
+  return server;
 }

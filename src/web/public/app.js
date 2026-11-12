@@ -10,6 +10,15 @@ const translations = {
     'nav.products': 'Товары',
     'nav.stock': 'Остатки',
     'nav.users': 'Пользователи и права',
+    'nav.connection': 'Подключение ПК',
+    'connection.title': 'Подключение рабочих ПК',
+    'connection.description': 'Откройте один из адресов на компьютере в той же локальной сети. Если адрес не открывается, проверьте Wi-Fi и настройки брандмауэра.',
+    'connection.refresh': 'Обновить адреса',
+    'connection.no_lan_addresses': 'Не найден локальный адрес. Проверьте подключение главного ПК к сети.',
+    'connection.open': 'Открыть',
+    'connection.copy': 'Копировать',
+    'connection.copy_done': 'Адрес скопирован.',
+    'connection.copy_manual': 'Адрес выделен — скопируйте его вручную.',
     'products.title': 'Товары',
     'products.sku': 'Артикул',
     'products.name': 'Название',
@@ -125,6 +134,15 @@ const translations = {
     'nav.products': 'Tovarlar',
     'nav.stock': 'Qoldiqlar',
     'nav.users': 'Foydalanuvchilar va huquqlar',
+    'nav.connection': 'Kompyuterlarni ulash',
+    'connection.title': 'Ishchi kompyuterlarni ulash',
+    'connection.description': 'Manzillardan birini shu mahalliy tarmoqqa ulangan kompyuterda oching. Manzil ochilmasa, Wi-Fi va xavfsizlik devori sozlamalarini tekshiring.',
+    'connection.refresh': 'Manzillarni yangilash',
+    'connection.no_lan_addresses': 'Mahalliy manzil topilmadi. Asosiy kompyuter tarmoqqa ulanganini tekshiring.',
+    'connection.open': 'Ochish',
+    'connection.copy': 'Nusxalash',
+    'connection.copy_done': 'Manzil nusxalandi.',
+    'connection.copy_manual': 'Manzil belgilandi — uni qo‘lda nusxalang.',
     'products.title': 'Tovarlar',
     'products.sku': 'Artikul',
     'products.name': 'Nomi',
@@ -290,6 +308,7 @@ function showApp(user) {
   $('#app-view').hidden = false;
   $('#current-user').textContent = `${user.fullName} (${user.login})`;
   $('#navigation [data-page="users"]').hidden = user.permissions.users_manage !== 1;
+  $('#navigation [data-page="connection"]').hidden = user.role !== 'admin';
   $('#product-form').hidden = user.permissions.settings !== 1 || user.permissions.price_edit !== 1;
   if (!$('#product-form').hidden) void loadProductUnits();
   $('#user-form').hidden = user.permissions.users_manage !== 1;
@@ -315,6 +334,7 @@ function showPage(name) {
   document.querySelectorAll('.page').forEach((page) => { page.hidden = page.id !== `${name}-page`; });
   if (name === 'users' && state.user?.permissions.users_manage === 1) void loadUsers();
   if (name === 'stock') void loadStock();
+  if (name === 'connection' && state.user?.role === 'admin') void loadConnectionInfo();
 }
 
 function cell(value) {
@@ -428,6 +448,61 @@ async function loadUsers() {
   }
 }
 
+async function loadConnectionInfo() {
+  try {
+    const { addresses, warningKey } = await api('/api/server-info');
+    const container = $('#connection-addresses');
+    const rows = addresses.map((address) => {
+      const row = document.createElement('div');
+      row.className = 'connection-row';
+
+      const interfaceName = document.createElement('span');
+      interfaceName.textContent = address.interfaceName;
+
+      const field = document.createElement('input');
+      field.type = 'url';
+      field.readOnly = true;
+      field.value = address.url;
+      field.setAttribute('aria-label', address.interfaceName);
+
+      const actions = document.createElement('div');
+      actions.className = 'connection-actions';
+      const open = document.createElement('a');
+      open.href = address.url;
+      open.target = '_blank';
+      open.rel = 'noopener noreferrer';
+      open.textContent = t('connection.open');
+      const copy = document.createElement('button');
+      copy.type = 'button';
+      copy.textContent = t('connection.copy');
+      copy.addEventListener('click', () => { void copyConnectionAddress(field); });
+      actions.append(open, copy);
+
+      row.append(interfaceName, field, actions);
+      return row;
+    });
+    container.replaceChildren(...rows);
+    $('#connection-warning').textContent = warningKey ? t(warningKey) : '';
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function copyConnectionAddress(field) {
+  if (!navigator.clipboard?.writeText) {
+    field.select();
+    message('connection.copy_manual');
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(field.value);
+    message('connection.copy_done');
+  } catch {
+    field.select();
+    message('connection.copy_manual');
+  }
+}
+
 function editUser(user) {
   state.selectedUser = user;
   const form = $('#user-edit-form');
@@ -513,6 +588,8 @@ $('#navigation').addEventListener('click', (event) => {
   const page = event.target.closest('button')?.dataset.page;
   if (page) showPage(page);
 });
+
+$('#refresh-connection-info').addEventListener('click', () => { void loadConnectionInfo(); });
 
 $('#product-form').addEventListener('submit', async (event) => {
   event.preventDefault();

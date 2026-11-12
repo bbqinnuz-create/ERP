@@ -53,6 +53,7 @@ describe('HTTP API этапа 2', () => {
     expect((await fetch(`${baseUrl}/app.js`)).status).toBe(200);
     expect((await fetch(`${baseUrl}/api/stock`)).status).toBe(401);
     expect((await fetch(`${baseUrl}/api/product-units`)).status).toBe(401);
+    expect((await fetch(`${baseUrl}/api/server-info`)).status).toBe(401);
 
     const cookie = await loginCookie();
     const response = await fetch(`${baseUrl}/api/auth/me`, { headers: { Cookie: cookie } });
@@ -61,6 +62,12 @@ describe('HTTP API этапа 2', () => {
     const statusResponse = await fetch(`${baseUrl}/api/auth/status`, { headers: { Cookie: cookie } });
     expect(statusResponse.status).toBe(200);
     expect(await statusResponse.json()).toEqual({ status: 'ok' });
+    const connectionResponse = await fetch(`${baseUrl}/api/server-info`, { headers: { Cookie: cookie } });
+    expect(connectionResponse.status).toBe(200);
+    expect(await connectionResponse.json()).toEqual({
+      addresses: [],
+      warningKey: 'connection.no_lan_addresses',
+    });
     const usersResponse = await fetch(`${baseUrl}/api/users`, { headers: { Cookie: cookie } });
     const { users } = await usersResponse.json() as { users: Record<string, unknown>[] };
     expect(users[0]).not.toHaveProperty('password_hash');
@@ -103,6 +110,8 @@ describe('HTTP API этапа 2', () => {
     });
     setUserPermissions(env.db, adminId, cashier.id, { settings: 1 });
     const cashierCookie = await loginCookie('cashier', 'cashier secure password');
+    const connectionDenied = await fetch(`${baseUrl}/api/server-info`, { headers: { Cookie: cashierCookie } });
+    expect(connectionDenied.status).toBe(403);
     const denied = await fetch(`${baseUrl}/api/references/products`, {
       method: 'POST',
       headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },

@@ -37,6 +37,7 @@
           <button type="button" data-page="products" data-i18n="nav.products"></button>
           <button type="button" data-page="stock" data-i18n="nav.stock"></button>
           <button type="button" data-page="users" data-i18n="nav.users"></button>
+          <button type="button" data-page="connection" data-i18n="nav.connection" hidden></button>
         </nav>
         <section id="products-page" class="page">
           <h2 data-i18n="products.title"></h2>
@@ -87,6 +88,13 @@
             <div id="permission-list" class="permission-grid"></div>
             <button id="save-permissions" type="button" data-i18n="users.save_permissions"></button>
           </section>
+        </section>
+        <section id="connection-page" class="page" hidden>
+          <h2 data-i18n="connection.title"></h2>
+          <p data-i18n="connection.description"></p>
+          <button id="refresh-connection-info" type="button" data-i18n="connection.refresh"></button>
+          <p id="connection-warning" role="status" aria-live="polite"></p>
+          <div id="connection-addresses"></div>
         </section>
       </section>
     </main>
