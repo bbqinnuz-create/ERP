@@ -54,7 +54,18 @@ async function loginCookie(loginName = 'owner', password = 'correct horse batter
 
 describe('HTTP API этапа 2', () => {
   it('отдаёт RU/UZ-клиент, требует сессию для API и возвращает текущего пользователя', async () => {
-    expect((await fetch(baseUrl)).status).toBe(200);
+    const clientResponse = await fetch(baseUrl);
+    expect(clientResponse.status).toBe(200);
+    const clientHtml = await clientResponse.text();
+    expect(clientHtml).toContain('id="navigation-toggle" type="button" aria-expanded="false" aria-controls="navigation-menu"');
+    expect(clientHtml).toContain('<div id="navigation-menu" hidden>');
+    const navigationPages = [...clientHtml.matchAll(/data-page="([^"]+)"/g)].map((match) => match[1]);
+    expect(navigationPages).toEqual([
+      'sales', 'print', 'returns', 'writeoffs', 'stocktakes', 'reports', 'products',
+      'stock', 'purchases', 'movements', 'debts', 'cash', 'users', 'connection',
+    ]);
+    expect(clientHtml.indexOf('id="logout"')).toBeGreaterThan(clientHtml.indexOf('data-page="connection"'));
+    expect((await fetch(`${baseUrl}/app.js`)).status).toBe(200);
     expect((await fetch(`${baseUrl}/app.js`)).status).toBe(200);
     for (const route of [
       '/sell', '/sales', '/print', '/returns', '/writeoffs', '/stocktakes', '/reports',
