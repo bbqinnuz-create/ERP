@@ -35,23 +35,28 @@
       <section id="app-view" hidden>
         <div class="session-bar">
           <span id="current-user"></span>
-          <button id="logout" type="button" data-i18n="auth.logout"></button>
         </div>
         <nav id="navigation">
-          <a href="/sell" data-page="sales" data-i18n="nav.sales"></a>
-          <a href="/print" data-page="print" data-i18n="nav.print" hidden></a>
-          <a href="/returns" data-page="returns" data-i18n="nav.returns" hidden></a>
-          <a href="/writeoffs" data-page="writeoffs" data-i18n="nav.writeoffs" hidden></a>
-          <a href="/stocktakes" data-page="stocktakes" data-i18n="nav.stocktakes" hidden></a>
-          <a href="/reports" data-page="reports" data-i18n="nav.reports" hidden></a>
-          <a href="/products" data-page="products" data-i18n="nav.products"></a>
-          <a href="/stock" data-page="stock" data-i18n="nav.stock"></a>
-          <a href="/purchases" data-page="purchases" data-i18n="nav.purchases"></a>
-          <a href="/movements" data-page="movements" data-i18n="nav.movements"></a>
-          <a href="/debts" data-page="debts" data-i18n="nav.debts" hidden></a>
-          <a href="/cash" data-page="cash" data-i18n="nav.cash" hidden></a>
-          <a href="/users" data-page="users" data-i18n="nav.users"></a>
-          <a href="/connection" data-page="connection" data-i18n="nav.connection" hidden></a>
+          <button id="navigation-toggle" type="button" aria-expanded="false" aria-controls="navigation-menu">
+            <span id="navigation-toggle-label" data-i18n="nav.pages"></span>
+          </button>
+          <div id="navigation-menu" hidden>
+            <a href="/sell" data-page="sales" data-i18n="nav.sales"></a>
+            <a href="/print" data-page="print" data-i18n="nav.print" hidden></a>
+            <a href="/returns" data-page="returns" data-i18n="nav.returns" hidden></a>
+            <a href="/writeoffs" data-page="writeoffs" data-i18n="nav.writeoffs" hidden></a>
+            <a href="/stocktakes" data-page="stocktakes" data-i18n="nav.stocktakes" hidden></a>
+            <a href="/reports" data-page="reports" data-i18n="nav.reports" hidden></a>
+            <a href="/products" data-page="products" data-i18n="nav.products"></a>
+            <a href="/stock" data-page="stock" data-i18n="nav.stock"></a>
+            <a href="/purchases" data-page="purchases" data-i18n="nav.purchases"></a>
+            <a href="/movements" data-page="movements" data-i18n="nav.movements"></a>
+            <a href="/debts" data-page="debts" data-i18n="nav.debts" hidden></a>
+            <a href="/cash" data-page="cash" data-i18n="nav.cash" hidden></a>
+            <a href="/users" data-page="users" data-i18n="nav.users"></a>
+            <a href="/connection" data-page="connection" data-i18n="nav.connection" hidden></a>
+            <button id="logout" class="navigation-logout" type="button" data-i18n="auth.logout"></button>
+          </div>
         </nav>
         <section id="sales-page" class="page" hidden>
           <h2 data-i18n="sales.title"></h2>

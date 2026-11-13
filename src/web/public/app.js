@@ -15,6 +15,7 @@ const translations = {
     'login.password': 'Пароль',
     'login.submit': 'Войти',
     'auth.logout': 'Выйти',
+    'nav.pages': 'Страницы',
     'nav.sales': 'Продажа',
     'nav.products': 'Товары',
     'nav.stock': 'Остатки',
@@ -595,6 +596,7 @@ const translations = {
     'login.password': 'Parol',
     'login.submit': 'Kirish',
     'auth.logout': 'Chiqish',
+    'nav.pages': 'Sahifalar',
     'nav.sales': 'Savdo',
     'nav.products': 'Tovarlar',
     'nav.stock': 'Qoldiqlar',
@@ -1351,6 +1353,7 @@ async function api(path, options = {}) {
 }
 
 function showLogin(errorKey = '') {
+  setNavigationExpanded(false);
   state.user = null;
   state.salesContext = null;
   state.salesCart = null;
@@ -1375,6 +1378,7 @@ function showLogin(errorKey = '') {
 }
 
 function showApp(user) {
+  setNavigationExpanded(false);
   state.user = user;
   state.lang = user.lang;
   localStorage.setItem('kassa_lang', state.lang);
@@ -1478,10 +1482,32 @@ function canAccessPage(name) {
     .some((permission) => state.user.permissions[permission] === 1);
 }
 
+function setNavigationExpanded(expanded) {
+  $('#navigation-toggle').setAttribute('aria-expanded', String(expanded));
+  $('#navigation-menu').hidden = !expanded;
+  $('#app-view').classList.toggle('navigation-expanded', expanded);
+}
+
+function mountNavigationToggle(page) {
+  const heading = document.querySelector(`#${page}-page > h2`);
+  const toggle = $('#navigation-toggle');
+  if (!heading) return;
+
+  let headingRow = heading.parentElement;
+  if (!headingRow?.classList.contains('page-heading')) {
+    headingRow = document.createElement('div');
+    headingRow.className = 'page-heading';
+    heading.before(headingRow);
+    headingRow.append(heading);
+  }
+  headingRow.prepend(toggle);
+}
+
 function showPage(name, updateHistory = true) {
   if (!pagePaths[name] || !canAccessPage(name)) name = 'products';
   state.activePage = name;
   document.querySelectorAll('.page').forEach((page) => { page.hidden = page.id !== `${name}-page`; });
+  mountNavigationToggle(name);
   document.querySelectorAll('#navigation [data-page]').forEach((link) => {
     if (link.dataset.page === name) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
@@ -3719,6 +3745,11 @@ $('#logout').addEventListener('click', async () => {
   } catch (error) {
     message(error.message);
   }
+});
+
+$('#navigation-toggle').addEventListener('click', () => {
+  const expanded = $('#navigation-toggle').getAttribute('aria-expanded') !== 'true';
+  setNavigationExpanded(expanded);
 });
 
 $('#navigation').addEventListener('click', (event) => {
