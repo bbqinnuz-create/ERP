@@ -54,6 +54,13 @@ import {
   updateSettings,
   type ReferenceType,
 } from '../modules/references/service';
+import {
+  buildProductImportTemplate,
+  commitProductImport,
+  MAX_PRODUCT_IMPORT_BYTES,
+  previewProductImport,
+  type ProductImportOptions,
+} from '../modules/products/import';
 
 const SESSION_COOKIE = 'kassa_session';
 const MAX_BODY_BYTES = 64 * 1024;
@@ -107,13 +114,13 @@ function sessionToken(req: IncomingMessage): string | null {
   return parseCookies(req.headers.cookie)[SESSION_COOKIE] ?? null;
 }
 
-async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
+async function readJson(req: IncomingMessage, maxBytes = MAX_BODY_BYTES): Promise<Record<string, unknown>> {
   const chunks: Buffer[] = [];
   let length = 0;
   for await (const chunk of req) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     length += buffer.length;
-    if (length > MAX_BODY_BYTES) throw new AuthError(400, 'http.body_too_large');
+    if (length > maxBytes) throw new AuthError(413, 'http.body_too_large');
     chunks.push(buffer);
   }
   if (length === 0) return {};
@@ -757,6 +764,60 @@ async function handleApi(
   if (path === '/api/product-units' && method === 'GET') {
     const units = withAuthorizedUser(db, token, null, () => listProductUnits(db), now());
     sendJson(res, 200, { units });
+    return;
+  }
+
+  if (path === '/api/products/import/template' && method === 'GET') {
+    withAuthorizedUser(db, token, null, (session) => {
+      requireAdditionalPermission(db, session.user.id, 'settings');
+      requireAdditionalPermission(db, session.user.id, 'price_edit');
+    }, now());
+    const language = url.searchParams.get('lang') ?? 'ru';
+    if (language !== 'ru' && language !== 'uz') {
+      throw new AuthError(400, 'product_import.invalid_language');
+    }
+    const template = await buildProductImportTemplate(language);
+    res.writeHead(200, {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="product-import-template.xlsx"',
+      'Content-Length': template.byteLength,
+      'Cache-Control': 'no-store',
+    });
+    res.end(template);
+    return;
+  }
+
+  const productImportRoute = /^\/api\/products\/import\/(preview|commit)$/.exec(path);
+  if (productImportRoute && method === 'POST') {
+    withAuthorizedUser(db, token, null, (session) => {
+      requireAdditionalPermission(db, session.user.id, 'settings');
+      requireAdditionalPermission(db, session.user.id, 'price_edit');
+    }, now());
+    const body = await readJson(req, MAX_PRODUCT_IMPORT_BYTES * 6 + 64 * 1024);
+    const language = body.lang;
+    const createMissingCategories = body.createMissingCategories;
+    if (Object.keys(body).some((key) =>
+      !['csv', 'mode', 'lang', 'createMissingCategories'].includes(key)) ||
+        typeof body.csv !== 'string' ||
+        (body.mode !== 'skip' && body.mode !== 'update') ||
+        (language !== 'ru' && language !== 'uz') ||
+        typeof createMissingCategories !== 'boolean') {
+      throw new AuthError(400, 'product_import.invalid_request');
+    }
+    const csv = body.csv;
+    const mode = body.mode;
+    const options: ProductImportOptions = {
+      lang: language === 'uz' ? 'uz' : 'ru',
+      createMissingCategories,
+    };
+    const result = withAuthorizedUser(db, token, null, (session) => {
+      requireAdditionalPermission(db, session.user.id, 'settings');
+      requireAdditionalPermission(db, session.user.id, 'price_edit');
+      return productImportRoute[1] === 'preview'
+        ? previewProductImport(db, csv, mode, options)
+        : commitProductImport(db, session.user.id, csv, mode, options);
+    }, now());
+    sendJson(res, 200, result);
     return;
   }
 

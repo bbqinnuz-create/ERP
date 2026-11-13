@@ -176,6 +176,57 @@ const translations = {
     'products.edit_price': 'Изменить цену',
     'products.price_dialog_title': 'Изменение цены',
     'products.save_price': 'Сохранить цену',
+    'product_import.title': 'Импорт товаров из CSV',
+    'product_import.description': 'Скачайте шаблон XLSX, заполните лист «Товары», сохраните его как CSV UTF-8 и загрузите файл. Импорт меняет только карточки товаров, но не остатки.',
+    'product_import.template': 'Скачать шаблон XLSX',
+    'product_import.csv_file': 'Файл CSV',
+    'product_import.mode': 'Совпавший артикул',
+    'product_import.mode_skip': 'Пропустить существующий товар',
+    'product_import.mode_update': 'Обновить заполненные поля',
+    'product_import.create_categories': 'Создавать отсутствующие категории',
+    'product_import.categories_to_create': 'Будут созданы категории: {categories}.',
+    'product_import.categories_created': 'Созданы категории: {categories}.',
+    'product_import.preview': 'Проверить файл',
+    'product_import.commit': 'Импортировать проверенные строки',
+    'product_import.download_report': 'Скачать отчёт CSV',
+    'product_import.columns': 'Строка,Артикул,Действие,Ошибки',
+    'product_import.summary': 'Всего строк: {total}; новых: {create}; обновлений: {update}; пропусков: {skip}; ошибок: {error}.',
+    'product_import.outcome': 'Импорт завершён. Добавлено: {create}; обновлено: {update}; пропущено: {skip}; ошибок: {error}.',
+    'product_import.action.create': 'Добавить',
+    'product_import.action.update': 'Обновить',
+    'product_import.action.skip': 'Пропустить',
+    'product_import.action.error': 'Ошибка',
+    'product_import.invalid_request': 'Проверьте параметры импорта.',
+    'product_import.invalid_options': 'Проверьте параметры импорта.',
+    'product_import.invalid_language': 'Выбран неподдерживаемый язык шаблона.',
+    'product_import.invalid_mode': 'Выберите допустимый режим совпадающих товаров.',
+    'product_import.invalid_file': 'Загрузите файл CSV.',
+    'product_import.file_too_large': 'Файл превышает лимит 2 МиБ.',
+    'product_import.too_many_rows': 'В файле больше 5000 строк товаров.',
+    'product_import.empty_file': 'Файл CSV пуст.',
+    'product_import.invalid_csv': 'Проверьте формат CSV и кавычки в ячейках.',
+    'product_import.invalid_headers': 'Заголовки CSV не соответствуют шаблону или содержат дубли.',
+    'product_import.extra_columns': 'В строке больше ячеек, чем заголовков.',
+    'product_import.required_sku': 'Укажите артикул.',
+    'product_import.required_name_ru': 'Укажите название на русском.',
+    'product_import.required_unit': 'Укажите единицу учёта.',
+    'product_import.required_price_sum': 'Укажите базовую цену в сумах.',
+    'product_import.invalid_sku': 'Проверьте артикул.',
+    'product_import.invalid_name_ru': 'Проверьте русское название.',
+    'product_import.invalid_name_uz': 'Проверьте узбекское название.',
+    'product_import.invalid_unit': 'Проверьте единицу учёта.',
+    'product_import.invalid_category': 'Название категории слишком длинное.',
+    'product_import.invalid_price': 'Цена должна быть неотрицательной и указана в сумах, не более двух знаков после запятой.',
+    'product_import.invalid_min_stock': 'Минимальный остаток должен быть неотрицательным и иметь не более трёх знаков после запятой.',
+    'product_import.invalid_attributes': 'Дополнительные атрибуты должны быть JSON-объектом.',
+    'product_import.invalid_row': 'Проверьте данные строки.',
+    'product_import.duplicate_file_sku': 'Этот артикул указан в файле несколько раз.',
+    'product_import.duplicate_file_barcode': 'Этот штрихкод указан в файле несколько раз.',
+    'product_import.barcode_in_use': 'Штрихкод уже используется другим товаром.',
+    'product_import.category_not_found': 'Активная категория с таким названием не найдена.',
+    'product_import.category_ambiguous': 'Название категории неоднозначно; проверьте справочник категорий.',
+    'product_import.category_inactive': 'Категория с таким названием существует, но отключена. Активируйте её в справочнике.',
+    'product_import.no_update_fields': 'Для обновления заполните хотя бы одно поле помимо артикула.',
     'sales.title': 'Продажа',
     'sales.default_warehouse': 'Общий склад по умолчанию',
     'sales.save_default_warehouse': 'Сохранить склад',
@@ -757,6 +808,57 @@ const translations = {
     'products.edit_price': 'Narxni o‘zgartirish',
     'products.price_dialog_title': 'Narxni o‘zgartirish',
     'products.save_price': 'Narxni saqlash',
+    'product_import.title': 'CSV dan tovarlarni import qilish',
+    'product_import.description': 'XLSX shablonini yuklab oling, «Tovarlar» varag‘ini to‘ldiring, CSV UTF-8 sifatida saqlang va faylni yuklang. Import faqat tovar kartalarini o‘zgartiradi, qoldiqlarga tegmaydi.',
+    'product_import.template': 'XLSX shablonini yuklab olish',
+    'product_import.csv_file': 'CSV fayli',
+    'product_import.mode': 'Artikul mos kelganda',
+    'product_import.mode_skip': 'Mavjud tovarni o‘tkazib yuborish',
+    'product_import.mode_update': 'To‘ldirilgan maydonlarni yangilash',
+    'product_import.create_categories': 'Mavjud bo‘lmagan toifalarni yaratish',
+    'product_import.categories_to_create': 'Yaratiladigan toifalar: {categories}.',
+    'product_import.categories_created': 'Yaratilgan toifalar: {categories}.',
+    'product_import.preview': 'Faylni tekshirish',
+    'product_import.commit': 'Tekshirilgan qatorlarni import qilish',
+    'product_import.download_report': 'CSV hisobotini yuklab olish',
+    'product_import.columns': 'Qator,Artikul,Amal,Xatolar',
+    'product_import.summary': 'Jami qator: {total}; yangi: {create}; yangilanish: {update}; o‘tkazildi: {skip}; xato: {error}.',
+    'product_import.outcome': 'Import tugadi. Qo‘shildi: {create}; yangilandi: {update}; o‘tkazildi: {skip}; xato: {error}.',
+    'product_import.action.create': 'Qo‘shish',
+    'product_import.action.update': 'Yangilash',
+    'product_import.action.skip': 'O‘tkazish',
+    'product_import.action.error': 'Xato',
+    'product_import.invalid_request': 'Import parametrlarini tekshiring.',
+    'product_import.invalid_options': 'Import parametrlarini tekshiring.',
+    'product_import.invalid_language': 'Shablon tili qo‘llab-quvvatlanmaydi.',
+    'product_import.invalid_mode': 'Mos kelgan tovarlar uchun to‘g‘ri rejimni tanlang.',
+    'product_import.invalid_file': 'CSV faylini yuklang.',
+    'product_import.file_too_large': 'Fayl hajmi 2 MiB dan oshmasligi kerak.',
+    'product_import.too_many_rows': 'Faylda 5000 dan ortiq tovar qatori bor.',
+    'product_import.empty_file': 'CSV fayli bo‘sh.',
+    'product_import.invalid_csv': 'CSV formatini va kataklardagi qo‘shtirnoqlarni tekshiring.',
+    'product_import.invalid_headers': 'CSV sarlavhalari shablonga mos emas yoki takrorlangan.',
+    'product_import.extra_columns': 'Qatorda sarlavhalardan ko‘proq katak bor.',
+    'product_import.required_sku': 'Artikulni kiriting.',
+    'product_import.required_name_ru': 'Rus tilidagi nomni kiriting.',
+    'product_import.required_unit': 'Hisob birligini kiriting.',
+    'product_import.required_price_sum': 'So‘mdagi asosiy narxni kiriting.',
+    'product_import.invalid_sku': 'Artikulni tekshiring.',
+    'product_import.invalid_name_ru': 'Ruscha nomni tekshiring.',
+    'product_import.invalid_name_uz': 'O‘zbekcha nomni tekshiring.',
+    'product_import.invalid_unit': 'Hisob birligini tekshiring.',
+    'product_import.invalid_category': 'Toifa nomi juda uzun.',
+    'product_import.invalid_price': 'Narx manfiy bo‘lmasligi va so‘mda verguldan keyin ikki raqamgacha bo‘lishi kerak.',
+    'product_import.invalid_min_stock': 'Minimal qoldiq manfiy bo‘lmasligi va verguldan keyin uch raqamgacha bo‘lishi kerak.',
+    'product_import.invalid_attributes': 'Qo‘shimcha atributlar JSON obyekt bo‘lishi kerak.',
+    'product_import.invalid_row': 'Qator ma’lumotlarini tekshiring.',
+    'product_import.duplicate_file_sku': 'Bu artikul faylda bir necha marta ko‘rsatilgan.',
+    'product_import.duplicate_file_barcode': 'Bu shtrix-kod faylda bir necha marta ko‘rsatilgan.',
+    'product_import.barcode_in_use': 'Shtrix-kod boshqa tovarda ishlatilmoqda.',
+    'product_import.category_not_found': 'Bunday nomli faol toifa topilmadi.',
+    'product_import.category_ambiguous': 'Toifa nomi bir xil; toifalar ro‘yxatini tekshiring.',
+    'product_import.category_inactive': 'Bu nomli toifa mavjud, ammo o‘chirilgan. Uni ma’lumotnomada faollashtiring.',
+    'product_import.no_update_fields': 'Yangilash uchun artikuldan tashqari kamida bitta maydonni to‘ldiring.',
     'sales.title': 'Savdo',
     'sales.default_warehouse': 'Umumiy standart ombor',
     'sales.save_default_warehouse': 'Omborni saqlash',
@@ -1191,6 +1293,12 @@ const state = {
   cashSummary: null,
   report: null,
   reportOptions: null,
+  productImportCsv: null,
+  productImportReport: null,
+  productImportMode: 'skip',
+  productImportCommitted: false,
+  productImportCreateCategories: false,
+  productImportLang: 'ru',
   activePage: 'products',
 };
 let movementOffset = 0;
@@ -1284,6 +1392,8 @@ function setServerAvailability(available) {
 function localize() {
   document.documentElement.lang = state.lang;
   document.querySelectorAll('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
+  $('#product-import-template').href =
+    `/api/products/import/template?lang=${encodeURIComponent(state.lang)}`;
   document.title = state.user
     ? `${document.querySelector(`#${state.activePage}-page h2`)?.textContent ?? t('app.title')} · ${t('app.title')}`
     : t('app.title');
@@ -1354,6 +1464,7 @@ async function api(path, options = {}) {
 
 function showLogin(errorKey = '') {
   setNavigationExpanded(false);
+  resetProductImportPreview();
   state.user = null;
   state.salesContext = null;
   state.salesCart = null;
@@ -1403,6 +1514,7 @@ function showApp(user) {
   $('#navigation [data-page="users"]').hidden = user.permissions.users_manage !== 1;
   $('#navigation [data-page="connection"]').hidden = user.role !== 'admin';
   $('#product-form').hidden = user.permissions.settings !== 1 || user.permissions.price_edit !== 1;
+  $('#product-import-panel').hidden = user.permissions.settings !== 1 || user.permissions.price_edit !== 1;
   if (!$('#product-form').hidden) void loadProductUnits();
   $('#purchase-form').hidden = user.permissions.purchase !== 1;
   $('#held-cart-controls').hidden = user.permissions.hold_cart !== 1;
@@ -1589,6 +1701,140 @@ async function loadProducts() {
     }
   } catch (error) {
     message(error.message);
+  }
+}
+
+function productImportSummary(key, counts, total) {
+  return t(key)
+    .replace('{total}', String(total))
+    .replace('{create}', String(counts.create))
+    .replace('{update}', String(counts.update))
+    .replace('{skip}', String(counts.skip))
+    .replace('{error}', String(counts.error));
+}
+
+function renderProductImportReport(report, preview) {
+  state.productImportReport = report;
+  state.productImportCommitted = !preview;
+  $('#product-import-preview').hidden = false;
+  buildHead('#product-import-head', 'product_import.columns');
+  const body = $('#product-import-body');
+  body.replaceChildren();
+  for (const result of report.rows) {
+    const row = document.createElement('tr');
+    row.append(
+      cell(result.line),
+      cell(result.sku),
+      cell(t(`product_import.action.${result.action}`)),
+      cell(result.errors.map((error) => t(error)).join('; ')),
+    );
+    body.append(row);
+  }
+  $('#product-import-summary').textContent =
+    productImportSummary('product_import.summary', report.counts, report.rows.length);
+  const categoryMessage = $('#product-import-categories');
+  categoryMessage.hidden = report.categoriesToCreate.length === 0;
+  categoryMessage.textContent = report.categoriesToCreate.length === 0
+    ? ''
+    : t(preview ? 'product_import.categories_to_create' : 'product_import.categories_created')
+      .replace('{categories}', report.categoriesToCreate.join(', '));
+  $('#product-import-outcome').textContent = preview
+    ? ''
+    : productImportSummary('product_import.outcome', report.counts, report.rows.length);
+  $('#product-import-commit').disabled =
+    !preview || report.counts.create + report.counts.update === 0;
+  $('#product-import-download').hidden = preview;
+}
+
+function csvCell(value) {
+  let text = String(value ?? '');
+  if (/^[\s]*[=+\-@]/.test(text)) text = `'${text}`;
+  return `"${text.replaceAll('"', '""')}"`;
+}
+
+function downloadProductImportReport() {
+  if (!state.productImportReport) return;
+  const lines = [
+    t('product_import.columns').split(',').map(csvCell).join(','),
+    ...state.productImportReport.rows.map((row) => [
+      row.line,
+      csvCell(row.sku),
+      csvCell(t(`product_import.action.${row.action}`)),
+      csvCell(row.errors.map((error) => t(error)).join('; ')),
+    ].join(',')),
+  ];
+  const blob = new Blob([`\uFEFF${lines.join('\r\n')}`], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'product-import-report.csv';
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function resetProductImportPreview() {
+  state.productImportCsv = null;
+  state.productImportReport = null;
+  state.productImportCommitted = false;
+  $('#product-import-preview').hidden = true;
+  $('#product-import-outcome').textContent = '';
+  $('#product-import-categories').hidden = true;
+  $('#product-import-categories').textContent = '';
+  $('#product-import-commit').disabled = true;
+  $('#product-import-download').hidden = true;
+}
+
+async function previewProductImport(event) {
+  event.preventDefault();
+  try {
+    const file = $('#product-import-file').files[0];
+    if (!file) throw new Error('product_import.invalid_file');
+    if (file.size > 2 * 1024 * 1024) throw new Error('product_import.file_too_large');
+    let csv;
+    try {
+      csv = new TextDecoder('utf-8', { fatal: true }).decode(await file.arrayBuffer());
+    } catch {
+      throw new Error('product_import.invalid_csv');
+    }
+    state.productImportCsv = csv;
+    state.productImportMode = $('#product-import-mode').value;
+    state.productImportCreateCategories = $('#product-import-create-categories').checked;
+    state.productImportLang = state.lang;
+    const report = await api('/api/products/import/preview', {
+      method: 'POST',
+      body: JSON.stringify({
+        csv,
+        mode: state.productImportMode,
+        lang: state.productImportLang,
+        createMissingCategories: state.productImportCreateCategories,
+      }),
+    });
+    renderProductImportReport(report, true);
+  } catch (error) {
+    message(error.message, 'error');
+  }
+}
+
+async function commitProductImport() {
+  if (state.productImportCsv === null || !state.productImportReport) return;
+  const button = $('#product-import-commit');
+  button.disabled = true;
+  try {
+    const report = await api('/api/products/import/commit', {
+      method: 'POST',
+      body: JSON.stringify({
+        csv: state.productImportCsv,
+        mode: state.productImportMode,
+        lang: state.productImportLang,
+        createMissingCategories: state.productImportCreateCategories,
+      }),
+    });
+    renderProductImportReport(report, false);
+    await loadProducts();
+  } catch (error) {
+    message(error.message, 'error');
+    const counts = state.productImportReport?.counts;
+    button.disabled = !counts || counts.create + counts.update === 0;
   }
 }
 
@@ -3704,7 +3950,9 @@ function editPermissions(user) {
 }
 
 $('#language').addEventListener('change', (event) => {
+  const languageChanged = state.lang !== event.target.value;
   state.lang = event.target.value;
+  if (languageChanged) resetProductImportPreview();
   localStorage.setItem('kassa_lang', state.lang);
   localize();
   if (state.user) {
@@ -3766,6 +4014,12 @@ $('#products-body').addEventListener('click', (event) => {
   const button = event.target.closest('[data-edit-product-price]');
   if (button) openPriceDialog(button.dataset.editProductPrice);
 });
+$('#product-import-form').addEventListener('submit', (event) => { void previewProductImport(event); });
+$('#product-import-file').addEventListener('change', resetProductImportPreview);
+$('#product-import-mode').addEventListener('change', resetProductImportPreview);
+$('#product-import-create-categories').addEventListener('change', resetProductImportPreview);
+$('#product-import-commit').addEventListener('click', () => { void commitProductImport(); });
+$('#product-import-download').addEventListener('click', downloadProductImportReport);
 $('#price-form').addEventListener('submit', (event) => { void saveProductPrice(event); });
 $('#price-cancel').addEventListener('click', () => {
   $('#price-dialog').close();

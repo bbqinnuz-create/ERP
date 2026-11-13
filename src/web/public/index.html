@@ -267,6 +267,41 @@
             <label><span data-i18n="products.base_price"></span><input name="base_price" type="number" min="0" step="1" required></label>
             <button type="submit" data-i18n="products.create"></button>
           </form>
+          <section id="product-import-panel" class="product-import-panel" hidden>
+            <h3 data-i18n="product_import.title"></h3>
+            <p data-i18n="product_import.description"></p>
+            <a id="product-import-template" class="button-link" href="/api/products/import/template" data-i18n="product_import.template"></a>
+            <form id="product-import-form" class="form-grid">
+              <label>
+                <span data-i18n="product_import.csv_file"></span>
+                <input id="product-import-file" type="file" accept=".csv,text/csv" required>
+              </label>
+              <label>
+                <span data-i18n="product_import.mode"></span>
+                <select id="product-import-mode">
+                  <option value="skip" data-i18n="product_import.mode_skip"></option>
+                  <option value="update" data-i18n="product_import.mode_update"></option>
+                </select>
+              </label>
+              <label class="product-import-checkbox">
+                <input id="product-import-create-categories" type="checkbox">
+                <span data-i18n="product_import.create_categories"></span>
+              </label>
+              <button type="submit" data-i18n="product_import.preview"></button>
+            </form>
+            <div id="product-import-preview" hidden>
+              <p id="product-import-summary" role="status" aria-live="polite"></p>
+              <p id="product-import-categories" role="status" aria-live="polite" hidden></p>
+              <div class="table-wrap">
+                <table><thead id="product-import-head"></thead><tbody id="product-import-body"></tbody></table>
+              </div>
+              <div class="product-import-actions">
+                <button id="product-import-commit" type="button" data-i18n="product_import.commit" disabled></button>
+                <button id="product-import-download" type="button" class="button-secondary" data-i18n="product_import.download_report" hidden></button>
+              </div>
+              <p id="product-import-outcome" role="status" aria-live="polite"></p>
+            </div>
+          </section>
           <div class="table-wrap"><table><thead id="products-head"></thead><tbody id="products-body"></tbody></table></div>
         </section>
         <section id="stock-page" class="page" hidden>

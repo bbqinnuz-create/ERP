@@ -17,7 +17,11 @@ export const REFERENCE_TYPES = [
 export type ReferenceType = (typeof REFERENCE_TYPES)[number];
 
 const DEFAULT_PRODUCT_UNITS = ['шт', 'кг', 'тн', 'метр'] as const;
-const PRODUCT_INPUT_FIELDS = new Set(['sku', 'name', 'unit', 'base_price']);
+const LEGACY_PRODUCT_INPUT_FIELDS = new Set(['sku', 'name', 'unit', 'base_price']);
+const PRODUCT_INPUT_FIELDS = new Set([
+  'sku', 'name', 'name_ru', 'name_uz', 'category_id', 'unit', 'attributes',
+  'base_price', 'min_stock', 'barcode',
+]);
 
 interface ReferenceSpec {
   table: string;
@@ -218,20 +222,28 @@ function registerProductUnit(db: Db, actorId: string, unit: string): string {
   return unit;
 }
 
-function normalize(type: ReferenceType, input: unknown, existing?: Record<string, unknown>): Record<string, unknown> {
+function normalize(
+  type: ReferenceType,
+  input: unknown,
+  existing: Record<string, unknown> | undefined,
+  allowExtendedProductFields: boolean,
+): Record<string, unknown> {
   const spec = SPECS[type];
   let source = assertRecord(input);
   if (type === 'products') {
-    if (Object.keys(source).some((key) => !PRODUCT_INPUT_FIELDS.has(key))) {
+    const acceptedFields = allowExtendedProductFields ? PRODUCT_INPUT_FIELDS : LEGACY_PRODUCT_INPUT_FIELDS;
+    if (Object.keys(source).some((key) => !acceptedFields.has(key))) {
       throw new AuthError(400, 'validation.unknown_field');
     }
-    const productInput: Record<string, unknown> = {};
-    for (const key of ['sku', 'unit', 'base_price']) {
-      if (Object.prototype.hasOwnProperty.call(source, key)) productInput[key] = source[key];
-    }
+    const productInput = Object.fromEntries(
+      Object.entries(source).filter(([key]) => key !== 'name'),
+    );
     if (Object.prototype.hasOwnProperty.call(source, 'name')) {
+      if (Object.prototype.hasOwnProperty.call(source, 'name_ru')) {
+        throw new AuthError(400, 'validation.unknown_field');
+      }
       productInput.name_ru = source.name;
-      productInput.name_uz = null;
+      if (!allowExtendedProductFields) productInput.name_uz = null;
     }
     source = productInput;
   }
@@ -284,12 +296,13 @@ export function listReferences(db: Db, type: ReferenceType, includeInactive = fa
   return rows.map((row) => publicReference(type, row));
 }
 
-export function saveReference(
+function saveReferenceInternal(
   db: Db,
   actorId: string,
   type: ReferenceType,
   input: unknown,
   id?: string,
+  allowExtendedProductFields = false,
 ): Record<string, unknown> {
   const spec = SPECS[type];
   return inTransaction(db, () => {
@@ -297,7 +310,7 @@ export function saveReference(
       ? (db.prepare(`SELECT * FROM ${spec.table} WHERE id = ?`).get(id) as Record<string, unknown> | undefined)
       : undefined;
     if (id && !before) throw new AuthError(404, 'references.not_found');
-    const values = normalize(type, input, before);
+    const values = normalize(type, input, before, allowExtendedProductFields);
     const now = nowIso();
     if (type === 'products') values.unit = registerProductUnit(db, actorId, String(values.unit));
     if (before) {
@@ -340,6 +353,25 @@ export function saveReference(
     });
     return publicReference(type, after);
   });
+}
+
+export function saveReference(
+  db: Db,
+  actorId: string,
+  type: ReferenceType,
+  input: unknown,
+  id?: string,
+): Record<string, unknown> {
+  return saveReferenceInternal(db, actorId, type, input, id);
+}
+
+export function saveImportedProduct(
+  db: Db,
+  actorId: string,
+  input: unknown,
+  id?: string,
+): Record<string, unknown> {
+  return saveReferenceInternal(db, actorId, 'products', input, id, true);
 }
 
 export function setReferenceActive(db: Db, actorId: string, type: ReferenceType, id: string, active: boolean): void {
