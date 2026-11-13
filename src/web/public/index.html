@@ -34,6 +34,7 @@
           <button id="logout" type="button" data-i18n="auth.logout"></button>
         </div>
         <nav id="navigation">
+          <button type="button" data-page="sales" data-i18n="nav.sales"></button>
           <button type="button" data-page="products" data-i18n="nav.products"></button>
           <button type="button" data-page="stock" data-i18n="nav.stock"></button>
           <button type="button" data-page="purchases" data-i18n="nav.purchases"></button>
@@ -41,6 +42,50 @@
           <button type="button" data-page="users" data-i18n="nav.users"></button>
           <button type="button" data-page="connection" data-i18n="nav.connection" hidden></button>
         </nav>
+        <section id="sales-page" class="page" hidden>
+          <h2 data-i18n="sales.title"></h2>
+          <div id="sales-warehouse-config" hidden>
+            <label>
+              <span data-i18n="sales.default_warehouse"></span>
+              <select id="sales-default-warehouse"></select>
+            </label>
+            <button id="save-default-warehouse" type="button" data-i18n="sales.save_default_warehouse"></button>
+          </div>
+          <p id="sales-warehouse-status" role="status"></p>
+          <label>
+            <span data-i18n="sales.search"></span>
+            <input id="sales-search" type="search" autocomplete="off">
+          </label>
+          <div id="sales-search-results" class="sales-results"></div>
+          <form id="sales-checkout">
+            <label>
+              <span data-i18n="sales.customer"></span>
+              <select id="sales-customer"></select>
+            </label>
+            <h3 data-i18n="sales.cart"></h3>
+            <div class="table-wrap">
+              <table><thead id="sales-cart-head"></thead><tbody id="sales-cart-body"></tbody></table>
+            </div>
+            <div id="sales-check-discount">
+              <label>
+                <span data-i18n="sales.check_discount"></span>
+                <select id="sales-check-discount-kind">
+                  <option value="percent" data-i18n="sales.discount_percent"></option>
+                  <option value="amount" data-i18n="sales.discount_amount"></option>
+                </select>
+                <input id="sales-check-discount-value" type="text" inputmode="decimal">
+              </label>
+            </div>
+            <h3 data-i18n="sales.payments"></h3>
+            <div id="sales-payments" class="sales-payments"></div>
+            <p id="sales-summary" aria-live="polite"></p>
+            <button id="sales-submit" type="submit" data-i18n="sales.submit"></button>
+          </form>
+          <section id="sales-receipt" hidden>
+            <h3 data-i18n="sales.receipt"></h3>
+            <p id="sales-receipt-summary"></p>
+          </section>
+        </section>
         <section id="products-page" class="page">
           <h2 data-i18n="products.title"></h2>
           <form id="product-form" class="form-grid">

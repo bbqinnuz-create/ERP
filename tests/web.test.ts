@@ -1,9 +1,11 @@
 import type { AddressInfo } from 'node:net';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { bootstrapAdmin, createUser, login, setUserPermissions } from '../src/modules/auth/service';
+import { createPurchase } from '../src/modules/purchases/service';
+import { saveReference } from '../src/modules/references/service';
 import { createWebServer } from '../src/web/app-server';
 import type { Server } from 'node:http';
-import { makeEnv, type TestEnv } from './helpers';
+import { addProduct, makeEnv, type TestEnv } from './helpers';
 
 let env: TestEnv;
 let server: Server;
@@ -243,5 +245,101 @@ describe('HTTP API этапа 2', () => {
     const statusResponse = await fetch(`${baseUrl}/api/auth/status`, { headers: { Cookie: oldCookie } });
     expect(statusResponse.status).toBe(401);
     expect(await statusResponse.json()).toMatchObject({ errorKey: 'auth.session_replaced' });
+  });
+
+  it('защищает корзину правом sell и проводит чек с общим складом и идемпотентностью', async () => {
+    const adminCookie = await loginCookie();
+    expect((await fetch(`${baseUrl}/api/cart`)).status).toBe(401);
+
+    const extraWarehouse = saveReference(env.db, adminId, 'warehouses', {
+      branch_id: env.branchId,
+      name: 'Дополнительный склад',
+    });
+    const contextBefore = await fetch(`${baseUrl}/api/sales/context`, { headers: { Cookie: adminCookie } });
+    expect(contextBefore.status).toBe(200);
+    expect((await contextBefore.json() as { defaultWarehouseId: string | null }).defaultWarehouseId).toBeNull();
+
+    const invalidSetting = await fetch(`${baseUrl}/api/settings`, {
+      method: 'PUT',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ default_warehouse_id: 'missing-warehouse' }),
+    });
+    expect(invalidSetting.status).toBe(400);
+    expect(await invalidSetting.json()).toMatchObject({ errorKey: 'settings.invalid_default_warehouse' });
+    const savedSetting = await fetch(`${baseUrl}/api/settings`, {
+      method: 'PUT',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ default_warehouse_id: env.warehouseId }),
+    });
+    expect(savedSetting.status).toBe(200);
+    expect(extraWarehouse.id).not.toBe(env.warehouseId);
+
+    const cashier = await createUser(env.db, adminId, {
+      login: 'cart-denied',
+      password: 'cashier secure password',
+      fullName: 'No Sale Permission',
+      role: 'cashier',
+      lang: 'ru',
+    });
+    const cashierCookie = await loginCookie('cart-denied', 'cashier secure password');
+    expect((await fetch(`${baseUrl}/api/cart`, { headers: { Cookie: cashierCookie } })).status).toBe(403);
+    setUserPermissions(env.db, adminId, cashier.id, { sell: 1 });
+
+    const productId = addProduct(env.db, 'WEB-SALE', 'шт', 20_000);
+    createPurchase(env.db, adminId, {
+      warehouseId: env.warehouseId,
+      date: '2026-11-13',
+      lines: [{ productId, qty: '2', unitCost: 1_000_000 }],
+    });
+    const added = await fetch(`${baseUrl}/api/cart/lines`, {
+      method: 'POST',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, qty: '1' }),
+    });
+    expect(added.status).toBe(200);
+    expect((await added.json() as { cart: { lines: Array<{ qty: number }> } }).cart.lines[0]).toMatchObject({ qty: 1000 });
+
+    const quote = await fetch(`${baseUrl}/api/sales/quote`, {
+      method: 'POST',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    expect(quote.status).toBe(200);
+    expect((await quote.json() as { quote: { total: number } }).quote.total).toBe(2_000_000);
+    const clientPrice = await fetch(`${baseUrl}/api/sales/quote`, {
+      method: 'POST',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ unitPrice: 1 }),
+    });
+    expect(clientPrice.status).toBe(400);
+
+    const cashMethodId = (env.db.prepare("SELECT id FROM payment_methods WHERE kind = 'cash'").get() as { id: string }).id;
+    const saleInput = {
+      idempotencyKey: 'web-sale-once',
+      payments: [{ methodId: cashMethodId, amount: 2_000_000, tendered: 2_000_000 }],
+    };
+    const saleResponse = await fetch(`${baseUrl}/api/sales`, {
+      method: 'POST',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify(saleInput),
+    });
+    expect(saleResponse.status).toBe(201);
+    const sale = await saleResponse.json() as {
+      sale: Record<string, unknown>;
+      replayed: boolean;
+    };
+    expect(sale.sale).toMatchObject({ number: 'A-000001', total: 2_000_000, paidTotal: 2_000_000 });
+    expect(sale.sale).not.toHaveProperty('cost_total');
+    expect(sale.sale).not.toHaveProperty('profit');
+    expect(sale.replayed).toBe(false);
+
+    const replay = await fetch(`${baseUrl}/api/sales`, {
+      method: 'POST',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify(saleInput),
+    });
+    expect(replay.status).toBe(200);
+    expect(await replay.json()).toMatchObject({ sale: { id: sale.sale.id }, replayed: true });
+    expect((env.db.prepare('SELECT COUNT(*) AS count FROM sales').get() as { count: number }).count).toBe(1);
   });
 });

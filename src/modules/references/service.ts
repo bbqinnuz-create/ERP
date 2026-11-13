@@ -101,6 +101,7 @@ const SETTING_RULES: Record<string, (value: string) => boolean> = {
   return_without_receipt: (value) => value === '0',
   timezone: (value) => value === 'Asia/Tashkent',
   product_units: validProductUnitsSetting,
+  default_warehouse_id: (value) => value.length > 0 && value.length <= 64,
 };
 
 function assertRecord(input: unknown): Record<string, unknown> {
@@ -385,6 +386,14 @@ export function updateSettings(db: Db, actorId: string, input: unknown): Record<
 
   return inTransaction(db, () => {
     const before = getSettings(db);
+    for (const [key, value] of normalized) {
+      if (key !== 'default_warehouse_id') continue;
+      const warehouse = db.prepare(
+        `SELECT 1 FROM warehouses w JOIN branches b ON b.id = w.branch_id
+         WHERE w.id = ? AND w.active = 1 AND b.active = 1`,
+      ).get(value);
+      if (!warehouse) throw new AuthError(400, 'settings.invalid_default_warehouse');
+    }
     const upsert = db.prepare(
       `INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)
        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,

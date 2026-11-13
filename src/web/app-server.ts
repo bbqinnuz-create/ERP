@@ -8,6 +8,8 @@ import type { Db } from '../db/connection';
 import { AuthError, createUserForSession, listUsers, login, logout, setUserPermissions, updateUserForSession, withAuthorizedUser } from '../modules/auth/service';
 import { hasPermission, type Permission } from '../modules/auth/permissions';
 import { createPurchase, getPurchase, listPurchases, reversePurchase } from '../modules/purchases/service';
+import { addCartLine, getActiveCart, removeCartLine, setCartLineQty } from '../modules/carts/service';
+import { createSale, getSalesContext, quoteSale } from '../modules/sales/service';
 import { reconcileStockCaches } from '../modules/stock/ledger';
 import { listLanConnectionAddresses } from './connection-info';
 import {
@@ -250,6 +252,55 @@ async function handleApi(
   if (path === '/api/stock' && method === 'GET') {
     const rows = withAuthorizedUser(db, token, null, () => listStock(db), now());
     sendJson(res, 200, { rows });
+    return;
+  }
+
+  if (path === '/api/sales/context' && method === 'GET') {
+    const context = withAuthorizedUser(db, token, 'sell', () => getSalesContext(db), now());
+    sendJson(res, 200, context);
+    return;
+  }
+  if (path === '/api/cart' && method === 'GET') {
+    const cart = withAuthorizedUser(db, token, 'sell', (session) => getActiveCart(db, session.user.id), now());
+    sendJson(res, 200, { cart });
+    return;
+  }
+  if (path === '/api/cart/lines' && method === 'POST') {
+    const body = await readJson(req);
+    const cart = withAuthorizedUser(db, token, 'sell', (session) => addCartLine(db, session.user.id, body), now());
+    sendJson(res, 200, { cart });
+    return;
+  }
+  const cartLineRoute = /^\/api\/cart\/lines\/([^/]+)$/.exec(path);
+  if (cartLineRoute) {
+    const productId = decodeURIComponent(cartLineRoute[1]!);
+    if (method === 'PATCH') {
+      const body = await readJson(req);
+      if (Object.keys(body).some((key) => key !== 'qty')) throw new AuthError(400, 'validation.unknown_field');
+      const cart = withAuthorizedUser(db, token, 'sell',
+        (session) => setCartLineQty(db, session.user.id, productId, body.qty), now());
+      sendJson(res, 200, { cart });
+      return;
+    }
+    if (method === 'DELETE') {
+      const cart = withAuthorizedUser(db, token, 'sell',
+        (session) => removeCartLine(db, session.user.id, productId), now());
+      sendJson(res, 200, { cart });
+      return;
+    }
+  }
+  if (path === '/api/sales/quote' && method === 'POST') {
+    const body = await readJson(req);
+    const quote = withAuthorizedUser(db, token, 'sell',
+      (session) => quoteSale(db, session.user.id, body), now());
+    sendJson(res, 200, { quote });
+    return;
+  }
+  if (path === '/api/sales' && method === 'POST') {
+    const body = await readJson(req);
+    const result = withAuthorizedUser(db, token, 'sell',
+      (session) => createSale(db, session.user.id, session.user.lang, body), now());
+    sendJson(res, result.replayed ? 200 : 201, { ...result.receipt, replayed: result.replayed });
     return;
   }
 

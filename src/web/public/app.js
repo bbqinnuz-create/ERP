@@ -1,12 +1,14 @@
 const translations = {
   ru: {
     'app.title': 'Учёт магазина',
+    'money.currency': 'сум',
     'language.label': 'Язык',
     'login.title': 'Вход',
     'login.login': 'Логин',
     'login.password': 'Пароль',
     'login.submit': 'Войти',
     'auth.logout': 'Выйти',
+    'nav.sales': 'Касса',
     'nav.products': 'Товары',
     'nav.stock': 'Остатки',
     'nav.purchases': 'Приходы',
@@ -31,6 +33,48 @@ const translations = {
     'products.create': 'Добавить товар',
     'products.empty': 'Товаров пока нет',
     'products.columns': 'Артикул,Товар,Единица,Цена,Статус',
+    'sales.title': 'Продажа',
+    'sales.default_warehouse': 'Общий склад по умолчанию',
+    'sales.save_default_warehouse': 'Сохранить склад',
+    'sales.warehouse_unconfigured': 'Настройте общий склад по умолчанию.',
+    'sales.no_warehouse': 'Нет активного склада.',
+    'sales.search': 'Поиск по названию, артикулу или штрихкоду',
+    'sales.add': 'Добавить',
+    'sales.no_products': 'Товары не найдены.',
+    'sales.out_of_stock': 'Нет доступного остатка',
+    'sales.customer': 'Клиент (необязательно)',
+    'sales.no_customer': 'Без клиента',
+    'sales.cart': 'Корзина',
+    'sales.cart_columns': 'Товар,Количество,Цена,Ручная скидка (б.п.),Сумма,Действие',
+    'sales.remove': 'Убрать',
+    'sales.manual_discount': 'Ручная скидка в базисных пунктах',
+    'sales.check_discount': 'Скидка на чек',
+    'sales.discount_percent': 'Процент',
+    'sales.discount_amount': 'Сумма в тийинах',
+    'sales.payments': 'Оплата',
+    'sales.payment_amount': 'Оплачиваемая сумма в сумах',
+    'sales.tendered': 'Получено наличными в сумах',
+    'sales.total': 'Итого',
+    'sales.paid': 'Оплата',
+    'sales.due': 'Остаток в долг',
+    'sales.submit': 'Оплатить',
+    'sales.receipt': 'Чек создан',
+    'sales.receipt_summary': 'Чек {number}; итого {total}; оплачено {paid}; долг {debt}; сдача {change}.',
+    'sales.no_payment_method': 'Нет активных способов оплаты.',
+    'cart.empty': 'Корзина пуста.',
+    'cart.line_not_found': 'Строка корзины не найдена.',
+    'cart.not_active': 'Корзина уже закрыта.',
+    'sale.cart_product_inactive': 'В корзине есть неактивный товар. Удалите его.',
+    'sale.discount_limit_exceeded': 'Скидка превышает лимит. Уменьшите скидку.',
+    'sale.discount_not_allowed': 'У вас нет права на эту скидку.',
+    'sale.below_cost': 'Продажа ниже себестоимости запрещена.',
+    'sale.overpayment': 'Сумма оплат больше суммы чека.',
+    'sale.customer_required_for_debt': 'Для продажи в долг выберите клиента.',
+    'sale.idempotency_conflict': 'Ключ запроса уже использован для другой операции.',
+    'settings.default_warehouse_required': 'Администратор должен выбрать общий склад по умолчанию.',
+    'settings.default_warehouse_unavailable': 'Общий склад отключён. Настройте другой активный склад.',
+    'settings.invalid_default_warehouse': 'Выберите активный склад.',
+    'sales.no_active_warehouse': 'Нет активного склада.',
     'stock.title': 'Остатки',
     'stock.warehouse': 'Склад',
     'stock.columns': 'Товар,Склад,Количество,Резерв',
@@ -97,6 +141,13 @@ const translations = {
     'validation.invalid_limit': 'Недопустимый лимит строк.',
     'validation.invalid_offset': 'Недопустимая позиция страницы.',
     'validation.invalid_unit_price': 'Цена должна быть целым числом тийинов не меньше нуля.',
+    'validation.invalid_discount': 'Проверьте параметры скидки.',
+    'validation.invalid_payment_amount': 'Введите сумму в сумах с точностью до тийина.',
+    'validation.invalid_payments': 'Проверьте способы и суммы оплаты.',
+    'validation.invalid_payment_method': 'Выберите активный способ оплаты.',
+    'validation.invalid_payment_method_id': 'Выберите активный способ оплаты.',
+    'validation.invalid_customer': 'Выберите активного клиента.',
+    'validation.invalid_idempotency_key': 'Не удалось защитить чек от повторного создания.',
     'status.select_option': 'Выберите значение',
     'status.all': 'Все',
     'status.no_data': 'Нет данных',
@@ -193,12 +244,14 @@ const translations = {
   },
   uz: {
     'app.title': 'Do‘kon hisobi',
+    'money.currency': 'soʻm',
     'language.label': 'Til',
     'login.title': 'Kirish',
     'login.login': 'Login',
     'login.password': 'Parol',
     'login.submit': 'Kirish',
     'auth.logout': 'Chiqish',
+    'nav.sales': 'Kassa',
     'nav.products': 'Tovarlar',
     'nav.stock': 'Qoldiqlar',
     'nav.purchases': 'Kirimlar',
@@ -223,6 +276,48 @@ const translations = {
     'products.create': 'Tovar qo‘shish',
     'products.empty': 'Hozircha tovar yo‘q',
     'products.columns': 'Artikul,Tovar,Birlik,Narx,Holat',
+    'sales.title': 'Savdo',
+    'sales.default_warehouse': 'Umumiy standart ombor',
+    'sales.save_default_warehouse': 'Omborni saqlash',
+    'sales.warehouse_unconfigured': 'Umumiy standart omborni sozlang.',
+    'sales.no_warehouse': 'Faol ombor yo‘q.',
+    'sales.search': 'Nomi, artikul yoki shtrix-kod bo‘yicha qidirish',
+    'sales.add': 'Qo‘shish',
+    'sales.no_products': 'Tovar topilmadi.',
+    'sales.out_of_stock': 'Mavjud qoldiq yo‘q',
+    'sales.customer': 'Mijoz (ixtiyoriy)',
+    'sales.no_customer': 'Mijozsiz',
+    'sales.cart': 'Savat',
+    'sales.cart_columns': 'Tovar,Miqdor,Narx,Qo‘lda chegirma (b.p.),Summa,Amal',
+    'sales.remove': 'Olib tashlash',
+    'sales.manual_discount': 'Bazis punktlarida qo‘lda chegirma',
+    'sales.check_discount': 'Chek uchun chegirma',
+    'sales.discount_percent': 'Foiz',
+    'sales.discount_amount': 'Tiyindagi summa',
+    'sales.payments': 'To‘lov',
+    'sales.payment_amount': 'So‘mda to‘lanadigan summa',
+    'sales.tendered': 'Naqd olingan summa (so‘m)',
+    'sales.total': 'Jami',
+    'sales.paid': 'To‘lov',
+    'sales.due': 'Qarz qoldig‘i',
+    'sales.submit': 'To‘lash',
+    'sales.receipt': 'Chek yaratildi',
+    'sales.receipt_summary': 'Chek {number}; jami {total}; to‘landi {paid}; qarz {debt}; qaytim {change}.',
+    'sales.no_payment_method': 'Faol to‘lov usuli yo‘q.',
+    'cart.empty': 'Savat bo‘sh.',
+    'cart.line_not_found': 'Savat qatori topilmadi.',
+    'cart.not_active': 'Savat allaqachon yopilgan.',
+    'sale.cart_product_inactive': 'Savatda faol bo‘lmagan tovar bor. Uni olib tashlang.',
+    'sale.discount_limit_exceeded': 'Chegirma limitdan oshdi. Chegirmani kamaytiring.',
+    'sale.discount_not_allowed': 'Bu chegirma uchun huquqingiz yo‘q.',
+    'sale.below_cost': 'Tannarxdan past sotish taqiqlangan.',
+    'sale.overpayment': 'To‘lovlar summasi chek summasidan oshdi.',
+    'sale.customer_required_for_debt': 'Nasiyaga sotish uchun mijozni tanlang.',
+    'sale.idempotency_conflict': 'So‘rov kaliti boshqa amal uchun ishlatilgan.',
+    'settings.default_warehouse_required': 'Administrator umumiy standart omborni tanlashi kerak.',
+    'settings.default_warehouse_unavailable': 'Umumiy ombor o‘chirilgan. Boshqa faol omborni sozlang.',
+    'settings.invalid_default_warehouse': 'Faol omborni tanlang.',
+    'sales.no_active_warehouse': 'Faol ombor yo‘q.',
     'stock.title': 'Qoldiqlar',
     'stock.warehouse': 'Ombor',
     'stock.columns': 'Tovar,Ombor,Miqdor,Rezerv',
@@ -289,6 +384,13 @@ const translations = {
     'validation.invalid_limit': 'Qatorlar soni noto‘g‘ri.',
     'validation.invalid_offset': 'Sahifa o‘rni noto‘g‘ri.',
     'validation.invalid_unit_price': 'Narx butun tiyinlarda va manfiy bo‘lmasligi kerak.',
+    'validation.invalid_discount': 'Chegirma parametrlarini tekshiring.',
+    'validation.invalid_payment_amount': 'Summani so‘mda tiyingacha aniqlik bilan kiriting.',
+    'validation.invalid_payments': 'To‘lov usullari va summalarini tekshiring.',
+    'validation.invalid_payment_method': 'Faol to‘lov usulini tanlang.',
+    'validation.invalid_payment_method_id': 'Faol to‘lov usulini tanlang.',
+    'validation.invalid_customer': 'Faol mijozni tanlang.',
+    'validation.invalid_idempotency_key': 'Chekni takror yaratishdan himoyalab bo‘lmadi.',
     'status.select_option': 'Qiymatni tanlang',
     'status.all': 'Barchasi',
     'status.no_data': 'Ma’lumot yo‘q',
@@ -392,11 +494,21 @@ const permissionKeys = [
   'discount_check_limit_bp', 'discount_manual_limit_bp',
 ];
 
-const state = { lang: localStorage.getItem('kassa_lang') === 'uz' ? 'uz' : 'ru', user: null, selectedUser: null };
+const state = {
+  lang: localStorage.getItem('kassa_lang') === 'uz' ? 'uz' : 'ru',
+  user: null,
+  selectedUser: null,
+  salesContext: null,
+  salesCart: null,
+  salesQuote: null,
+  salesManualDiscounts: {},
+};
 let movementOffset = 0;
 let inventoryProducts = [];
 let inventoryWarehouses = [];
 let sessionCheckInFlight = false;
+let salesQuoteTimer = null;
+let saleAttemptId = null;
 const $ = (selector) => document.querySelector(selector);
 const t = (key) => {
   const direct = translations[state.lang][key];
@@ -431,6 +543,11 @@ async function api(path, options = {}) {
 
 function showLogin(errorKey = '') {
   state.user = null;
+  state.salesContext = null;
+  state.salesCart = null;
+  state.salesQuote = null;
+  state.salesManualDiscounts = {};
+  saleAttemptId = null;
   $('#login-view').hidden = false;
   $('#app-view').hidden = true;
   $('#permission-editor').hidden = true;
@@ -446,6 +563,7 @@ function showApp(user) {
   $('#login-view').hidden = true;
   $('#app-view').hidden = false;
   $('#current-user').textContent = `${user.fullName} (${user.login})`;
+  $('#navigation [data-page="sales"]').hidden = user.permissions.sell !== 1;
   $('#navigation [data-page="users"]').hidden = user.permissions.users_manage !== 1;
   $('#navigation [data-page="connection"]').hidden = user.role !== 'admin';
   $('#product-form').hidden = user.permissions.settings !== 1 || user.permissions.price_edit !== 1;
@@ -457,6 +575,7 @@ function showApp(user) {
   showPage('products');
   void loadInventoryOptions();
   void loadProducts();
+  if (user.permissions.sell === 1) void loadSalesPage();
 }
 
 async function checkSessionStatus() {
@@ -474,6 +593,7 @@ async function checkSessionStatus() {
 function showPage(name) {
   document.querySelectorAll('.page').forEach((page) => { page.hidden = page.id !== `${name}-page`; });
   if (name === 'users' && state.user?.permissions.users_manage === 1) void loadUsers();
+  if (name === 'sales' && state.user?.permissions.sell === 1) void loadSalesPage();
   if (name === 'stock') void loadStock();
   if (name === 'purchases') void loadPurchases();
   if (name === 'movements') void loadMovementHistory();
@@ -643,6 +763,433 @@ async function loadInventoryOptions() {
     document.querySelectorAll('#purchase-lines [data-purchase-product]').forEach((select) => setProductOptions(select));
   } catch (error) {
     message(error.message);
+  }
+}
+
+function formatMoney(value) {
+  const negative = value < 0;
+  const absolute = Math.abs(value);
+  const sums = Math.floor(absolute / 100);
+  const tiyin = absolute % 100;
+  const grouped = String(sums).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
+  const fraction = tiyin ? `${state.lang === 'uz' ? '.' : ','}${String(tiyin).padStart(2, '0')}` : '';
+  return `${negative ? '−' : ''}${grouped}${fraction} ${t('money.currency')}`;
+}
+
+function moneyTextToTiyin(value) {
+  const normalized = value.replace(/[\s\u00a0\u202f]/g, '').replace(',', '.');
+  const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(normalized);
+  if (!match) throw new Error('validation.invalid_payment_amount');
+  const amount = BigInt(match[1]) * 100n + BigInt((match[2] ?? '').padEnd(2, '0') || '0');
+  if (amount > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('validation.invalid_payment_amount');
+  return Number(amount);
+}
+
+function percentTextToBasisPoints(value) {
+  const normalized = value.replace(',', '.').trim();
+  const match = /^(\d{1,3})(?:\.(\d{1,2}))?$/.exec(normalized);
+  if (!match) throw new Error('validation.invalid_discount');
+  const basisPoints = Number(match[1]) * 100 + Number((match[2] ?? '').padEnd(2, '0') || '0');
+  if (!Number.isSafeInteger(basisPoints) || basisPoints > 10_000) {
+    throw new Error('validation.invalid_discount');
+  }
+  return basisPoints;
+}
+
+function salesOptions() {
+  const customerId = $('#sales-customer').value || null;
+  const manualDiscounts = Object.entries(state.salesManualDiscounts)
+    .filter(([, value]) => value !== '' && Number(value) > 0)
+    .map(([productId, value]) => {
+      const valueBp = Number(value);
+      if (!Number.isSafeInteger(valueBp) || valueBp < 0 || valueBp > 10_000) {
+        throw new Error('validation.invalid_discount');
+      }
+      return { productId, discount: { kind: 'percent', valueBp } };
+    });
+  let checkDiscount = null;
+  if (state.user?.permissions.discount_check === 1) {
+    const value = $('#sales-check-discount-value').value.trim();
+    if (value) {
+      const kind = $('#sales-check-discount-kind').value;
+      checkDiscount = kind === 'percent'
+        ? { kind, valueBp: percentTextToBasisPoints(value) }
+        : { kind, amount: Number(value) };
+      if (kind === 'amount' &&
+          (!Number.isSafeInteger(checkDiscount.amount) || checkDiscount.amount < 0)) {
+        throw new Error('validation.invalid_discount');
+      }
+    }
+  }
+  return { customerId, manualDiscounts, checkDiscount };
+}
+
+function setSalesDefaultWarehouseOptions() {
+  const select = $('#sales-default-warehouse');
+  if (!select || !state.salesContext) return;
+  const options = [makeOption('', t('status.select_option'))];
+  for (const warehouse of state.salesContext.warehouses) {
+    options.push(makeOption(warehouse.id, warehouse.name));
+  }
+  select.replaceChildren(...options);
+  select.value = state.salesContext.defaultWarehouseId ?? '';
+}
+
+function renderSalesCustomers() {
+  const select = $('#sales-customer');
+  const selected = select.value;
+  const options = [makeOption('', t('sales.no_customer'))];
+  for (const customer of state.salesContext?.customers ?? []) {
+    options.push(makeOption(customer.id, customer.name));
+  }
+  select.replaceChildren(...options);
+  if (options.some((option) => option.value === selected)) select.value = selected;
+}
+
+function renderSalesPayments() {
+  const container = $('#sales-payments');
+  container.replaceChildren();
+  const methods = state.salesContext?.paymentMethods ?? [];
+  if (methods.length === 0) {
+    container.textContent = t('sales.no_payment_method');
+    return;
+  }
+  for (const method of methods) {
+    const card = document.createElement('div');
+    card.className = 'sales-payment';
+    const title = document.createElement('strong');
+    title.textContent = method.name;
+    const fields = document.createElement('div');
+    fields.className = 'sales-payment-fields';
+    const amountLabel = document.createElement('label');
+    const amountCaption = document.createElement('span');
+    amountCaption.textContent = t('sales.payment_amount');
+    const amount = document.createElement('input');
+    amount.type = 'text';
+    amount.inputMode = 'decimal';
+    amount.dataset.paymentAmount = method.id;
+    amount.setAttribute('aria-label', `${method.name}: ${t('sales.payment_amount')}`);
+    amount.addEventListener('input', renderSalesSummary);
+    amountLabel.append(amountCaption, amount);
+    fields.append(amountLabel);
+    if (method.kind === 'cash') {
+      const tenderedLabel = document.createElement('label');
+      const tenderedCaption = document.createElement('span');
+      tenderedCaption.textContent = t('sales.tendered');
+      const tendered = document.createElement('input');
+      tendered.type = 'text';
+      tendered.inputMode = 'decimal';
+      tendered.dataset.paymentTendered = method.id;
+      tendered.setAttribute('aria-label', `${method.name}: ${t('sales.tendered')}`);
+      tendered.addEventListener('input', renderSalesSummary);
+      tenderedLabel.append(tenderedCaption, tendered);
+      fields.append(tenderedLabel);
+    }
+    card.append(title, fields);
+    container.append(card);
+  }
+}
+
+function renderSalesProducts() {
+  const container = $('#sales-search-results');
+  if (!container || !state.salesContext) return;
+  const query = $('#sales-search').value.trim().toLocaleLowerCase();
+  const matches = state.salesContext.products.filter((product) =>
+    `${product.sku} ${product.name} ${product.barcode ?? ''}`.toLocaleLowerCase().includes(query));
+  const visible = matches.slice(0, 30);
+  const rows = visible.map((product) => {
+    const row = document.createElement('div');
+    row.className = 'sales-product';
+    const info = document.createElement('span');
+    info.textContent = `${product.sku} — ${product.name} (${formatQuantity(product.availableQty)} ${product.unit}) — ${formatMoney(product.base_price)}`;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.addProduct = product.id;
+    button.textContent = product.availableQty > 0 ? t('sales.add') : t('sales.out_of_stock');
+    button.disabled = !state.salesContext.warehouse || product.availableQty <= 0;
+    button.addEventListener('click', () => { void addSalesProduct(product.id); });
+    row.append(info, button);
+    return row;
+  });
+  if (rows.length === 0) {
+    const empty = document.createElement('p');
+    empty.textContent = t('sales.no_products');
+    rows.push(empty);
+  }
+  container.replaceChildren(...rows);
+}
+
+function renderSalesCart() {
+  const body = $('#sales-cart-body');
+  buildHead('#sales-cart-head', 'sales.cart_columns');
+  body.replaceChildren();
+  const cart = state.salesCart;
+  if (!cart || cart.lines.length === 0) {
+    const row = document.createElement('tr');
+    const empty = cell(t('cart.empty'));
+    empty.colSpan = 6;
+    row.append(empty);
+    body.append(row);
+    renderSalesSummary();
+    return;
+  }
+  const canDiscount = state.user?.permissions.discount_manual === 1;
+  for (const line of cart.lines) {
+    const row = document.createElement('tr');
+    row.dataset.salesProductId = line.productId;
+    row.append(cell(`${line.sku} — ${line.name} (${line.unit})`));
+    const qtyCell = document.createElement('td');
+    const qty = document.createElement('input');
+    qty.type = 'text';
+    qty.inputMode = 'decimal';
+    qty.value = formatQuantity(line.qty);
+    qty.dataset.cartQty = line.productId;
+    qty.setAttribute('aria-label', t('purchases.qty'));
+    qty.addEventListener('change', () => { void updateSalesQuantity(line.productId, qty.value); });
+    qtyCell.append(qty);
+    row.append(qtyCell);
+    const unitPriceCell = document.createElement('td');
+    unitPriceCell.dataset.unitPrice = 'true';
+    unitPriceCell.textContent = formatMoney(line.basePrice);
+    row.append(unitPriceCell);
+    const discountCell = document.createElement('td');
+    if (canDiscount) {
+      const discount = document.createElement('input');
+      discount.type = 'number';
+      discount.min = '0';
+      discount.max = '10000';
+      discount.step = '1';
+      discount.value = state.salesManualDiscounts[line.productId] ?? '';
+      discount.className = 'sales-manual-discount';
+      discount.setAttribute('aria-label', t('sales.manual_discount'));
+      discount.addEventListener('input', () => {
+        state.salesManualDiscounts[line.productId] = discount.value;
+        scheduleSalesQuote();
+      });
+      discountCell.append(discount);
+    } else {
+      discountCell.textContent = '—';
+    }
+    row.append(discountCell);
+    const totalCell = document.createElement('td');
+    totalCell.dataset.lineTotal = 'true';
+    totalCell.textContent = formatMoney(line.basePrice);
+    row.append(totalCell);
+    const action = document.createElement('td');
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.textContent = t('sales.remove');
+    remove.addEventListener('click', () => { void removeSalesProduct(line.productId); });
+    action.append(remove);
+    row.append(action);
+    body.append(row);
+  }
+  renderSalesQuoteValues();
+}
+
+function renderSalesQuoteValues() {
+  const lines = new Map((state.salesQuote?.lines ?? []).map((line) => [line.productId, line]));
+  document.querySelectorAll('#sales-cart-body [data-sales-product-id]').forEach((row) => {
+    const quote = lines.get(row.dataset.salesProductId);
+    if (!quote) return;
+    row.querySelector('[data-unit-price]').textContent = formatMoney(quote.unitPrice);
+    row.querySelector('[data-line-total]').textContent = formatMoney(quote.lineTotal);
+  });
+  renderSalesSummary();
+}
+
+function renderSalesSummary() {
+  const quote = state.salesQuote;
+  if (!quote) {
+    $('#sales-summary').textContent = '';
+    return;
+  }
+  let paid = 0n;
+  try {
+    document.querySelectorAll('#sales-payments [data-payment-amount]').forEach((input) => {
+      if (input.value.trim()) paid += BigInt(moneyTextToTiyin(input.value));
+    });
+    if (paid > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('validation.invalid_payment_amount');
+  } catch {
+    $('#sales-summary').textContent = `${t('sales.total')}: ${formatMoney(quote.total)}`;
+    return;
+  }
+  const due = BigInt(quote.total) - paid;
+  $('#sales-summary').textContent =
+    `${t('sales.total')}: ${formatMoney(quote.total)}; ${t('sales.paid')}: ${formatMoney(Number(paid))}; ` +
+    `${t('sales.due')}: ${formatMoney(Number(due))}`;
+}
+
+function scheduleSalesQuote() {
+  if (salesQuoteTimer !== null) window.clearTimeout(salesQuoteTimer);
+  salesQuoteTimer = window.setTimeout(() => { void refreshSalesQuote(); }, 250);
+}
+
+async function refreshSalesQuote() {
+  salesQuoteTimer = null;
+  if (!state.salesCart || state.salesCart.lines.length === 0) {
+    state.salesQuote = null;
+    renderSalesQuoteValues();
+    return;
+  }
+  try {
+    const { quote } = await api('/api/sales/quote', {
+      method: 'POST',
+      body: JSON.stringify(salesOptions()),
+    });
+    state.salesQuote = quote;
+    renderSalesQuoteValues();
+  } catch (error) {
+    state.salesQuote = null;
+    renderSalesQuoteValues();
+    message(error.message);
+  }
+}
+
+async function loadSalesPage() {
+  try {
+    const [context, { cart }] = await Promise.all([
+      api('/api/sales/context'),
+      api('/api/cart'),
+    ]);
+    state.salesContext = context;
+    state.salesCart = cart;
+    state.salesManualDiscounts = Object.fromEntries(
+      Object.entries(state.salesManualDiscounts).filter(([id]) =>
+        cart.lines.some((line) => line.productId === id)),
+    );
+    $('#sales-warehouse-config').hidden = state.user?.permissions.settings !== 1;
+    $('#sales-check-discount').hidden = state.user?.permissions.discount_check !== 1;
+    $('#sales-warehouse-status').textContent = context.warehouse
+      ? `${t('sales.default_warehouse')}: ${context.warehouse.name}`
+      : t(context.warehouses.length === 0 ? 'sales.no_warehouse' : 'sales.warehouse_unconfigured');
+    setSalesDefaultWarehouseOptions();
+    renderSalesCustomers();
+    renderSalesPayments();
+    renderSalesProducts();
+    renderSalesCart();
+    $('#sales-receipt').hidden = true;
+    await refreshSalesQuote();
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function addSalesProduct(productId) {
+  try {
+    const { cart } = await api('/api/cart/lines', {
+      method: 'POST',
+      body: JSON.stringify({ productId, qty: '1' }),
+    });
+    state.salesCart = cart;
+    renderSalesCart();
+    await refreshSalesQuote();
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function updateSalesQuantity(productId, qty) {
+  try {
+    const { cart } = await api(`/api/cart/lines/${encodeURIComponent(productId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ qty }),
+    });
+    state.salesCart = cart;
+    renderSalesCart();
+    await refreshSalesQuote();
+  } catch (error) {
+    message(error.message);
+    renderSalesCart();
+  }
+}
+
+async function removeSalesProduct(productId) {
+  try {
+    const { cart } = await api(`/api/cart/lines/${encodeURIComponent(productId)}`, { method: 'DELETE' });
+    state.salesCart = cart;
+    delete state.salesManualDiscounts[productId];
+    renderSalesCart();
+    await refreshSalesQuote();
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function saveSalesDefaultWarehouse() {
+  const warehouseId = $('#sales-default-warehouse').value;
+  if (!warehouseId) {
+    message('settings.invalid_default_warehouse');
+    return;
+  }
+  const button = $('#save-default-warehouse');
+  button.disabled = true;
+  message('status.loading');
+  try {
+    await api('/api/settings', {
+      method: 'PUT',
+      body: JSON.stringify({ default_warehouse_id: warehouseId }),
+    });
+    await loadSalesPage();
+    message('status.saved');
+  } catch (error) {
+    message(error.message);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function collectSalePayments() {
+  const payments = [];
+  document.querySelectorAll('#sales-payments [data-payment-amount]').forEach((input) => {
+    const rawAmount = input.value.trim();
+    if (!rawAmount) return;
+    const amount = moneyTextToTiyin(rawAmount);
+    if (amount === 0) return;
+    const methodId = input.dataset.paymentAmount;
+    const tenderedInput = [...document.querySelectorAll('#sales-payments [data-payment-tendered]')]
+      .find((element) => element.dataset.paymentTendered === methodId);
+    const rawTendered = tenderedInput?.value.trim() ?? '';
+    payments.push({
+      methodId,
+      amount,
+      ...(rawTendered ? { tendered: moneyTextToTiyin(rawTendered) } : {}),
+    });
+  });
+  return payments;
+}
+
+async function submitSale(event) {
+  event.preventDefault();
+  const button = $('#sales-submit');
+  button.disabled = true;
+  try {
+    if (!state.salesContext?.warehouse) throw new Error('settings.default_warehouse_required');
+    const options = salesOptions();
+    const payments = collectSalePayments();
+    if (!saleAttemptId) saleAttemptId = window.crypto.randomUUID();
+    const result = await api('/api/sales', {
+      method: 'POST',
+      body: JSON.stringify({ ...options, payments, idempotencyKey: saleAttemptId }),
+    });
+    saleAttemptId = null;
+    state.salesManualDiscounts = {};
+    $('#sales-check-discount-value').value = '';
+    $('#sales-customer').value = '';
+    await loadSalesPage();
+    const change = result.payments.reduce((sum, payment) => sum + payment.change, 0);
+    $('#sales-receipt-summary').textContent = t('sales.receipt_summary')
+      .replace('{number}', result.sale.number)
+      .replace('{total}', formatMoney(result.sale.total))
+      .replace('{paid}', formatMoney(result.sale.paidTotal))
+      .replace('{debt}', formatMoney(result.sale.debtAmount))
+      .replace('{change}', formatMoney(change));
+    $('#sales-receipt').hidden = false;
+    message('status.created');
+  } catch (error) {
+    message(error.message);
+  } finally {
+    button.disabled = false;
   }
 }
 
@@ -996,6 +1543,12 @@ $('#navigation').addEventListener('click', (event) => {
 });
 
 $('#refresh-connection-info').addEventListener('click', () => { void loadConnectionInfo(); });
+$('#save-default-warehouse').addEventListener('click', () => { void saveSalesDefaultWarehouse(); });
+$('#sales-search').addEventListener('input', renderSalesProducts);
+$('#sales-customer').addEventListener('change', scheduleSalesQuote);
+$('#sales-check-discount-kind').addEventListener('change', scheduleSalesQuote);
+$('#sales-check-discount-value').addEventListener('input', scheduleSalesQuote);
+$('#sales-checkout').addEventListener('submit', (event) => { void submitSale(event); });
 
 $('#stock-warehouse-filter').addEventListener('change', () => { void loadStock(); });
 $('#movement-product-filter').addEventListener('change', () => { movementOffset = 0; void loadMovementHistory(); });

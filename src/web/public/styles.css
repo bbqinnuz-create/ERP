@@ -64,6 +64,13 @@ th, td { padding: 0.6rem; border-bottom: 1px solid #e0e5e9; text-align: left; }
 .pagination-controls { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.75rem; }
 .pagination-controls button:disabled { cursor: default; opacity: 0.5; }
 .purchase-line { display: grid; grid-template-columns: minmax(14rem, 2fr) minmax(7rem, 1fr) minmax(9rem, 1fr) auto; gap: 0.5rem; margin-bottom: 0.5rem; }
+.sales-results { display: grid; gap: 0.4rem; margin: 0.75rem 0 1rem; }
+.sales-product { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.5rem; border-bottom: 1px solid #e0e5e9; }
+.sales-product button { flex: 0 0 auto; }
+.sales-payments { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; }
+.sales-payment { display: grid; gap: 0.4rem; padding: 0.75rem; border: 1px solid #e0e5e9; border-radius: 0.35rem; }
+.sales-payment-fields { display: grid; gap: 0.4rem; }
+.sales-manual-discount { min-width: 5rem; }
 .connection-row { display: grid; grid-template-columns: minmax(7rem, 12rem) minmax(14rem, 1fr) auto; align-items: center; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid #e0e5e9; }
 .connection-actions { display: flex; align-items: center; gap: 0.5rem; }
 .connection-actions a { white-space: nowrap; }
@@ -73,4 +80,5 @@ th, td { padding: 0.6rem; border-bottom: 1px solid #e0e5e9; text-align: left; }
 @media (max-width: 640px) {
   .connection-row { grid-template-columns: 1fr; }
   .purchase-line { grid-template-columns: 1fr; }
+  .sales-product { align-items: flex-start; flex-direction: column; }
 }
