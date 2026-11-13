@@ -760,6 +760,21 @@ async function handleApi(
     return;
   }
 
+  const productPriceRoute = /^\/api\/references\/products\/([^/]+)\/price$/.exec(path);
+  if (productPriceRoute && method === 'PATCH') {
+    const body = await readJson(req);
+    if (Object.keys(body).length !== 1 || !Object.prototype.hasOwnProperty.call(body, 'base_price')) {
+      throw new AuthError(400, 'validation.unknown_field');
+    }
+    const productId = decodeURIComponent(productPriceRoute[1]!);
+    const row = withAuthorizedUser(db, token, null, (session) => {
+      requireAdditionalPermission(db, session.user.id, 'price_edit');
+      return saveReference(db, session.user.id, 'products', body, productId);
+    }, now());
+    sendJson(res, 200, { row });
+    return;
+  }
+
   const refMatch = /^\/api\/references\/([^/]+)(?:\/([^/]+)(?:\/active)?)?$/.exec(path);
   if (refMatch) {
     const type = refMatch[1]!;
@@ -822,14 +837,19 @@ async function handleApi(
   sendJson(res, 404, { errorKey: 'http.not_found' });
 }
 
+const CLIENT_ROUTES = new Set([
+  '/sell', '/sales', '/print', '/returns', '/writeoffs', '/stocktakes', '/reports',
+  '/products', '/stock', '/purchases', '/movements', '/debts', '/cash', '/users', '/connection',
+]);
+
 function serveStatic(req: IncomingMessage, res: ServerResponse): void {
-  const path = req.url?.split('?')[0] ?? '/';
+  const path = new URL(req.url ?? '/', 'http://localhost').pathname;
   const files: Record<string, { file: string; type: string }> = {
     '/': { file: 'index.html', type: 'text/html; charset=utf-8' },
     '/app.js': { file: 'app.js', type: 'text/javascript; charset=utf-8' },
     '/styles.css': { file: 'styles.css', type: 'text/css; charset=utf-8' },
   };
-  const entry = files[path];
+  const entry = files[path] ?? (CLIENT_ROUTES.has(path) ? files['/'] : undefined);
   if (!entry || req.method !== 'GET') {
     sendJson(res, 404, { errorKey: 'http.not_found' });
     return;

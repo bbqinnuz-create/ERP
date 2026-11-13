@@ -17,6 +17,10 @@
           <option value="uz">UZ</option>
         </select>
       </label>
+      <span id="server-indicator" class="server-indicator" data-state="checking" role="status" aria-live="polite">
+        <span class="server-indicator-dot" aria-hidden="true"></span>
+        <span id="server-indicator-label" data-i18n="server.checking"></span>
+      </span>
     </header>
     <main>
       <p id="message" role="status" aria-live="polite"></p>
@@ -34,20 +38,20 @@
           <button id="logout" type="button" data-i18n="auth.logout"></button>
         </div>
         <nav id="navigation">
-          <button type="button" data-page="sales" data-i18n="nav.sales"></button>
-          <button type="button" data-page="print" data-i18n="nav.print" hidden></button>
-          <button type="button" data-page="returns" data-i18n="nav.returns" hidden></button>
-          <button type="button" data-page="writeoffs" data-i18n="nav.writeoffs" hidden></button>
-          <button type="button" data-page="stocktakes" data-i18n="nav.stocktakes" hidden></button>
-          <button type="button" data-page="reports" data-i18n="nav.reports" hidden></button>
-          <button type="button" data-page="products" data-i18n="nav.products"></button>
-          <button type="button" data-page="stock" data-i18n="nav.stock"></button>
-          <button type="button" data-page="purchases" data-i18n="nav.purchases"></button>
-          <button type="button" data-page="movements" data-i18n="nav.movements"></button>
-          <button type="button" data-page="debts" data-i18n="nav.debts" hidden></button>
-          <button type="button" data-page="cash" data-i18n="nav.cash" hidden></button>
-          <button type="button" data-page="users" data-i18n="nav.users"></button>
-          <button type="button" data-page="connection" data-i18n="nav.connection" hidden></button>
+          <a href="/sell" data-page="sales" data-i18n="nav.sales"></a>
+          <a href="/print" data-page="print" data-i18n="nav.print" hidden></a>
+          <a href="/returns" data-page="returns" data-i18n="nav.returns" hidden></a>
+          <a href="/writeoffs" data-page="writeoffs" data-i18n="nav.writeoffs" hidden></a>
+          <a href="/stocktakes" data-page="stocktakes" data-i18n="nav.stocktakes" hidden></a>
+          <a href="/reports" data-page="reports" data-i18n="nav.reports" hidden></a>
+          <a href="/products" data-page="products" data-i18n="nav.products"></a>
+          <a href="/stock" data-page="stock" data-i18n="nav.stock"></a>
+          <a href="/purchases" data-page="purchases" data-i18n="nav.purchases"></a>
+          <a href="/movements" data-page="movements" data-i18n="nav.movements"></a>
+          <a href="/debts" data-page="debts" data-i18n="nav.debts" hidden></a>
+          <a href="/cash" data-page="cash" data-i18n="nav.cash" hidden></a>
+          <a href="/users" data-page="users" data-i18n="nav.users"></a>
+          <a href="/connection" data-page="connection" data-i18n="nav.connection" hidden></a>
         </nav>
         <section id="sales-page" class="page" hidden>
           <h2 data-i18n="sales.title"></h2>
@@ -242,7 +246,7 @@
             </div>
           </section>
         </section>
-        <section id="products-page" class="page">
+        <section id="products-page" class="page" hidden>
           <h2 data-i18n="products.title"></h2>
           <form id="product-form" class="form-grid">
             <label><span data-i18n="products.sku"></span><input name="sku" required></label>
@@ -400,5 +404,20 @@
         </section>
       </section>
     </main>
+    <dialog id="price-dialog" class="modal-dialog">
+      <form id="price-form">
+        <h2 data-i18n="products.price_dialog_title"></h2>
+        <p id="price-product-name"></p>
+        <label>
+          <span data-i18n="products.base_price"></span>
+          <input id="price-value" name="base_price" type="number" min="0" step="1" required>
+        </label>
+        <div class="dialog-actions">
+          <button id="price-cancel" type="button" class="button-secondary" data-i18n="common.cancel"></button>
+          <button type="submit" data-i18n="products.save_price"></button>
+        </div>
+      </form>
+    </dialog>
+    <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
   </body>
 </html>

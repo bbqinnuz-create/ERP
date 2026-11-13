@@ -3,12 +3,19 @@ const translations = {
     'app.title': 'Учёт магазина',
     'money.currency': 'сум',
     'language.label': 'Язык',
+    'server.checking': 'Проверка сервера',
+    'server.online': 'Сервер доступен',
+    'server.offline': 'Нет связи с сервером',
+    'server.unavailable': 'Не удалось связаться с сервером. Проверьте подключение и повторите попытку.',
+    'status.server_updated': 'Сервер подтвердил выполнение действия.',
+    'common.cancel': 'Отмена',
+    'common.dismiss': 'Закрыть уведомление',
     'login.title': 'Вход',
     'login.login': 'Логин',
     'login.password': 'Пароль',
     'login.submit': 'Войти',
     'auth.logout': 'Выйти',
-    'nav.sales': 'Касса',
+    'nav.sales': 'Продажа',
     'nav.products': 'Товары',
     'nav.stock': 'Остатки',
     'nav.purchases': 'Приходы',
@@ -164,7 +171,10 @@ const translations = {
     'products.base_price': 'Базовая цена, тийин',
     'products.create': 'Добавить товар',
     'products.empty': 'Товаров пока нет',
-    'products.columns': 'Артикул,Товар,Единица,Цена,Статус',
+    'products.columns': 'Артикул,Товар,Единица,Цена,Статус,Действие',
+    'products.edit_price': 'Изменить цену',
+    'products.price_dialog_title': 'Изменение цены',
+    'products.save_price': 'Сохранить цену',
     'sales.title': 'Продажа',
     'sales.default_warehouse': 'Общий склад по умолчанию',
     'sales.save_default_warehouse': 'Сохранить склад',
@@ -573,12 +583,19 @@ const translations = {
     'app.title': 'Do‘kon hisobi',
     'money.currency': 'soʻm',
     'language.label': 'Til',
+    'server.checking': 'Server tekshirilmoqda',
+    'server.online': 'Server ishlayapti',
+    'server.offline': 'Server bilan aloqa yo‘q',
+    'server.unavailable': 'Serverga ulanib bo‘lmadi. Ulanishni tekshirib, qayta urinib ko‘ring.',
+    'status.server_updated': 'Server amal bajarilganini tasdiqladi.',
+    'common.cancel': 'Bekor qilish',
+    'common.dismiss': 'Bildirishnomani yopish',
     'login.title': 'Kirish',
     'login.login': 'Login',
     'login.password': 'Parol',
     'login.submit': 'Kirish',
     'auth.logout': 'Chiqish',
-    'nav.sales': 'Kassa',
+    'nav.sales': 'Savdo',
     'nav.products': 'Tovarlar',
     'nav.stock': 'Qoldiqlar',
     'nav.purchases': 'Kirimlar',
@@ -734,7 +751,10 @@ const translations = {
     'products.base_price': 'Asosiy narx, tiyin',
     'products.create': 'Tovar qo‘shish',
     'products.empty': 'Hozircha tovar yo‘q',
-    'products.columns': 'Artikul,Tovar,Birlik,Narx,Holat',
+    'products.columns': 'Artikul,Tovar,Birlik,Narx,Holat,Amal',
+    'products.edit_price': 'Narxni o‘zgartirish',
+    'products.price_dialog_title': 'Narxni o‘zgartirish',
+    'products.save_price': 'Narxni saqlash',
     'sales.title': 'Savdo',
     'sales.default_warehouse': 'Umumiy standart ombor',
     'sales.save_default_warehouse': 'Omborni saqlash',
@@ -1169,18 +1189,40 @@ const state = {
   cashSummary: null,
   report: null,
   reportOptions: null,
+  activePage: 'products',
 };
 let movementOffset = 0;
 let cashOffset = 0;
 let inventoryProducts = [];
 let inventoryWarehouses = [];
 let sessionCheckInFlight = false;
+let healthCheckInFlight = false;
 let salesQuoteTimer = null;
+let toastTimer = null;
+let editingProductId = null;
 let saleAttemptId = null;
 let returnAttemptId = null;
 let debtPaymentAttempt = null;
 let cashOperationAttempt = null;
 const cashReversalAttemptIds = new Map();
+const pagePaths = {
+  sales: '/sell',
+  print: '/print',
+  returns: '/returns',
+  writeoffs: '/writeoffs',
+  stocktakes: '/stocktakes',
+  reports: '/reports',
+  products: '/products',
+  stock: '/stock',
+  purchases: '/purchases',
+  movements: '/movements',
+  debts: '/debts',
+  cash: '/cash',
+  users: '/users',
+  connection: '/connection',
+};
+const pageByPath = Object.fromEntries(Object.entries(pagePaths).map(([name, path]) => [path, name]));
+pageByPath['/sales'] = 'sales';
 const $ = (selector) => document.querySelector(selector);
 const t = (key) => {
   const direct = translations[state.lang][key];
@@ -1189,13 +1231,63 @@ const t = (key) => {
   if (key.startsWith('settings.')) return translations[state.lang]['settings.invalid_key_or_value'];
   return translations[state.lang]['server.internal_error'];
 };
-const message = (key) => { $('#message').textContent = key ? t(key) : ''; };
+const successMessages = new Set([
+  'status.created', 'status.saved', 'status.logged_out', 'held.created', 'held.reserved',
+  'held.cancelled', 'held.released', 'returns.created', 'writeoff.created', 'backup.created',
+  'debts.payment_success', 'debts.forgive_success', 'cash.operation_created',
+  'cash.operation_reversed', 'print.profile_saved', 'connection.copy_done', 'status.server_updated',
+]);
+function message(key, kind) {
+  $('#message').textContent = key ? t(key) : '';
+  const region = $('#toast-region');
+  if (!key || key === 'status.loading') {
+    if (toastTimer) window.clearTimeout(toastTimer);
+    toastTimer = null;
+    region.replaceChildren();
+    return;
+  }
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.dataset.kind = kind ?? (successMessages.has(key) ? 'success' : 'error');
+  toast.setAttribute('role', toast.dataset.kind === 'error' ? 'alert' : 'status');
+  const text = document.createElement('p');
+  text.className = 'toast-message';
+  text.textContent = t(key);
+  const close = document.createElement('button');
+  close.className = 'toast-close';
+  close.type = 'button';
+  close.textContent = '×';
+  close.setAttribute('aria-label', t('common.dismiss'));
+  close.addEventListener('click', () => {
+    if (toastTimer) window.clearTimeout(toastTimer);
+    toastTimer = null;
+    toast.remove();
+  });
+  toast.append(text, close);
+  region.replaceChildren(toast);
+  if (toastTimer) window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => {
+    toast.remove();
+    toastTimer = null;
+  }, 5000);
+}
+
+function setServerAvailability(available) {
+  const indicator = $('#server-indicator');
+  const stateName = available ? 'online' : 'offline';
+  indicator.dataset.state = stateName;
+  $('#server-indicator-label').textContent = t(`server.${stateName}`);
+}
 
 function localize() {
   document.documentElement.lang = state.lang;
   document.querySelectorAll('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
-  document.title = t('app.title');
+  document.title = state.user
+    ? `${document.querySelector(`#${state.activePage}-page h2`)?.textContent ?? t('app.title')} · ${t('app.title')}`
+    : t('app.title');
   $('#language').value = state.lang;
+  const serverState = $('#server-indicator').dataset.state;
+  if (serverState === 'online' || serverState === 'offline') setServerAvailability(serverState === 'online');
 }
 
 function renderHeldCarts() {
@@ -1232,17 +1324,29 @@ async function selectSalesHeldCart(cartId) {
 }
 
 async function api(path, options = {}) {
-  const response = await fetch(path, {
-    ...options,
-    credentials: 'same-origin',
-    headers: { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers },
-  });
-  if (response.status === 204) return null;
+  const method = (options.method ?? 'GET').toUpperCase();
+  let response;
+  try {
+    response = await fetch(path, {
+      ...options,
+      credentials: 'same-origin',
+      headers: { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers },
+    });
+  } catch {
+    setServerAvailability(false);
+    throw new Error('server.unavailable');
+  }
+  setServerAvailability(true);
+  if (response.status === 204) {
+    if (method !== 'GET') message('status.server_updated', 'success');
+    return null;
+  }
   const data = await response.json();
   if (!response.ok) {
     if (response.status === 401) showLogin(data.errorKey);
     throw new Error(data.errorKey ?? 'server.internal_error');
   }
+  if (method !== 'GET') message('status.server_updated', 'success');
   return data;
 }
 
@@ -1319,7 +1423,7 @@ function showApp(user) {
   $('#print-copy-language').value = user.lang;
   $('#user-edit-form').hidden = true;
   $('#permission-editor').hidden = true;
-  showPage('products');
+  showPage(pageByPath[window.location.pathname] ?? 'products');
   void loadInventoryOptions();
   void loadProducts();
   if (user.permissions.sell === 1) void loadSalesPage();
@@ -1340,8 +1444,54 @@ async function checkSessionStatus() {
   }
 }
 
-function showPage(name) {
+async function checkServerHealth() {
+  if (healthCheckInFlight) return;
+  healthCheckInFlight = true;
+  try {
+    const response = await fetch('/api/health', { cache: 'no-store', credentials: 'same-origin' });
+    setServerAvailability(response.ok);
+  } catch {
+    setServerAvailability(false);
+  } finally {
+    healthCheckInFlight = false;
+  }
+}
+
+function canAccessPage(name) {
+  if (!state.user) return false;
+  const permissionMap = {
+    sales: 'sell',
+    print: ['sell', 'return'],
+    returns: 'return',
+    writeoffs: 'write_off',
+    stocktakes: 'stocktake',
+    reports: 'reports',
+    debts: ['debt_payment', 'reports'],
+    cash: ['cash_in', 'cash_out', 'expense', 'cash_collection', 'reports'],
+    users: 'users_manage',
+    connection: 'admin',
+  };
+  const required = permissionMap[name];
+  if (!required) return Boolean(pagePaths[name]);
+  if (required === 'admin') return state.user.role === 'admin';
+  return (Array.isArray(required) ? required : [required])
+    .some((permission) => state.user.permissions[permission] === 1);
+}
+
+function showPage(name, updateHistory = true) {
+  if (!pagePaths[name] || !canAccessPage(name)) name = 'products';
+  state.activePage = name;
   document.querySelectorAll('.page').forEach((page) => { page.hidden = page.id !== `${name}-page`; });
+  document.querySelectorAll('#navigation [data-page]').forEach((link) => {
+    if (link.dataset.page === name) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  });
+  if (window.location.pathname !== pagePaths[name]) {
+    if (updateHistory) window.history.pushState({ page: name }, '', pagePaths[name]);
+    else window.history.replaceState({ page: name }, '', pagePaths[name]);
+  }
+  const pageTitle = document.querySelector(`#${name}-page h2`)?.textContent;
+  document.title = pageTitle ? `${pageTitle} · ${t('app.title')}` : t('app.title');
   if (name === 'users' && state.user?.permissions.users_manage === 1) void loadUsers();
   if (name === 'sales' && state.user?.permissions.sell === 1) void loadSalesPage();
   if (name === 'debts') void loadDebts();
@@ -1389,12 +1539,64 @@ async function loadProducts() {
     for (const product of rows) {
       const row = document.createElement('tr');
       row.append(cell(product.sku), cell(product.name),
-        cell(product.unit), cell(product.base_price), cell(product.active ? t('users.active') : t('users.inactive')));
+        cell(product.unit), cell(formatMoney(product.base_price)),
+        cell(product.active ? t('users.active') : t('users.inactive')));
+      const actions = document.createElement('td');
+      if (state.user?.permissions.price_edit === 1) {
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.dataset.editProductPrice = product.id;
+        edit.dataset.basePrice = String(product.base_price);
+        edit.textContent = t('products.edit_price');
+        edit.setAttribute('aria-label', `${t('products.edit_price')}: ${product.sku}`);
+        actions.append(edit);
+      }
+      row.append(actions);
       body.append(row);
     }
-    if (rows.length === 0) message('products.empty');
+    if (rows.length === 0) {
+      const empty = document.createElement('tr');
+      const note = cell(t('products.empty'));
+      note.colSpan = 6;
+      empty.append(note);
+      body.append(empty);
+    }
   } catch (error) {
     message(error.message);
+  }
+}
+
+function openPriceDialog(productId) {
+  const edit = [...$('#products-body').querySelectorAll('[data-edit-product-price]')]
+    .find((button) => button.dataset.editProductPrice === productId);
+  const product = edit?.closest('tr');
+  if (!product || !edit) return;
+  editingProductId = productId;
+  $('#price-product-name').textContent = product.cells[0].textContent + ' — ' + product.cells[1].textContent;
+  $('#price-value').value = edit.dataset.basePrice;
+  $('#price-dialog').showModal();
+  $('#price-value').focus();
+  $('#price-value').select();
+}
+
+async function saveProductPrice(event) {
+  event.preventDefault();
+  if (!editingProductId) return;
+  const saveButton = $('#price-form button[type="submit"]');
+  saveButton.disabled = true;
+  try {
+    await api(`/api/references/products/${encodeURIComponent(editingProductId)}/price`, {
+      method: 'PATCH',
+      body: JSON.stringify({ base_price: Number($('#price-value').value) }),
+    });
+    $('#price-dialog').close();
+    editingProductId = null;
+    await loadProducts();
+    message('status.saved', 'success');
+  } catch (error) {
+    message(error.message, 'error');
+  } finally {
+    saveButton.disabled = false;
   }
 }
 
@@ -3520,9 +3722,25 @@ $('#logout').addEventListener('click', async () => {
 });
 
 $('#navigation').addEventListener('click', (event) => {
-  const page = event.target.closest('button')?.dataset.page;
-  if (page) showPage(page);
+  const link = event.target.closest('a[data-page]');
+  if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey ||
+      event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  showPage(link.dataset.page);
 });
+window.addEventListener('popstate', () => {
+  if (state.user) showPage(pageByPath[window.location.pathname] ?? 'products', false);
+});
+$('#products-body').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-edit-product-price]');
+  if (button) openPriceDialog(button.dataset.editProductPrice);
+});
+$('#price-form').addEventListener('submit', (event) => { void saveProductPrice(event); });
+$('#price-cancel').addEventListener('click', () => {
+  $('#price-dialog').close();
+  editingProductId = null;
+});
+$('#price-dialog').addEventListener('close', () => { editingProductId = null; });
 
 $('#refresh-connection-info').addEventListener('click', () => { void loadConnectionInfo(); });
 $('#print-refresh').addEventListener('click', () => { void loadPrintJobs(); });
@@ -3754,12 +3972,17 @@ $('#save-permissions').addEventListener('click', async () => {
 
 localize();
 addPurchaseLine();
+void checkServerHealth();
 window.setInterval(() => { void checkSessionStatus(); }, 10_000);
+window.setInterval(() => { void checkServerHealth(); }, 15_000);
 window.setInterval(() => {
   if (!$('#print-page').hidden && state.user?.permissions.sell === 1) void loadPrintJobs();
 }, 5_000);
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) void checkSessionStatus();
+  if (!document.hidden) {
+    void checkSessionStatus();
+    void checkServerHealth();
+  }
 });
 api('/api/auth/me')
   .then(({ user }) => showApp(user))

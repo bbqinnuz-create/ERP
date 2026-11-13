@@ -56,6 +56,15 @@ describe('HTTP API этапа 2', () => {
   it('отдаёт RU/UZ-клиент, требует сессию для API и возвращает текущего пользователя', async () => {
     expect((await fetch(baseUrl)).status).toBe(200);
     expect((await fetch(`${baseUrl}/app.js`)).status).toBe(200);
+    for (const route of [
+      '/sell', '/sales', '/print', '/returns', '/writeoffs', '/stocktakes', '/reports',
+      '/products', '/stock', '/purchases', '/movements', '/debts', '/cash', '/users', '/connection',
+    ]) {
+      const page = await fetch(`${baseUrl}${route}`);
+      expect(page.status).toBe(200);
+      expect(page.headers.get('content-type')).toContain('text/html');
+    }
+    expect((await fetch(`${baseUrl}/unknown-page`)).status).toBe(404);
     expect((await fetch(`${baseUrl}/api/stock`)).status).toBe(401);
     expect((await fetch(`${baseUrl}/api/product-units`)).status).toBe(401);
     expect((await fetch(`${baseUrl}/api/server-info`)).status).toBe(401);
@@ -78,6 +87,44 @@ describe('HTTP API этапа 2', () => {
     const usersResponse = await fetch(`${baseUrl}/api/users`, { headers: { Cookie: cookie } });
     const { users } = await usersResponse.json() as { users: Record<string, unknown>[] };
     expect(users[0]).not.toHaveProperty('password_hash');
+  });
+
+  it('позволяет отдельно менять цену с правом price_edit и записывает это в аудит', async () => {
+    const productId = addProduct(env.db, 'PRICE-EDIT-API');
+    const cashier = await createUser(env.db, adminId, {
+      login: 'price-editor',
+      password: 'cashier secure password',
+      fullName: 'Price Editor',
+      role: 'cashier',
+      lang: 'ru',
+    });
+    setUserPermissions(env.db, adminId, cashier.id, { price_edit: 1 });
+    const cookie = await loginCookie(cashier.login, 'cashier secure password');
+
+    const updated = await fetch(`${baseUrl}/api/references/products/${productId}/price`, {
+      method: 'PATCH',
+      headers: { Cookie: cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base_price: 123_456 }),
+    });
+    expect(updated.status).toBe(200);
+    expect((await updated.json()).row).toMatchObject({ id: productId, base_price: 123_456 });
+    expect(env.db.prepare(
+      "SELECT COUNT(*) AS count FROM audit_log WHERE action = 'products.update' AND entity_id = ?",
+    ).get(productId)).toMatchObject({ count: 1 });
+
+    const deniedUser = await createUser(env.db, adminId, {
+      login: 'price-denied',
+      password: 'cashier secure password',
+      fullName: 'Price Denied',
+      role: 'cashier',
+      lang: 'ru',
+    });
+    const denied = await fetch(`${baseUrl}/api/references/products/${productId}/price`, {
+      method: 'PATCH',
+      headers: { Cookie: await loginCookie(deniedUser.login, 'cashier secure password'), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base_price: 222 }),
+    });
+    expect(denied.status).toBe(403);
   });
 
   it('защищает очередь печати правом sell и профиль чека правом settings', async () => {
