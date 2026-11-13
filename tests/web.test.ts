@@ -75,6 +75,33 @@ describe('HTTP API этапа 2', () => {
     expect(users[0]).not.toHaveProperty('password_hash');
   });
 
+  it('сохраняет права пользователя через API и возвращает обновлённые значения', async () => {
+    const cashier = await createUser(env.db, adminId, {
+      login: 'rights-cashier',
+      password: 'cashier secure password',
+      fullName: 'Rights Cashier',
+      role: 'cashier',
+      lang: 'ru',
+    });
+    const cookie = await loginCookie();
+    const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(cashier.id)}/permissions`, {
+      method: 'PATCH',
+      headers: { Cookie: cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ permissions: { sell: 1, discount_check_limit_bp: 500 } }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      permissions: { sell: 1, discount_check_limit_bp: 500 },
+    });
+    const usersResponse = await fetch(`${baseUrl}/api/users`, { headers: { Cookie: cookie } });
+    const { users } = await usersResponse.json() as { users: Array<Record<string, unknown>> };
+    const saved = users.find((user) => user.id === cashier.id);
+    expect(saved).toMatchObject({
+      permissions: { sell: 1, discount_check_limit_bp: 500 },
+    });
+  });
+
   it('проверяет права на сервере и позволяет администратору вести справочник', async () => {
     const adminCookie = await loginCookie();
     const unitsResponse = await fetch(`${baseUrl}/api/product-units`, { headers: { Cookie: adminCookie } });

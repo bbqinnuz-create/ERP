@@ -1129,19 +1129,25 @@ $('#save-permissions').addEventListener('click', async () => {
     message('status.select_user');
     return;
   }
-  const permissions = {};
-  $('#permission-list').querySelectorAll('[data-permission]').forEach((input) => {
-    permissions[input.dataset.permission] = input.type === 'checkbox' ? Number(input.checked) : Number(input.value);
-  });
+  const saveButton = $('#save-permissions');
+  saveButton.disabled = true;
+  message('status.loading');
   try {
-    await api(`/api/users/${encodeURIComponent(state.selectedUser.id)}/permissions`, {
+    const permissions = {};
+    $('#permission-list').querySelectorAll('[data-permission]').forEach((input) => {
+      permissions[input.dataset.permission] = input.type === 'checkbox' ? Number(input.checked) : Number(input.value);
+    });
+    const result = await api(`/api/users/${encodeURIComponent(state.selectedUser.id)}/permissions`, {
       method: 'PATCH',
       body: JSON.stringify({ permissions }),
     });
+    state.selectedUser = { ...state.selectedUser, permissions: result.permissions };
     message('status.saved');
     await loadUsers();
   } catch (error) {
     message(error.message);
+  } finally {
+    saveButton.disabled = false;
   }
 });
 
