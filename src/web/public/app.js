@@ -17,6 +17,7 @@ const translations = {
     'nav.cash': 'Общая касса',
     'nav.users': 'Пользователи и права',
     'nav.connection': 'Подключение ПК',
+    'nav.print': 'Печать чеков',
     'connection.title': 'Подключение рабочих ПК',
     'connection.description': 'Откройте один из адресов на компьютере в той же локальной сети. Если адрес не открывается, проверьте Wi-Fi и настройки брандмауэра.',
     'connection.refresh': 'Обновить адреса',
@@ -62,6 +63,7 @@ const translations = {
     'sales.submit': 'Оплатить',
     'sales.receipt': 'Чек создан',
     'sales.receipt_summary': 'Чек {number}; итого {total}; оплачено {paid}; долг {debt}; сдача {change}.',
+    'sales.receipt_language': 'Язык чека',
     'sales.no_payment_method': 'Нет активных способов оплаты.',
     'debts.title': 'Долги клиентов',
     'debts.customer': 'Клиент',
@@ -123,6 +125,37 @@ const translations = {
     'settings.default_warehouse_required': 'Администратор должен выбрать общий склад по умолчанию.',
     'settings.default_warehouse_unavailable': 'Общий склад отключён. Настройте другой активный склад.',
     'settings.invalid_default_warehouse': 'Выберите активный склад.',
+    'print.title': 'Очередь печати',
+    'print.copy_language': 'Язык копии',
+    'print.refresh': 'Обновить очередь',
+    'print.profile': 'Настройка шапки и подвала чека',
+    'print.store_name': 'Название магазина',
+    'print.address': 'Адрес',
+    'print.phone': 'Телефон',
+    'print.footer_ru': 'Подвал чека (русский)',
+    'print.footer_uz': 'Подвал чека (узбекский)',
+    'print.save_profile': 'Сохранить оформление',
+    'print.columns': 'Время,Чек,Кассир,Тип,Состояние,Попытки,Ошибка,Действие',
+    'print.kind.original': 'Оригинал',
+    'print.kind.copy': 'Копия',
+    'print.status.pending': 'В очереди',
+    'print.status.printing': 'Печатается',
+    'print.status.printed': 'Передан принтеру',
+    'print.status.error': 'Ошибка печати',
+    'print.status.uncertain': 'Проверьте принтер',
+    'print.check_printer': 'Неизвестно, вышел ли этот чек. Проверьте принтер перед повтором.',
+    'print.disabled': 'Печать не настроена на сервере. Задания сохраняются в очереди.',
+    'print.copy': 'Печать копии',
+    'print.copy_confirm': 'Создать задание на повторную печать этого чека?',
+    'print.uncertain_confirm': 'Сначала проверьте, вышел ли чек из принтера. Создать копию всё равно?',
+    'print.profile_saved': 'Оформление чека сохранено.',
+    'print.no_jobs': 'Заданий на печать нет.',
+    'print.invalid_request': 'Проверьте язык и параметры повторной печати.',
+    'print.invalid_profile': 'Проверьте параметры оформления чека.',
+    'print.no_active_branch': 'Нет активной точки продажи для чека.',
+    'print.job_not_found': 'Задание печати не найдено.',
+    'print.job_in_progress': 'Задание сейчас печатается.',
+    'print.confirm_uncertain': 'Сначала подтвердите проверку принтера.',
     'sales.no_active_warehouse': 'Нет активного склада.',
     'stock.title': 'Остатки',
     'stock.warehouse': 'Склад',
@@ -333,6 +366,7 @@ const translations = {
     'nav.cash': 'Umumiy kassa',
     'nav.users': 'Foydalanuvchilar va huquqlar',
     'nav.connection': 'Kompyuterlarni ulash',
+    'nav.print': 'Cheklarni chop etish',
     'connection.title': 'Ishchi kompyuterlarni ulash',
     'connection.description': 'Manzillardan birini shu mahalliy tarmoqqa ulangan kompyuterda oching. Manzil ochilmasa, Wi-Fi va xavfsizlik devori sozlamalarini tekshiring.',
     'connection.refresh': 'Manzillarni yangilash',
@@ -378,6 +412,7 @@ const translations = {
     'sales.submit': 'To‘lash',
     'sales.receipt': 'Chek yaratildi',
     'sales.receipt_summary': 'Chek {number}; jami {total}; to‘landi {paid}; qarz {debt}; qaytim {change}.',
+    'sales.receipt_language': 'Chek tili',
     'sales.no_payment_method': 'Faol to‘lov usuli yo‘q.',
     'debts.title': 'Mijozlar qarzi',
     'debts.customer': 'Mijoz',
@@ -439,6 +474,37 @@ const translations = {
     'settings.default_warehouse_required': 'Administrator umumiy standart omborni tanlashi kerak.',
     'settings.default_warehouse_unavailable': 'Umumiy ombor o‘chirilgan. Boshqa faol omborni sozlang.',
     'settings.invalid_default_warehouse': 'Faol omborni tanlang.',
+    'print.title': 'Chop etish navbati',
+    'print.copy_language': 'Nusxa tili',
+    'print.refresh': 'Navbatni yangilash',
+    'print.profile': 'Chek sarlavhasi va pastki qismini sozlash',
+    'print.store_name': 'Do‘kon nomi',
+    'print.address': 'Manzil',
+    'print.phone': 'Telefon',
+    'print.footer_ru': 'Chek pastki qismi (ruscha)',
+    'print.footer_uz': 'Chek pastki qismi (o‘zbekcha)',
+    'print.save_profile': 'Chek ko‘rinishini saqlash',
+    'print.columns': 'Vaqt,Chek,Sotuvchi,Turi,Holati,Urinishlar,Xato,Amal',
+    'print.kind.original': 'Asl',
+    'print.kind.copy': 'Nusxa',
+    'print.status.pending': 'Navbatda',
+    'print.status.printing': 'Chop etilmoqda',
+    'print.status.printed': 'Printerga yuborildi',
+    'print.status.error': 'Chop etish xatosi',
+    'print.status.uncertain': 'Printerni tekshiring',
+    'print.check_printer': 'Chek printerdan chiqqani noma’lum. Qayta chop etishdan oldin printerni tekshiring.',
+    'print.disabled': 'Serverda chop etish sozlanmagan. Topshiriqlar navbatda saqlanadi.',
+    'print.copy': 'Nusxani chop etish',
+    'print.copy_confirm': 'Ushbu chekni qayta chop etish uchun topshiriq yaratilsinmi?',
+    'print.uncertain_confirm': 'Avval chek printerdan chiqqanini tekshiring. Baribir nusxa yaratiladimi?',
+    'print.profile_saved': 'Chek ko‘rinishi saqlandi.',
+    'print.no_jobs': 'Chop etish topshiriqlari yo‘q.',
+    'print.invalid_request': 'Til va qayta chop etish parametrlarini tekshiring.',
+    'print.invalid_profile': 'Chek ko‘rinishi parametrlarini tekshiring.',
+    'print.no_active_branch': 'Chek uchun faol savdo nuqtasi yo‘q.',
+    'print.job_not_found': 'Chop etish topshirig‘i topilmadi.',
+    'print.job_in_progress': 'Topshiriq hozir chop etilmoqda.',
+    'print.confirm_uncertain': 'Avval printerni tekshirishni tasdiqlang.',
     'sales.no_active_warehouse': 'Faol ombor yo‘q.',
     'stock.title': 'Qoldiqlar',
     'stock.warehouse': 'Ombor',
@@ -727,6 +793,7 @@ function showApp(user) {
   $('#app-view').hidden = false;
   $('#current-user').textContent = `${user.fullName} (${user.login})`;
   $('#navigation [data-page="sales"]').hidden = user.permissions.sell !== 1;
+  $('#navigation [data-page="print"]').hidden = user.permissions.sell !== 1;
   const canViewDebts = ['debt_payment', 'reports']
     .some((permission) => user.permissions[permission] === 1);
   const canViewCash = ['cash_in', 'cash_out', 'expense', 'cash_collection', 'reports']
@@ -748,6 +815,9 @@ function showApp(user) {
   ].some((value) => value === 1);
   updateCashOperationTypes();
   $('#user-form').hidden = user.permissions.users_manage !== 1;
+  $('#print-profile-form').hidden = user.permissions.settings !== 1;
+  $('#sales-receipt-language').value = user.lang;
+  $('#print-copy-language').value = user.lang;
   $('#user-edit-form').hidden = true;
   $('#permission-editor').hidden = true;
   showPage('products');
@@ -780,6 +850,10 @@ function showPage(name) {
   if (name === 'purchases') void loadPurchases();
   if (name === 'movements') void loadMovementHistory();
   if (name === 'connection' && state.user?.role === 'admin') void loadConnectionInfo();
+  if (name === 'print' && state.user?.permissions.sell === 1) {
+    void loadPrintJobs();
+    if (state.user.permissions.settings === 1) void loadPrintProfile();
+  }
 }
 
 function cell(value) {
@@ -1734,7 +1808,12 @@ async function submitSale(event) {
     if (!saleAttemptId) saleAttemptId = createRequestId();
     const result = await api('/api/sales', {
       method: 'POST',
-      body: JSON.stringify({ ...options, payments, idempotencyKey: saleAttemptId }),
+      body: JSON.stringify({
+        ...options,
+        payments,
+        receiptLang: $('#sales-receipt-language').value,
+        idempotencyKey: saleAttemptId,
+      }),
     });
     saleAttemptId = null;
     state.salesManualDiscounts = {};
@@ -1998,6 +2077,92 @@ async function loadConnectionInfo() {
   }
 }
 
+async function loadPrintJobs() {
+  try {
+    const { jobs, enabled } = await api('/api/print-jobs');
+    buildHead('#print-jobs-head', 'print.columns');
+    const body = $('#print-jobs-body');
+    body.replaceChildren();
+    const hasUncertain = jobs.some((job) => job.status === 'uncertain');
+    $('#print-queue-note').textContent = [
+      enabled ? '' : t('print.disabled'),
+      hasUncertain ? t('print.check_printer') : '',
+    ].filter(Boolean).join(' ');
+    for (const job of jobs) {
+      const row = document.createElement('tr');
+      row.append(
+        cell(formatDateTime(job.createdAt)),
+        cell(job.number),
+        cell(job.cashier),
+        cell(t(`print.kind.${job.kind}`)),
+        cell(t(`print.status.${job.status}`)),
+        cell(job.attempts),
+        cell(job.status === 'uncertain' ? t('print.check_printer') : job.error),
+      );
+      const action = document.createElement('td');
+      const copy = document.createElement('button');
+      copy.type = 'button';
+      copy.textContent = t('print.copy');
+      copy.disabled = job.status === 'printing';
+      copy.addEventListener('click', () => { void createPrintCopy(job); });
+      action.append(copy);
+      row.append(action);
+      body.append(row);
+    }
+    if (jobs.length === 0) {
+      const row = document.createElement('tr');
+      const empty = cell(t('print.no_jobs'));
+      empty.colSpan = 8;
+      row.append(empty);
+      body.append(row);
+    }
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function createPrintCopy(job) {
+  const confirmation = job.status === 'uncertain' ? 'print.uncertain_confirm' : 'print.copy_confirm';
+  if (!window.confirm(t(confirmation))) return;
+  try {
+    await api(`/api/print-jobs/${encodeURIComponent(job.id)}/copy`, {
+      method: 'POST',
+      body: JSON.stringify({
+        lang: $('#print-copy-language').value,
+        ...(job.status === 'uncertain' ? { confirmUncertain: true } : {}),
+      }),
+    });
+    await loadPrintJobs();
+    message('status.created');
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function loadPrintProfile() {
+  try {
+    const { profile } = await api('/api/print-profile');
+    const form = $('#print-profile-form');
+    for (const key of ['storeName', 'address', 'phone', 'footerRu', 'footerUz']) {
+      form.elements.namedItem(key).value = profile[key];
+    }
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function savePrintProfile(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const values = Object.fromEntries(new FormData(form).entries());
+  try {
+    await api('/api/print-profile', { method: 'PUT', body: JSON.stringify(values) });
+    message('print.profile_saved');
+  } catch (error) {
+    message(error.message);
+  }
+}
+
 async function copyConnectionAddress(field) {
   if (!navigator.clipboard?.writeText) {
     field.select();
@@ -2107,6 +2272,8 @@ $('#navigation').addEventListener('click', (event) => {
 });
 
 $('#refresh-connection-info').addEventListener('click', () => { void loadConnectionInfo(); });
+$('#print-refresh').addEventListener('click', () => { void loadPrintJobs(); });
+$('#print-profile-form').addEventListener('submit', (event) => { void savePrintProfile(event); });
 $('#save-default-warehouse').addEventListener('click', () => { void saveSalesDefaultWarehouse(); });
 $('#sales-search').addEventListener('input', renderSalesProducts);
 $('#sales-customer').addEventListener('change', scheduleSalesQuote);
@@ -2304,6 +2471,9 @@ $('#save-permissions').addEventListener('click', async () => {
 localize();
 addPurchaseLine();
 window.setInterval(() => { void checkSessionStatus(); }, 10_000);
+window.setInterval(() => {
+  if (!$('#print-page').hidden && state.user?.permissions.sell === 1) void loadPrintJobs();
+}, 5_000);
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) void checkSessionStatus();
 });

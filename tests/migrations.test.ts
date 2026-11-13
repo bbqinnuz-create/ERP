@@ -44,11 +44,15 @@ describe('миграции', () => {
     const { db } = tempDb();
     const result = migrate(db);
     expect(result.applied).toContain('001_init.sql');
+    expect(result.applied).toContain('002_print_receipts.sql');
 
     const tables = (db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as { name: string }[]).map(
       (r) => r.name,
     );
     for (const t of EXPECTED_TABLES) expect(tables, `нет таблицы ${t}`).toContain(t);
+    const printColumns = db.pragma('table_info(print_jobs)') as Array<{ name: string }>;
+    expect(printColumns.map((column) => column.name)).toContain('lang');
+    expect(printColumns.map((column) => column.name)).toContain('snapshot_json');
   });
 
   it('повторный запуск ничего не меняет', () => {
@@ -57,6 +61,7 @@ describe('миграции', () => {
     const second = migrate(db);
     expect(second.applied).toEqual([]);
     expect(second.alreadyApplied).toContain('001_init.sql');
+    expect(second.alreadyApplied).toContain('002_print_receipts.sql');
   });
 
   it('загружает настройки по умолчанию', () => {
@@ -150,4 +155,3 @@ describe('соединение с базой', () => {
     }
   });
 });
-

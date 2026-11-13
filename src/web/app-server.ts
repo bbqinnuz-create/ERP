@@ -20,6 +20,8 @@ import {
 import { createCashOperation, getCashSummary, reverseCashOperation } from '../modules/cash/service';
 import { reconcileStockCaches } from '../modules/stock/ledger';
 import { listLanConnectionAddresses } from './connection-info';
+import { createCopyJob, listPrintJobs } from '../modules/print/service';
+import { getReceiptProfile, updateReceiptProfile } from '../modules/print/profile';
 import {
   getSettings,
   listProductUnits,
@@ -37,6 +39,7 @@ const STATIC_DIR = fileURLToPath(new URL('./public/', import.meta.url));
 
 interface ServerOptions {
   now?: () => number;
+  printEnabled?: boolean;
 }
 
 function isLocalAddress(address: string | undefined): boolean {
@@ -170,6 +173,7 @@ async function handleApi(
   res: ServerResponse,
   now: () => number,
   listenAddress: AddressInfo | string | null,
+  printEnabled: boolean,
 ): Promise<void> {
   const url = new URL(req.url ?? '/', 'http://localhost');
   const path = url.pathname;
@@ -315,6 +319,33 @@ async function handleApi(
     const result = withAuthorizedUser(db, token, 'sell',
       (session) => createSale(db, session.user.id, session.user.lang, body), now());
     sendJson(res, result.replayed ? 200 : 201, { ...result.receipt, replayed: result.replayed });
+    return;
+  }
+  if (path === '/api/print-jobs' && method === 'GET') {
+    const jobs = withAuthorizedUser(db, token, 'sell', (session) =>
+      listPrintJobs(db, session.user.id, session.user.role === 'admin'), now());
+    sendJson(res, 200, { jobs, enabled: printEnabled });
+    return;
+  }
+  const copyRoute = /^\/api\/print-jobs\/([^/]+)\/copy$/.exec(path);
+  if (copyRoute && method === 'POST') {
+    const body = await readJson(req);
+    const result = withAuthorizedUser(db, token, 'sell', (session) =>
+      createCopyJob(db, session.user.id, session.user.role === 'admin',
+        decodeURIComponent(copyRoute[1]!), body), now());
+    sendJson(res, 201, result);
+    return;
+  }
+  if (path === '/api/print-profile' && method === 'GET') {
+    const profile = withAuthorizedUser(db, token, 'settings', () => getReceiptProfile(db), now());
+    sendJson(res, 200, { profile });
+    return;
+  }
+  if (path === '/api/print-profile' && method === 'PUT') {
+    const body = await readJson(req);
+    const profile = withAuthorizedUser(db, token, 'settings', (session) =>
+      updateReceiptProfile(db, session.user.id, body), now());
+    sendJson(res, 200, { profile });
     return;
   }
 
@@ -599,7 +630,8 @@ export function createWebServer(db: Db, options: ServerOptions = {}): Server {
     }
     const path = req.url?.split('?')[0] ?? '/';
     if (path.startsWith('/api/')) {
-      void handleApi(db, req, res, now, server.address()).catch((error: unknown) => respondError(res, error));
+      void handleApi(db, req, res, now, server.address(), options.printEnabled ?? false)
+        .catch((error: unknown) => respondError(res, error));
       return;
     }
     try {

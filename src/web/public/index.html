@@ -35,6 +35,7 @@
         </div>
         <nav id="navigation">
           <button type="button" data-page="sales" data-i18n="nav.sales"></button>
+          <button type="button" data-page="print" data-i18n="nav.print" hidden></button>
           <button type="button" data-page="products" data-i18n="nav.products"></button>
           <button type="button" data-page="stock" data-i18n="nav.stock"></button>
           <button type="button" data-page="purchases" data-i18n="nav.purchases"></button>
@@ -64,6 +65,13 @@
               <span data-i18n="sales.customer"></span>
               <select id="sales-customer"></select>
             </label>
+            <label>
+              <span data-i18n="sales.receipt_language"></span>
+              <select id="sales-receipt-language">
+                <option value="ru">RU</option>
+                <option value="uz">UZ</option>
+              </select>
+            </label>
             <h3 data-i18n="sales.cart"></h3>
             <div class="table-wrap">
               <table><thead id="sales-cart-head"></thead><tbody id="sales-cart-body"></tbody></table>
@@ -87,6 +95,27 @@
             <h3 data-i18n="sales.receipt"></h3>
             <p id="sales-receipt-summary"></p>
           </section>
+        </section>
+        <section id="print-page" class="page" hidden>
+          <h2 data-i18n="print.title"></h2>
+          <label class="print-language-picker">
+            <span data-i18n="print.copy_language"></span>
+            <select id="print-copy-language"><option value="ru">RU</option><option value="uz">UZ</option></select>
+          </label>
+          <button id="print-refresh" type="button" data-i18n="print.refresh"></button>
+          <p id="print-queue-note" role="status" aria-live="polite"></p>
+          <div class="table-wrap">
+            <table><thead id="print-jobs-head"></thead><tbody id="print-jobs-body"></tbody></table>
+          </div>
+          <form id="print-profile-form" class="form-grid" hidden>
+            <h3 data-i18n="print.profile"></h3>
+            <label><span data-i18n="print.store_name"></span><input name="storeName" maxlength="120" required></label>
+            <label><span data-i18n="print.address"></span><input name="address" maxlength="200"></label>
+            <label><span data-i18n="print.phone"></span><input name="phone" maxlength="40"></label>
+            <label><span data-i18n="print.footer_ru"></span><textarea name="footerRu" maxlength="500" rows="3"></textarea></label>
+            <label><span data-i18n="print.footer_uz"></span><textarea name="footerUz" maxlength="500" rows="3"></textarea></label>
+            <button type="submit" data-i18n="print.save_profile"></button>
+          </form>
         </section>
         <section id="debts-page" class="page" hidden>
           <h2 data-i18n="debts.title"></h2>

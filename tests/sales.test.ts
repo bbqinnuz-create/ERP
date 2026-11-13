@@ -90,6 +90,7 @@ describe('sales and persistent carts', () => {
       const input = {
         idempotencyKey: 'sale-once',
         customerId,
+        receiptLang: 'uz',
         payments: [
           { methodId: cashMethodId, amount: 1_000_000, tendered: 1_200_000 },
           { methodId: cardMethodId, amount: 1_000_000 },
@@ -127,6 +128,8 @@ describe('sales and persistent carts', () => {
       ]);
       expect((db.prepare('SELECT COUNT(*) AS count FROM print_jobs WHERE doc_id = ?').get(result.receipt.sale.id) as
         { count: number }).count).toBe(1);
+      expect((db.prepare('SELECT lang FROM print_jobs WHERE doc_id = ?').get(result.receipt.sale.id) as
+        { lang: string }).lang).toBe('uz');
       expect((db.prepare("SELECT COUNT(*) AS count FROM audit_log WHERE action = 'sale.create'").get() as { count: number }).count)
         .toBe(1);
       expect((db.prepare("SELECT COUNT(*) AS count FROM sync_outbox WHERE table_name = 'sales'").get() as { count: number }).count)

@@ -48,6 +48,14 @@ input, select, button {
   font: inherit;
 }
 
+textarea {
+  min-height: 5rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #aeb8c2;
+  border-radius: 0.3rem;
+  font: inherit;
+}
+
 button { cursor: pointer; background: #eaf2f8; }
 button:hover { background: #d7e8f4; }
 
@@ -74,6 +82,8 @@ th, td { padding: 0.6rem; border-bottom: 1px solid #e0e5e9; text-align: left; }
 .connection-row { display: grid; grid-template-columns: minmax(7rem, 12rem) minmax(14rem, 1fr) auto; align-items: center; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid #e0e5e9; }
 .connection-actions { display: flex; align-items: center; gap: 0.5rem; }
 .connection-actions a { white-space: nowrap; }
+.print-language-picker { max-width: 20rem; margin: 0.75rem 0; }
+#print-profile-form { margin-top: 1.5rem; }
 #message { min-height: 1.5rem; color: #9c2525; }
 [hidden] { display: none !important; }
 

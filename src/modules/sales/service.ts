@@ -6,6 +6,7 @@ import { inTransaction } from '../../core/tx';
 import { uuidv7 } from '../../core/uuid';
 import { getPermissionValues, hasPermission } from '../auth/permissions';
 import { AuthError } from '../auth/service';
+import { captureSalePrintSnapshot } from '../print/service';
 import { getActiveCart, type Cart } from '../carts/service';
 import { consumeFifo, type FifoAllocation } from '../fifo/service';
 import {
@@ -56,6 +57,7 @@ interface NormalizedPayment {
 interface CheckoutInput extends NormalizedSaleOptions {
   idempotencyKey: string;
   payments: NormalizedPayment[];
+  receiptLang: 'ru' | 'uz';
 }
 
 interface LoadedPriceData {
@@ -198,21 +200,24 @@ function normalizePayments(value: unknown): NormalizedPayment[] {
   return payments;
 }
 
-function normalizeCheckoutInput(input: unknown): CheckoutInput {
+function normalizeCheckoutInput(input: unknown, defaultLanguage: 'ru' | 'uz'): CheckoutInput {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
     throw new AuthError(400, 'validation.invalid_object');
   }
   const row = input as Record<string, unknown>;
-  const allowed = ['idempotencyKey', 'customerId', 'manualDiscounts', 'checkDiscount', 'payments'];
+  const allowed = ['idempotencyKey', 'customerId', 'manualDiscounts', 'checkDiscount', 'payments', 'receiptLang'];
   const options = normalizeOptions(row, allowed);
   if (typeof row.idempotencyKey !== 'string' || row.idempotencyKey.trim().length === 0 ||
       row.idempotencyKey.length > 128) {
     throw new AuthError(400, 'validation.invalid_idempotency_key');
   }
+  const receiptLang = row.receiptLang === undefined ? defaultLanguage : row.receiptLang;
+  if (receiptLang !== 'ru' && receiptLang !== 'uz') throw new AuthError(400, 'validation.invalid_language');
   return {
     ...options,
     idempotencyKey: row.idempotencyKey.trim(),
     payments: normalizePayments(row.payments),
+    receiptLang,
   };
 }
 
@@ -511,7 +516,7 @@ export function createSale(
   lang: 'ru' | 'uz',
   input: unknown,
 ): SaleResult {
-  const normalized = normalizeCheckoutInput(input);
+  const normalized = normalizeCheckoutInput(input, lang);
   return inTransaction(db, () => {
     const existing = db.prepare(
       'SELECT user_id, operation, result_id FROM idempotency_keys WHERE key = ?',
@@ -798,11 +803,12 @@ export function createSale(
         lineCount: loaded.calculated.lines.length,
       },
     });
+    const printSnapshot = captureSalePrintSnapshot(db, saleId);
     db.prepare(
-      `INSERT INTO print_jobs (id, doc_type, doc_id, kind, status, attempts, created_at, updated_at)
-       VALUES (?, 'sale', ?, 'original', 'pending', 0, ?, ?)`,
-    ).run(uuidv7(), saleId, createdAt, createdAt);
+      `INSERT INTO print_jobs
+         (id, doc_type, doc_id, kind, status, attempts, created_at, updated_at, lang, snapshot_json)
+       VALUES (?, 'sale', ?, 'original', 'pending', 0, ?, ?, ?, ?)`,
+    ).run(uuidv7(), saleId, createdAt, createdAt, normalized.receiptLang, printSnapshot);
     return { receipt: saleReceipt(db, saleId), replayed: false };
   });
 }
-

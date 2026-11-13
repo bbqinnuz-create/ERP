@@ -79,6 +79,51 @@ describe('HTTP API этапа 2', () => {
     expect(users[0]).not.toHaveProperty('password_hash');
   });
 
+  it('защищает очередь печати правом sell и профиль чека правом settings', async () => {
+    expect((await fetch(`${baseUrl}/api/print-jobs`)).status).toBe(401);
+    const adminCookie = await loginCookie();
+    const queueResponse = await fetch(`${baseUrl}/api/print-jobs`, { headers: { Cookie: adminCookie } });
+    expect(queueResponse.status).toBe(200);
+    expect(await queueResponse.json()).toEqual({ jobs: [], enabled: false });
+
+    const profileResponse = await fetch(`${baseUrl}/api/print-profile`, { headers: { Cookie: adminCookie } });
+    expect(profileResponse.status).toBe(200);
+    expect(await profileResponse.json()).toMatchObject({
+      profile: { storeName: 'Тест', address: '', phone: '', footerRu: '', footerUz: '' },
+    });
+    const savedProfile = await fetch(`${baseUrl}/api/print-profile`, {
+      method: 'PUT',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        storeName: 'Магазин',
+        address: 'Ташкент',
+        phone: '+998 90 000 00 00',
+        footerRu: 'Спасибо!',
+        footerUz: 'Rahmat!',
+      }),
+    });
+    expect(savedProfile.status).toBe(200);
+    expect((await savedProfile.json()).profile).toMatchObject({
+      storeName: 'Магазин',
+      address: 'Ташкент',
+      footerRu: 'Спасибо!',
+      footerUz: 'Rahmat!',
+    });
+    expect((env.db.prepare("SELECT COUNT(*) AS count FROM audit_log WHERE action = 'print.profile.update'").get() as
+      { count: number }).count).toBe(1);
+
+    const cashier = await createUser(env.db, adminId, {
+      login: 'no-print-permission',
+      password: 'cashier secure password',
+      fullName: 'Cashier',
+      role: 'cashier',
+      lang: 'ru',
+    });
+    const cashierCookie = await loginCookie(cashier.login, 'cashier secure password');
+    expect((await fetch(`${baseUrl}/api/print-jobs`, { headers: { Cookie: cashierCookie } })).status).toBe(403);
+    expect((await fetch(`${baseUrl}/api/print-profile`, { headers: { Cookie: cashierCookie } })).status).toBe(403);
+  });
+
   it('сохраняет права пользователя через API и возвращает обновлённые значения', async () => {
     const cashier = await createUser(env.db, adminId, {
       login: 'rights-cashier',
