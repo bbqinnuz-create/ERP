@@ -134,7 +134,7 @@ SQLite: WAL, synchronous=FULL, foreign_keys=ON, разумный busy_timeout. �
 
 | **Сущность** | **Назначение / ключевые поля** |
 | --- | --- |
-| batches | Партия прихода: id, product_id, warehouse_id, purchase_id, received_at, qty_in, qty_left (кэш), unit_cost, supplier. |
+| batches | Партия прихода: id, product_id, warehouse_id, purchase_id, received_at, qty_in, qty_left (кэш), unit_cost, supplier. Остаток партии по журналу = сумма всех stock_movements.qty по batch_id, включая исходное положительное движение PURCHASE; qty_in не прибавляется повторно. |
 | stock_movements | Главный журнал: id, seq, created_at, warehouse_id, product_id, batch_id, type, qty со знаком, unit_cost, unit_price, doc_type, doc_id, user_id, reverses_id, note. |
 | stock_cache | Кэш по product_id + warehouse_id: qty, reserved. Обновляется в той же транзакции; полностью пересчитывается из журнала. |
 | sale_line_batch_allocations | Связь строки чека с каждой партией FIFO: sale_line_id, batch_id, qty, unit_cost, stock_movement_id. Нужна для возврата в исходные партии. |

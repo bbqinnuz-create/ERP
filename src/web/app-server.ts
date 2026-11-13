@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 import type { Db } from '../db/connection';
 import { AuthError, createUserForSession, listUsers, login, logout, setUserPermissions, updateUserForSession, withAuthorizedUser } from '../modules/auth/service';
 import { hasPermission, type Permission } from '../modules/auth/permissions';
+import { createPurchase, getPurchase, listPurchases, reversePurchase } from '../modules/purchases/service';
+import { reconcileStockCaches } from '../modules/stock/ledger';
 import { listLanConnectionAddresses } from './connection-info';
 import {
   getSettings,
@@ -248,6 +250,113 @@ async function handleApi(
   if (path === '/api/stock' && method === 'GET') {
     const rows = withAuthorizedUser(db, token, null, () => listStock(db), now());
     sendJson(res, 200, { rows });
+    return;
+  }
+
+  if (path === '/api/purchases' && method === 'GET') {
+    const result = withAuthorizedUser(db, token, null, (session) => ({
+      purchases: listPurchases(db).map((purchase) => {
+        if (hasPermission(db, session.user.id, 'view_cost')) return purchase;
+        const { total_cost: _totalCost, ...visible } = purchase;
+        return visible;
+      }),
+    }), now());
+    sendJson(res, 200, result);
+    return;
+  }
+  if (path === '/api/purchases' && method === 'POST') {
+    const body = await readJson(req);
+    const result = withAuthorizedUser(db, token, 'purchase', (session) => {
+      const created = createPurchase(db, session.user.id, body);
+      if (hasPermission(db, session.user.id, 'view_cost')) return created;
+      const { purchase, lines } = created;
+      const { total_cost: _totalCost, ...visiblePurchase } = purchase;
+      return {
+        purchase: visiblePurchase,
+        lines: lines.map(({ unitCost: _unitCost, costTotal: _costTotal, ...line }) => line),
+      };
+    }, now());
+    sendJson(res, 201, result);
+    return;
+  }
+  const purchaseRoute = /^\/api\/purchases\/([^/]+)(?:\/(reverse))?$/.exec(path);
+  if (purchaseRoute) {
+    const purchaseId = decodeURIComponent(purchaseRoute[1]!);
+    if (method === 'GET' && !purchaseRoute[2]) {
+      const result = withAuthorizedUser(db, token, null, (session) => {
+        const purchase = getPurchase(db, purchaseId);
+        if (hasPermission(db, session.user.id, 'view_cost')) return purchase;
+        const { total_cost: _totalCost, ...visiblePurchase } = purchase.purchase;
+        return {
+          purchase: visiblePurchase,
+          lines: purchase.lines.map(({ unitCost: _unitCost, costTotal: _costTotal, ...line }) => line),
+        };
+      }, now());
+      sendJson(res, 200, result);
+      return;
+    }
+    if (method === 'POST' && purchaseRoute[2] === 'reverse') {
+      const result = withAuthorizedUser(db, token, 'purchase', (session) => {
+        const reversed = reversePurchase(db, session.user.id, purchaseId);
+        if (hasPermission(db, session.user.id, 'view_cost')) return reversed;
+        const { purchase, lines } = reversed;
+        const { total_cost: _totalCost, ...visiblePurchase } = purchase;
+        return {
+          purchase: visiblePurchase,
+          lines: lines.map(({ unitCost: _unitCost, costTotal: _costTotal, ...line }) => line),
+        };
+      }, now());
+      sendJson(res, 200, result);
+      return;
+    }
+  }
+  if (path === '/api/stock/movements' && method === 'GET') {
+    const productId = url.searchParams.get('productId');
+    const warehouseId = url.searchParams.get('warehouseId');
+    const limitText = url.searchParams.get('limit') ?? '200';
+    const limit = /^\d+$/.test(limitText) ? Number(limitText) : 0;
+    const offsetText = url.searchParams.get('offset') ?? '0';
+    const offset = /^\d+$/.test(offsetText) ? Number(offsetText) : -1;
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 500) {
+      throw new AuthError(400, 'validation.invalid_limit');
+    }
+    if (!Number.isSafeInteger(offset) || offset < 0 || offset > 1_000_000_000) {
+      throw new AuthError(400, 'validation.invalid_offset');
+    }
+    const result = withAuthorizedUser(db, token, null, (session) => {
+      const conditions: string[] = [];
+      const params: unknown[] = [];
+      if (productId) {
+        conditions.push('m.product_id = ?');
+        params.push(productId);
+      }
+      if (warehouseId) {
+        conditions.push('m.warehouse_id = ?');
+        params.push(warehouseId);
+      }
+      const rows = db.prepare(
+        `SELECT m.id, m.created_at, m.product_id, p.sku, p.name_ru AS product_name, p.unit,
+                m.warehouse_id, w.name AS warehouse_name, m.type, m.qty,
+                ${hasPermission(db, session.user.id, 'view_cost') ? 'm.unit_cost,' : ''}
+                m.doc_type, m.doc_id,
+                COALESCE((SELECT pch.number FROM purchases pch
+                          WHERE m.doc_type = 'purchase' AND pch.id = m.doc_id), m.doc_id) AS document_number,
+                m.user_id, u.full_name AS user_name, m.note
+         FROM stock_movements m
+         JOIN products p ON p.id = m.product_id
+         JOIN warehouses w ON w.id = m.warehouse_id
+         LEFT JOIN users u ON u.id = m.user_id
+         ${conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''}
+         ORDER BY m.created_at DESC, m.seq DESC LIMIT ? OFFSET ?`,
+      ).all(...params, limit + 1, offset) as Record<string, unknown>[];
+      return { rows: rows.slice(0, limit), hasMore: rows.length > limit };
+    }, now());
+    sendJson(res, 200, result);
+    return;
+  }
+  if (path === '/api/stock/reconcile' && method === 'GET') {
+    const discrepancies = withAuthorizedUser(db, token, 'settings', () => reconcileStockCaches(db), now());
+    sendJson(res, 200, { discrepancies });
     return;
   }
 

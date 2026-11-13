@@ -9,6 +9,8 @@ const translations = {
     'auth.logout': 'Выйти',
     'nav.products': 'Товары',
     'nav.stock': 'Остатки',
+    'nav.purchases': 'Приходы',
+    'nav.movements': 'Движения',
     'nav.users': 'Пользователи и права',
     'nav.connection': 'Подключение ПК',
     'connection.title': 'Подключение рабочих ПК',
@@ -30,9 +32,75 @@ const translations = {
     'products.empty': 'Товаров пока нет',
     'products.columns': 'Артикул,Товар,Единица,Цена,Статус',
     'stock.title': 'Остатки',
-    'stock.stage_note': 'Операции прихода и движения остатков появятся на следующих этапах.',
-    'stock.empty': 'Движений и остатков пока нет',
+    'stock.warehouse': 'Склад',
     'stock.columns': 'Товар,Склад,Количество,Резерв',
+    'purchases.title': 'Приход товара',
+    'purchases.warehouse': 'Склад',
+    'purchases.date': 'Дата документа',
+    'purchases.supplier': 'Поставщик',
+    'purchases.lines': 'Строки прихода',
+    'purchases.add_line': 'Добавить строку',
+    'purchases.product': 'Товар',
+    'purchases.qty': 'Количество',
+    'purchases.unit_cost': 'Закупочная цена, тийин за единицу',
+    'purchases.remove_line': 'Убрать',
+    'purchases.note': 'Примечание',
+    'purchases.submit': 'Провести приход',
+    'purchases.history': 'Документы прихода',
+    'purchases.columns': 'Дата,Номер,Склад,Поставщик,Сумма,Статус,Действие',
+    'purchases.view': 'Просмотр',
+    'purchases.detail_columns': 'Артикул,Товар,Единица,Количество,Закупочная цена,Сумма строки',
+    'purchases.detail_columns_no_cost': 'Артикул,Товар,Единица,Количество',
+    'purchases.status_posted': 'Проведён',
+    'purchases.status_reversed': 'Сторнирован',
+    'purchases.reverse': 'Сторнировать',
+    'purchases.reverse_confirm': 'Сторнировать весь приход? Это действие нельзя отменить.',
+    'purchases.no_warehouse': 'Нет активного склада',
+    'purchases.no_product': 'Нет активного товара',
+    'purchases.no_rows': 'Приходов пока нет',
+    'purchases.no_permission': 'Нет права оформлять приход.',
+    'movements.title': 'История движений товара',
+    'movements.product': 'Товар',
+    'movements.warehouse': 'Склад',
+    'movements.refresh': 'Обновить',
+    'movements.previous': 'Назад',
+    'movements.next': 'Дальше',
+    'movements.all_products': 'Все товары',
+    'movements.all_warehouses': 'Все склады',
+    'movements.columns': 'Дата,Товар,Склад,Тип,Количество,Документ,Пользователь,Себестоимость,Примечание',
+    'movement.PURCHASE': 'Приход',
+    'movement.SALE': 'Продажа',
+    'movement.RETURN': 'Возврат',
+    'movement.WRITE_OFF': 'Списание',
+    'movement.ADJUST_PLUS': 'Корректировка плюс',
+    'movement.ADJUST_MINUS': 'Корректировка минус',
+    'movement.REVERSAL': 'Сторно',
+    'purchase.duplicate_product': 'Один товар можно добавить в приход только одной строкой. Разделите позиции на разные документы.',
+    'purchase.not_found': 'Документ прихода не найден.',
+    'purchase.already_reversed': 'Приход уже сторнирован.',
+    'purchase.reversal_stock_not_restored': 'Нельзя сторнировать: остаток каждой партии должен быть полностью восстановлен.',
+    'stock.locked_by_stocktake': 'Нельзя двигать товар: он заблокирован активной инвентаризацией.',
+    'stock.insufficient': 'Недостаточно доступного остатка.',
+    'stock.balance_invalid': 'Остаток повреждён или слишком велик; проведите сверку.',
+    'fifo.cost_out_of_range': 'Себестоимость выходит за допустимый диапазон.',
+    'validation.invalid_date': 'Укажите корректную дату.',
+    'validation.invalid_purchase_lines': 'Добавьте от 1 до 200 строк прихода.',
+    'validation.invalid_purchase_line': 'Некорректная строка прихода.',
+    'validation.invalid_product': 'Выберите активный товар.',
+    'validation.invalid_warehouse': 'Выберите активный склад.',
+    'validation.invalid_product_or_warehouse': 'Выберите активный товар и склад одного филиала.',
+    'validation.invalid_quantity': 'Количество должно быть положительным числом с точностью до 0,001.',
+    'validation.invalid_unit_cost': 'Цена закупки должна быть целым числом тийинов не меньше нуля.',
+    'validation.invalid_total': 'Итоговая стоимость слишком велика.',
+    'validation.invalid_supplier': 'Название поставщика слишком длинное.',
+    'validation.invalid_note': 'Примечание слишком длинное.',
+    'validation.invalid_limit': 'Недопустимый лимит строк.',
+    'validation.invalid_offset': 'Недопустимая позиция страницы.',
+    'validation.invalid_unit_price': 'Цена должна быть целым числом тийинов не меньше нуля.',
+    'status.select_option': 'Выберите значение',
+    'status.all': 'Все',
+    'status.no_data': 'Нет данных',
+    'status.loaded': 'Загружено.',
     'users.title': 'Пользователи',
     'users.login': 'Логин',
     'users.full_name': 'Имя',
@@ -133,6 +201,8 @@ const translations = {
     'auth.logout': 'Chiqish',
     'nav.products': 'Tovarlar',
     'nav.stock': 'Qoldiqlar',
+    'nav.purchases': 'Kirimlar',
+    'nav.movements': 'Harakatlar',
     'nav.users': 'Foydalanuvchilar va huquqlar',
     'nav.connection': 'Kompyuterlarni ulash',
     'connection.title': 'Ishchi kompyuterlarni ulash',
@@ -154,9 +224,75 @@ const translations = {
     'products.empty': 'Hozircha tovar yo‘q',
     'products.columns': 'Artikul,Tovar,Birlik,Narx,Holat',
     'stock.title': 'Qoldiqlar',
-    'stock.stage_note': 'Kirim va qoldiq harakati keyingi bosqichlarda qo‘shiladi.',
-    'stock.empty': 'Hozircha harakatlar va qoldiqlar yo‘q',
+    'stock.warehouse': 'Ombor',
     'stock.columns': 'Tovar,Ombor,Miqdor,Rezerv',
+    'purchases.title': 'Tovar kirimi',
+    'purchases.warehouse': 'Ombor',
+    'purchases.date': 'Hujjat sanasi',
+    'purchases.supplier': 'Yetkazib beruvchi',
+    'purchases.lines': 'Kirim qatorlari',
+    'purchases.add_line': 'Qator qo‘shish',
+    'purchases.product': 'Tovar',
+    'purchases.qty': 'Miqdor',
+    'purchases.unit_cost': 'Xarid narxi, birligi uchun tiyin',
+    'purchases.remove_line': 'Olib tashlash',
+    'purchases.note': 'Izoh',
+    'purchases.submit': 'Kirimni rasmiylashtirish',
+    'purchases.history': 'Kirim hujjatlari',
+    'purchases.columns': 'Sana,Raqam,Ombor,Yetkazib beruvchi,Summa,Holat,Amal',
+    'purchases.view': 'Ko‘rish',
+    'purchases.detail_columns': 'Artikul,Tovar,Birlik,Miqdor,Xarid narxi,Qator summasi',
+    'purchases.detail_columns_no_cost': 'Artikul,Tovar,Birlik,Miqdor',
+    'purchases.status_posted': 'Rasmiylashtirilgan',
+    'purchases.status_reversed': 'Bekor qilingan',
+    'purchases.reverse': 'Bekor qilish',
+    'purchases.reverse_confirm': 'Butun kirim bekor qilinsinmi? Bu amalni qaytarib bo‘lmaydi.',
+    'purchases.no_warehouse': 'Faol ombor yo‘q',
+    'purchases.no_product': 'Faol tovar yo‘q',
+    'purchases.no_rows': 'Hozircha kirimlar yo‘q',
+    'purchases.no_permission': 'Kirim qilish huquqi yo‘q.',
+    'movements.title': 'Tovar harakati tarixi',
+    'movements.product': 'Tovar',
+    'movements.warehouse': 'Ombor',
+    'movements.refresh': 'Yangilash',
+    'movements.previous': 'Oldingi',
+    'movements.next': 'Keyingi',
+    'movements.all_products': 'Barcha tovarlar',
+    'movements.all_warehouses': 'Barcha omborlar',
+    'movements.columns': 'Sana,Tovar,Ombor,Turi,Miqdor,Hujjat,Foydalanuvchi,Tannarx,Izoh',
+    'movement.PURCHASE': 'Kirim',
+    'movement.SALE': 'Sotuv',
+    'movement.RETURN': 'Qaytarish',
+    'movement.WRITE_OFF': 'Hisobdan chiqarish',
+    'movement.ADJUST_PLUS': 'Ijobiy tuzatish',
+    'movement.ADJUST_MINUS': 'Salbiy tuzatish',
+    'movement.REVERSAL': 'Bekor qilish',
+    'purchase.duplicate_product': 'Bir tovar kirimga faqat bir marta qo‘shiladi. Turli narxdagi qatorlarni alohida hujjat qiling.',
+    'purchase.not_found': 'Kirim hujjati topilmadi.',
+    'purchase.already_reversed': 'Kirim allaqachon bekor qilingan.',
+    'purchase.reversal_stock_not_restored': 'Bekor qilib bo‘lmaydi: har bir partiya qoldig‘i to‘liq tiklanishi kerak.',
+    'stock.locked_by_stocktake': 'Tovar faol inventarizatsiya tomonidan bloklangan.',
+    'stock.insufficient': 'Mavjud qoldiq yetarli emas.',
+    'stock.balance_invalid': 'Qoldiq noto‘g‘ri yoki juda katta; tekshiruvni bajaring.',
+    'fifo.cost_out_of_range': 'Tannarx ruxsat etilgan chegaradan katta.',
+    'validation.invalid_date': 'To‘g‘ri sanani kiriting.',
+    'validation.invalid_purchase_lines': '1–200 ta kirim qatorini kiriting.',
+    'validation.invalid_purchase_line': 'Kirim qatori noto‘g‘ri.',
+    'validation.invalid_product': 'Faol tovarni tanlang.',
+    'validation.invalid_warehouse': 'Faol omborni tanlang.',
+    'validation.invalid_product_or_warehouse': 'Faol tovar va bir filialdagi omborni tanlang.',
+    'validation.invalid_quantity': 'Miqdor musbat va 0,001 aniqlikda bo‘lishi kerak.',
+    'validation.invalid_unit_cost': 'Xarid narxi butun tiyinlarda va manfiy bo‘lmasligi kerak.',
+    'validation.invalid_total': 'Umumiy summa juda katta.',
+    'validation.invalid_supplier': 'Yetkazib beruvchi nomi juda uzun.',
+    'validation.invalid_note': 'Izoh juda uzun.',
+    'validation.invalid_limit': 'Qatorlar soni noto‘g‘ri.',
+    'validation.invalid_offset': 'Sahifa o‘rni noto‘g‘ri.',
+    'validation.invalid_unit_price': 'Narx butun tiyinlarda va manfiy bo‘lmasligi kerak.',
+    'status.select_option': 'Qiymatni tanlang',
+    'status.all': 'Barchasi',
+    'status.no_data': 'Ma’lumot yo‘q',
+    'status.loaded': 'Yuklandi.',
     'users.title': 'Foydalanuvchilar',
     'users.login': 'Login',
     'users.full_name': 'Ism',
@@ -257,6 +393,9 @@ const permissionKeys = [
 ];
 
 const state = { lang: localStorage.getItem('kassa_lang') === 'uz' ? 'uz' : 'ru', user: null, selectedUser: null };
+let movementOffset = 0;
+let inventoryProducts = [];
+let inventoryWarehouses = [];
 let sessionCheckInFlight = false;
 const $ = (selector) => document.querySelector(selector);
 const t = (key) => {
@@ -311,10 +450,12 @@ function showApp(user) {
   $('#navigation [data-page="connection"]').hidden = user.role !== 'admin';
   $('#product-form').hidden = user.permissions.settings !== 1 || user.permissions.price_edit !== 1;
   if (!$('#product-form').hidden) void loadProductUnits();
+  $('#purchase-form').hidden = user.permissions.purchase !== 1;
   $('#user-form').hidden = user.permissions.users_manage !== 1;
   $('#user-edit-form').hidden = true;
   $('#permission-editor').hidden = true;
   showPage('products');
+  void loadInventoryOptions();
   void loadProducts();
 }
 
@@ -334,6 +475,8 @@ function showPage(name) {
   document.querySelectorAll('.page').forEach((page) => { page.hidden = page.id !== `${name}-page`; });
   if (name === 'users' && state.user?.permissions.users_manage === 1) void loadUsers();
   if (name === 'stock') void loadStock();
+  if (name === 'purchases') void loadPurchases();
+  if (name === 'movements') void loadMovementHistory();
   if (name === 'connection' && state.user?.role === 'admin') void loadConnectionInfo();
 }
 
@@ -407,13 +550,269 @@ async function loadStock() {
     buildHead('#stock-head', 'stock.columns');
     const body = $('#stock-body');
     body.replaceChildren();
-    for (const item of rows) {
+    const warehouseFilter = $('#stock-warehouse-filter').value;
+    const visibleRows = rows.filter((item) => !warehouseFilter || item.warehouse_id === warehouseFilter);
+    for (const item of visibleRows) {
       const row = document.createElement('tr');
       row.append(cell(item.name),
-        cell(item.warehouse_name), cell(item.qty), cell(item.reserved));
+        cell(item.warehouse_name), cell(formatQuantity(item.qty)), cell(formatQuantity(item.reserved)));
       body.append(row);
     }
-    if (rows.length === 0) message('status.stock_empty');
+    if (visibleRows.length === 0) {
+      const row = document.createElement('tr');
+      const empty = cell(t('status.no_data'));
+      empty.colSpan = 4;
+      row.append(empty);
+      body.append(row);
+    }
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+function formatQuantity(value) {
+  const negative = value < 0;
+  const absolute = Math.abs(value);
+  const whole = Math.floor(absolute / 1000);
+  const fraction = String(absolute % 1000).padStart(3, '0').replace(/0+$/, '');
+  return `${negative ? '−' : ''}${whole}${fraction ? `${state.lang === 'ru' ? ',' : '.'}${fraction}` : ''}`;
+}
+
+function formatDateTime(value) {
+  return new Date(value).toLocaleString(state.lang === 'uz' ? 'uz-UZ' : 'ru-RU', {
+    timeZone: 'Asia/Tashkent',
+  });
+}
+
+function dateForInput() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tashkent',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const value = (type) => parts.find((part) => part.type === type)?.value ?? '';
+  return `${value('year')}-${value('month')}-${value('day')}`;
+}
+
+function makeOption(value, label) {
+  const option = document.createElement('option');
+  option.value = value;
+  option.textContent = label;
+  return option;
+}
+
+function setWarehouseOptions(select, includeAll = false) {
+  const selected = select.value;
+  const options = [];
+  if (includeAll) options.push(makeOption('', t('movements.all_warehouses')));
+  else options.push(makeOption('', t('status.select_option')));
+  for (const warehouse of inventoryWarehouses) {
+    options.push(makeOption(warehouse.id, warehouse.name));
+  }
+  select.replaceChildren(...options);
+  if (options.some((option) => option.value === selected)) select.value = selected;
+}
+
+function setProductOptions(select, includeAll = false) {
+  const selected = select.value;
+  const options = [];
+  if (includeAll) options.push(makeOption('', t('movements.all_products')));
+  else options.push(makeOption('', t('status.select_option')));
+  for (const product of inventoryProducts) {
+    options.push(makeOption(product.id, `${product.sku} — ${product.name}`));
+  }
+  select.replaceChildren(...options);
+  if (options.some((option) => option.value === selected)) select.value = selected;
+}
+
+async function loadInventoryOptions() {
+  try {
+    const [{ rows: products }, { rows: warehouses }] = await Promise.all([
+      api('/api/references/products'),
+      api('/api/references/warehouses'),
+    ]);
+    inventoryProducts = products;
+    inventoryWarehouses = warehouses;
+    setWarehouseOptions($('#stock-warehouse-filter'), true);
+    setWarehouseOptions($('#purchase-warehouse'));
+    setWarehouseOptions($('#movement-warehouse-filter'), true);
+    setProductOptions($('#movement-product-filter'), true);
+    const dateInput = $('#purchase-form').elements.namedItem('date');
+    if (!dateInput.value) dateInput.value = dateForInput();
+    document.querySelectorAll('#purchase-lines [data-purchase-product]').forEach((select) => setProductOptions(select));
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+function addPurchaseLine() {
+  const row = document.createElement('div');
+  row.className = 'purchase-line';
+  const product = document.createElement('select');
+  product.required = true;
+  product.dataset.purchaseProduct = 'true';
+  setProductOptions(product);
+  const quantity = document.createElement('input');
+  quantity.type = 'number';
+  quantity.min = '0.001';
+  quantity.step = '0.001';
+  quantity.required = true;
+  quantity.dataset.purchaseQty = 'true';
+  quantity.setAttribute('aria-label', t('purchases.qty'));
+  const unitCost = document.createElement('input');
+  unitCost.type = 'number';
+  unitCost.min = '0';
+  unitCost.step = '1';
+  unitCost.required = true;
+  unitCost.dataset.purchaseCost = 'true';
+  unitCost.setAttribute('aria-label', t('purchases.unit_cost'));
+  const productLabel = document.createElement('label');
+  const productCaption = document.createElement('span');
+  productCaption.dataset.purchaseLabel = 'purchases.product';
+  productCaption.textContent = t('purchases.product');
+  productLabel.append(productCaption, product);
+  const quantityLabel = document.createElement('label');
+  const quantityCaption = document.createElement('span');
+  quantityCaption.dataset.purchaseLabel = 'purchases.qty';
+  quantityCaption.textContent = t('purchases.qty');
+  quantityLabel.append(quantityCaption, quantity);
+  const costLabel = document.createElement('label');
+  const costCaption = document.createElement('span');
+  costCaption.dataset.purchaseLabel = 'purchases.unit_cost';
+  costCaption.textContent = t('purchases.unit_cost');
+  costLabel.append(costCaption, unitCost);
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.textContent = t('purchases.remove_line');
+  remove.addEventListener('click', () => {
+    if ($('#purchase-lines').children.length > 1) row.remove();
+  });
+  row.append(productLabel, quantityLabel, costLabel, remove);
+  $('#purchase-lines').append(row);
+}
+
+async function loadPurchases() {
+  try {
+    const { purchases } = await api('/api/purchases');
+    buildHead('#purchases-head', 'purchases.columns');
+    const body = $('#purchases-body');
+    body.replaceChildren();
+    if (purchases.length === 0) {
+      const row = document.createElement('tr');
+      const empty = cell(t('purchases.no_rows'));
+      empty.colSpan = 7;
+      row.append(empty);
+      body.append(row);
+      return;
+    }
+    for (const purchase of purchases) {
+      const row = document.createElement('tr');
+      row.append(
+        cell(purchase.date),
+        cell(purchase.number),
+        cell(purchase.warehouse_name),
+        cell(purchase.supplier),
+        cell(purchase.total_cost === undefined ? '—' : purchase.total_cost),
+        cell(t(`purchases.status_${purchase.status}`)),
+      );
+      const action = document.createElement('td');
+      const view = document.createElement('button');
+      view.type = 'button';
+      view.textContent = t('purchases.view');
+      view.addEventListener('click', () => { void loadPurchaseDetails(purchase.id); });
+      action.append(view);
+      if (purchase.status === 'posted' && state.user?.permissions.purchase === 1) {
+        const reverse = document.createElement('button');
+        reverse.type = 'button';
+        reverse.textContent = t('purchases.reverse');
+        reverse.addEventListener('click', () => { void reversePurchaseRequest(purchase.id); });
+        action.append(reverse);
+      }
+      row.append(action);
+      body.append(row);
+    }
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function loadPurchaseDetails(id) {
+  try {
+    const { purchase, lines } = await api(`/api/purchases/${encodeURIComponent(id)}`);
+    const canViewCost = state.user?.permissions.view_cost === 1;
+    $('#purchase-detail-title').textContent =
+      `${purchase.number} — ${purchase.date} — ${purchase.warehouse_name}${purchase.supplier ? ` — ${purchase.supplier}` : ''}`;
+    buildHead(
+      '#purchase-detail-head',
+      canViewCost ? 'purchases.detail_columns' : 'purchases.detail_columns_no_cost',
+    );
+    const body = $('#purchase-detail-body');
+    body.replaceChildren();
+    for (const line of lines) {
+      const values = [line.sku, line.name, line.unit, formatQuantity(line.qty)];
+      if (canViewCost) {
+        values.push(line.unitCost, line.costTotal);
+      }
+      const row = document.createElement('tr');
+      values.forEach((value) => row.append(cell(value)));
+      body.append(row);
+    }
+    $('#purchase-detail').hidden = false;
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function reversePurchaseRequest(id) {
+  if (!window.confirm(t('purchases.reverse_confirm'))) return;
+  try {
+    await api(`/api/purchases/${encodeURIComponent(id)}/reverse`, { method: 'POST' });
+    message('status.saved');
+    await Promise.all([loadPurchases(), loadStock()]);
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function loadMovementHistory() {
+  try {
+    const params = new URLSearchParams();
+    const productId = $('#movement-product-filter').value;
+    const warehouseId = $('#movement-warehouse-filter').value;
+    const pageSize = 200;
+    if (productId) params.set('productId', productId);
+    if (warehouseId) params.set('warehouseId', warehouseId);
+    params.set('limit', String(pageSize));
+    params.set('offset', String(movementOffset));
+    const { rows, hasMore } = await api(`/api/stock/movements?${params}`);
+    buildHead('#movements-head', 'movements.columns');
+    const body = $('#movements-body');
+    body.replaceChildren();
+    for (const movement of rows) {
+      const row = document.createElement('tr');
+      row.append(
+        cell(formatDateTime(movement.created_at)),
+        cell(`${movement.sku} — ${movement.product_name}`),
+        cell(movement.warehouse_name),
+        cell(t(`movement.${movement.type}`)),
+        cell(formatQuantity(movement.qty)),
+        cell(movement.document_number),
+        cell(movement.user_name),
+        cell(movement.unit_cost === undefined ? '' : movement.unit_cost),
+        cell(movement.note),
+      );
+      body.append(row);
+    }
+    if (rows.length === 0) {
+      const row = document.createElement('tr');
+      const empty = cell(t('status.no_data'));
+      empty.colSpan = 9;
+      row.append(empty);
+      body.append(row);
+    }
+    $('#movements-previous').disabled = movementOffset === 0;
+    $('#movements-next').disabled = !hasMore;
   } catch (error) {
     message(error.message);
   }
@@ -553,7 +952,14 @@ $('#language').addEventListener('change', (event) => {
   localStorage.setItem('kassa_lang', state.lang);
   localize();
   if (state.user) {
+    void loadInventoryOptions();
     $('#current-user').textContent = `${state.user.fullName} (${state.user.login})`;
+    document.querySelectorAll('#purchase-lines button').forEach((button) => {
+      button.textContent = t('purchases.remove_line');
+    });
+    document.querySelectorAll('#purchase-lines [data-purchase-label]').forEach((node) => {
+      node.textContent = t(node.dataset.purchaseLabel);
+    });
     void showPage(document.querySelector('.page:not([hidden])')?.id.replace('-page', '') ?? 'products');
   }
 });
@@ -590,6 +996,51 @@ $('#navigation').addEventListener('click', (event) => {
 });
 
 $('#refresh-connection-info').addEventListener('click', () => { void loadConnectionInfo(); });
+
+$('#stock-warehouse-filter').addEventListener('change', () => { void loadStock(); });
+$('#movement-product-filter').addEventListener('change', () => { movementOffset = 0; void loadMovementHistory(); });
+$('#movement-warehouse-filter').addEventListener('change', () => { movementOffset = 0; void loadMovementHistory(); });
+$('#refresh-movements').addEventListener('click', () => { void loadMovementHistory(); });
+$('#movements-previous').addEventListener('click', () => {
+  movementOffset = Math.max(0, movementOffset - 200);
+  void loadMovementHistory();
+});
+$('#movements-next').addEventListener('click', () => {
+  movementOffset += 200;
+  void loadMovementHistory();
+});
+$('#add-purchase-line').addEventListener('click', addPurchaseLine);
+
+$('#purchase-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const formElement = event.currentTarget;
+  const form = new FormData(formElement);
+  const lines = [...$('#purchase-lines').children].map((row) => ({
+    productId: row.querySelector('[data-purchase-product]').value,
+    qty: row.querySelector('[data-purchase-qty]').value,
+    unitCost: Number(row.querySelector('[data-purchase-cost]').value),
+  }));
+  try {
+    await api('/api/purchases', {
+      method: 'POST',
+      body: JSON.stringify({
+        warehouseId: form.get('warehouseId'),
+        date: form.get('date'),
+        supplier: form.get('supplier'),
+        note: form.get('note'),
+        lines,
+      }),
+    });
+    formElement.reset();
+    $('#purchase-lines').replaceChildren();
+    addPurchaseLine();
+    formElement.elements.namedItem('date').value = dateForInput();
+    message('status.created');
+    await Promise.all([loadPurchases(), loadStock()]);
+  } catch (error) {
+    message(error.message);
+  }
+});
 
 $('#product-form').addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -695,6 +1146,7 @@ $('#save-permissions').addEventListener('click', async () => {
 });
 
 localize();
+addPurchaseLine();
 window.setInterval(() => { void checkSessionStatus(); }, 10_000);
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) void checkSessionStatus();

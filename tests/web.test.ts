@@ -54,6 +54,8 @@ describe('HTTP API этапа 2', () => {
     expect((await fetch(`${baseUrl}/api/stock`)).status).toBe(401);
     expect((await fetch(`${baseUrl}/api/product-units`)).status).toBe(401);
     expect((await fetch(`${baseUrl}/api/server-info`)).status).toBe(401);
+    expect((await fetch(`${baseUrl}/api/purchases`)).status).toBe(401);
+    expect((await fetch(`${baseUrl}/api/stock/movements`)).status).toBe(401);
 
     const cookie = await loginCookie();
     const response = await fetch(`${baseUrl}/api/auth/me`, { headers: { Cookie: cookie } });
@@ -100,6 +102,26 @@ describe('HTTP API этапа 2', () => {
     expect(rows[0]).not.toHaveProperty('name_uz');
     const updatedUnits = await fetch(`${baseUrl}/api/product-units`, { headers: { Cookie: adminCookie } });
     expect(await updatedUnits.json()).toEqual({ units: ['шт', 'кг', 'тн', 'метр', 'коробка'] });
+    const purchaseResponse = await fetch(`${baseUrl}/api/purchases`, {
+      method: 'POST',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        warehouseId: env.warehouseId,
+        date: '2026-11-13',
+        lines: [{ productId: product.id, qty: '1.250', unitCost: 1000 }],
+      }),
+    });
+    expect(purchaseResponse.status).toBe(201);
+    const { purchase } = await purchaseResponse.json() as { purchase: Record<string, unknown> };
+    expect(purchase).toMatchObject({ number: 'A-P-000001', total_cost: 1250, status: 'posted' });
+    const movementResponseAdmin = await fetch(`${baseUrl}/api/stock/movements`, { headers: { Cookie: adminCookie } });
+    const movementListAdmin = await movementResponseAdmin.json() as { rows: Record<string, unknown>[] };
+    expect(movementListAdmin.rows[0]).toMatchObject({
+      type: 'PURCHASE',
+      qty: 1250,
+      unit_cost: 1000,
+      document_number: 'A-P-000001',
+    });
 
     const cashier = await createUser(env.db, adminId, {
       login: 'cashier',
@@ -110,6 +132,33 @@ describe('HTTP API этапа 2', () => {
     });
     setUserPermissions(env.db, adminId, cashier.id, { settings: 1 });
     const cashierCookie = await loginCookie('cashier', 'cashier secure password');
+    const purchaseListResponse = await fetch(`${baseUrl}/api/purchases`, { headers: { Cookie: cashierCookie } });
+    const purchaseList = await purchaseListResponse.json() as { purchases: Record<string, unknown>[] };
+    expect(purchaseList.purchases[0]).not.toHaveProperty('total_cost');
+    const purchaseDetailResponse = await fetch(
+      `${baseUrl}/api/purchases/${encodeURIComponent(String(purchase.id))}`,
+      { headers: { Cookie: cashierCookie } },
+    );
+    const purchaseDetail = await purchaseDetailResponse.json() as {
+      purchase: Record<string, unknown>;
+      lines: Record<string, unknown>[];
+    };
+    expect(purchaseDetail.purchase).not.toHaveProperty('total_cost');
+    expect(purchaseDetail.lines[0]).not.toHaveProperty('unitCost');
+    expect(purchaseDetail.lines[0]).not.toHaveProperty('costTotal');
+    const movementResponse = await fetch(`${baseUrl}/api/stock/movements`, { headers: { Cookie: cashierCookie } });
+    const movementList = await movementResponse.json() as { rows: Record<string, unknown>[] };
+    expect(movementList.rows[0]).not.toHaveProperty('unit_cost');
+    const purchaseDenied = await fetch(`${baseUrl}/api/purchases`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        warehouseId: env.warehouseId,
+        date: '2026-11-13',
+        lines: [{ productId: product.id, qty: '1', unitCost: 100 }],
+      }),
+    });
+    expect(purchaseDenied.status).toBe(403);
     const connectionDenied = await fetch(`${baseUrl}/api/server-info`, { headers: { Cookie: cashierCookie } });
     expect(connectionDenied.status).toBe(403);
     const denied = await fetch(`${baseUrl}/api/references/products`, {
@@ -118,6 +167,44 @@ describe('HTTP API этапа 2', () => {
       body: JSON.stringify({ sku: 'X', name: 'X', unit: 'шт', base_price: 0 }),
     });
     expect(denied.status).toBe(403);
+
+    const secondPurchaseResponse = await fetch(`${baseUrl}/api/purchases`, {
+      method: 'POST',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        warehouseId: env.warehouseId,
+        date: '2026-11-14',
+        lines: [{ productId: product.id, qty: '0.250', unitCost: 1100 }],
+      }),
+    });
+    expect(secondPurchaseResponse.status).toBe(201);
+    const firstMovementPageResponse = await fetch(`${baseUrl}/api/stock/movements?limit=1&offset=0`, {
+      headers: { Cookie: adminCookie },
+    });
+    const firstMovementPage = await firstMovementPageResponse.json() as {
+      rows: Record<string, unknown>[];
+      hasMore: boolean;
+    };
+    expect(firstMovementPage.rows).toHaveLength(1);
+    expect(firstMovementPage.hasMore).toBe(true);
+    const secondMovementPageResponse = await fetch(`${baseUrl}/api/stock/movements?limit=1&offset=1`, {
+      headers: { Cookie: adminCookie },
+    });
+    const secondMovementPage = await secondMovementPageResponse.json() as {
+      rows: Record<string, unknown>[];
+      hasMore: boolean;
+    };
+    expect(secondMovementPage.rows).toHaveLength(1);
+    expect(secondMovementPage.hasMore).toBe(false);
+    const firstMovementId = firstMovementPage.rows[0]?.id;
+    const secondMovementId = secondMovementPage.rows[0]?.id;
+    expect(firstMovementId).toBeDefined();
+    expect(secondMovementId).toBeDefined();
+    expect(secondMovementId).not.toBe(firstMovementId);
+    const invalidMovementPage = await fetch(`${baseUrl}/api/stock/movements?offset=-1`, {
+      headers: { Cookie: adminCookie },
+    });
+    expect(invalidMovementPage.status).toBe(400);
   });
 
   it('доступ к API прекращается после нового входа и сервер выдаёт понятный статус', async () => {

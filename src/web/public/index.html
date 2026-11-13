@@ -36,6 +36,8 @@
         <nav id="navigation">
           <button type="button" data-page="products" data-i18n="nav.products"></button>
           <button type="button" data-page="stock" data-i18n="nav.stock"></button>
+          <button type="button" data-page="purchases" data-i18n="nav.purchases"></button>
+          <button type="button" data-page="movements" data-i18n="nav.movements"></button>
           <button type="button" data-page="users" data-i18n="nav.users"></button>
           <button type="button" data-page="connection" data-i18n="nav.connection" hidden></button>
         </nav>
@@ -59,8 +61,42 @@
         </section>
         <section id="stock-page" class="page" hidden>
           <h2 data-i18n="stock.title"></h2>
-          <p data-i18n="stock.stage_note"></p>
+          <label><span data-i18n="stock.warehouse"></span><select id="stock-warehouse-filter"></select></label>
           <div class="table-wrap"><table><thead id="stock-head"></thead><tbody id="stock-body"></tbody></table></div>
+        </section>
+        <section id="purchases-page" class="page" hidden>
+          <h2 data-i18n="purchases.title"></h2>
+          <form id="purchase-form">
+            <label><span data-i18n="purchases.warehouse"></span><select name="warehouseId" id="purchase-warehouse" required></select></label>
+            <label><span data-i18n="purchases.date"></span><input name="date" type="date" required></label>
+            <label><span data-i18n="purchases.supplier"></span><input name="supplier" maxlength="200"></label>
+            <div>
+              <h3 data-i18n="purchases.lines"></h3>
+              <div id="purchase-lines" class="purchase-lines"></div>
+              <button id="add-purchase-line" type="button" data-i18n="purchases.add_line"></button>
+            </div>
+            <label><span data-i18n="purchases.note"></span><input name="note" maxlength="1000"></label>
+            <button type="submit" data-i18n="purchases.submit"></button>
+          </form>
+          <h3 data-i18n="purchases.history"></h3>
+          <div class="table-wrap"><table><thead id="purchases-head"></thead><tbody id="purchases-body"></tbody></table></div>
+          <section id="purchase-detail" hidden>
+            <h3 id="purchase-detail-title"></h3>
+            <div class="table-wrap"><table><thead id="purchase-detail-head"></thead><tbody id="purchase-detail-body"></tbody></table></div>
+          </section>
+        </section>
+        <section id="movements-page" class="page" hidden>
+          <h2 data-i18n="movements.title"></h2>
+          <div class="filter-grid">
+            <label><span data-i18n="movements.product"></span><select id="movement-product-filter"></select></label>
+            <label><span data-i18n="movements.warehouse"></span><select id="movement-warehouse-filter"></select></label>
+            <button id="refresh-movements" type="button" data-i18n="movements.refresh"></button>
+          </div>
+          <div class="table-wrap"><table><thead id="movements-head"></thead><tbody id="movements-body"></tbody></table></div>
+          <div class="pagination-controls">
+            <button id="movements-previous" type="button" data-i18n="movements.previous"></button>
+            <button id="movements-next" type="button" data-i18n="movements.next"></button>
+          </div>
         </section>
         <section id="users-page" class="page" hidden>
           <h2 data-i18n="users.title"></h2>
