@@ -15,12 +15,19 @@ export interface PurchaseLineInput {
   unitCost: number;
 }
 
+export interface PurchaseProductPriceUpdate {
+  productId: string;
+  basePrice: number;
+  expectedBasePrice: number;
+}
+
 export interface CreatePurchaseInput {
   warehouseId: string;
   date: string;
   supplier?: string | null;
   note?: string | null;
   lines: PurchaseLineInput[];
+  productPriceUpdates?: PurchaseProductPriceUpdate[];
 }
 
 interface NormalizedPurchaseLine {
@@ -28,6 +35,8 @@ interface NormalizedPurchaseLine {
   qty: number;
   unitCost: number;
 }
+
+type NormalizedProductPriceUpdate = PurchaseProductPriceUpdate;
 
 interface PurchaseLineRow extends NormalizedPurchaseLine {
   id: string;
@@ -115,25 +124,60 @@ function normalizeInput(input: unknown): {
   supplier: string | null;
   note: string | null;
   lines: NormalizedPurchaseLine[];
+  productPriceUpdates: NormalizedProductPriceUpdate[];
 } {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
     throw new AuthError(400, 'validation.invalid_object');
   }
   const row = input as Record<string, unknown>;
-  const allowed = new Set(['warehouseId', 'date', 'supplier', 'note', 'lines']);
+  const allowed = new Set(['warehouseId', 'date', 'supplier', 'note', 'lines', 'productPriceUpdates']);
   if (Object.keys(row).some((key) => !allowed.has(key))) {
     throw new AuthError(400, 'validation.unknown_field');
   }
   if (typeof row.warehouseId !== 'string' || row.warehouseId.length < 1 || row.warehouseId.length > 64) {
     throw new AuthError(400, 'validation.invalid_warehouse');
   }
+  const lines = normalizeLines(row.lines);
+  const productPriceUpdates = row.productPriceUpdates === undefined
+    ? []
+    : normalizeProductPriceUpdates(row.productPriceUpdates, lines);
   return {
     warehouseId: row.warehouseId,
     date: normalizeDate(row.date),
     supplier: text(row.supplier, 'supplier', 200, true),
     note: text(row.note, 'note', 1000, true),
-    lines: normalizeLines(row.lines),
+    lines,
+    productPriceUpdates,
   };
+}
+
+function normalizeProductPriceUpdates(value: unknown, lines: NormalizedPurchaseLine[]): NormalizedProductPriceUpdate[] {
+  if (!Array.isArray(value) || value.length > 200) {
+    throw new AuthError(400, 'purchase.invalid_product_price_updates');
+  }
+  const lineProductIds = new Set(lines.map((line) => line.productId));
+  const updatedProductIds = new Set<string>();
+  return value.map((item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      throw new AuthError(400, 'purchase.invalid_product_price_update');
+    }
+    const row = item as Record<string, unknown>;
+    if (Object.keys(row).some((key) => !['productId', 'basePrice', 'expectedBasePrice'].includes(key)) ||
+        typeof row.productId !== 'string' || row.productId.length < 1 || row.productId.length > 64 ||
+        !Number.isSafeInteger(row.basePrice) || (row.basePrice as number) < 0 ||
+        !Number.isSafeInteger(row.expectedBasePrice) || (row.expectedBasePrice as number) < 0) {
+      throw new AuthError(400, 'purchase.invalid_product_price_update');
+    }
+    if (!lineProductIds.has(row.productId) || updatedProductIds.has(row.productId)) {
+      throw new AuthError(400, 'purchase.invalid_product_price_update');
+    }
+    updatedProductIds.add(row.productId);
+    return {
+      productId: row.productId,
+      basePrice: row.basePrice as number,
+      expectedBasePrice: row.expectedBasePrice as number,
+    };
+  });
 }
 
 function assertNoStocktakeLock(db: Db, warehouseId: string, productId: string): void {
@@ -229,10 +273,19 @@ export function createPurchase(db: Db, userId: string, input: unknown): { purcha
 
     let total = 0n;
     for (const line of normalized.lines) {
-      const product = db.prepare('SELECT 1 FROM products WHERE id = ? AND active = 1').get(line.productId);
+      const product = db.prepare('SELECT base_price FROM products WHERE id = ? AND active = 1').get(line.productId) as
+        { base_price: number } | undefined;
       if (!product) throw new AuthError(400, 'validation.invalid_product');
       assertNoStocktakeLock(db, normalized.warehouseId, line.productId);
       total += BigInt(purchaseLineCost(line.qty, line.unitCost));
+    }
+    for (const update of normalized.productPriceUpdates) {
+      const product = db.prepare('SELECT base_price FROM products WHERE id = ? AND active = 1')
+        .get(update.productId) as { base_price: number } | undefined;
+      if (!product) throw new AuthError(400, 'validation.invalid_product');
+      if (product.base_price !== update.expectedBasePrice) {
+        throw new AuthError(409, 'purchase.product_price_changed');
+      }
     }
     const totalCost = assertSafeTotal(total);
     const id = uuidv7();
@@ -288,6 +341,19 @@ export function createPurchase(db: Db, userId: string, input: unknown): { purcha
       }));
     }
     addPurchaseOutbox(db, id, lineIds, batchIds, movementIds, now);
+    const updateProductPrice = db.prepare('UPDATE products SET base_price = ?, updated_at = ? WHERE id = ?');
+    for (const update of normalized.productPriceUpdates) {
+      if (update.basePrice === update.expectedBasePrice) continue;
+      updateProductPrice.run(update.basePrice, now, update.productId);
+      writeAudit(db, {
+        userId,
+        action: 'products.update',
+        entity: 'products',
+        entityId: update.productId,
+        before: { base_price: update.expectedBasePrice },
+        after: { base_price: update.basePrice },
+      });
+    }
     writeAudit(db, {
       userId,
       action: 'purchase.create',
