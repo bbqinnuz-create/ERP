@@ -21,6 +21,132 @@ const translations = {
     'nav.returns': 'Возвраты',
     'nav.writeoffs': 'Списания',
     'nav.stocktakes': 'Инвентаризация',
+    'nav.reports': 'Отчёты и копии',
+    'reports.title': 'Отчёты',
+    'reports.type': 'Отчёт',
+    'reports.from': 'С даты (Ташкент)',
+    'reports.to': 'По дату (Ташкент)',
+    'reports.warehouse': 'Склад',
+    'reports.product': 'Товар',
+    'reports.cashier': 'Пользователь',
+    'reports.run': 'Сформировать',
+    'reports.export': 'Скачать CSV для Excel',
+    'reports.no_rows': 'Нет данных за выбранные условия.',
+    'reports.truncated': 'Показаны первые 10 000 строк. Уточните фильтры для полного экспорта.',
+    'reports.summary.cash': 'Остаток наличных сейчас: {balance}; изменение за период: {periodAmount}.',
+    'reports.summary.valuation': 'Оценка остатка по себестоимости партий: {value}.',
+    'reports.summary.backups': 'Папка копий: {directory}. Последняя операция: {lastRun}.',
+    'reports.type.sales_by_day': 'Продажи по дням',
+    'reports.type.sales_by_product': 'Продажи по товарам',
+    'reports.type.sales_by_category': 'Продажи по категориям',
+    'reports.type.sales_by_cashier': 'Продажи по кассирам',
+    'reports.type.sales_by_payment_method': 'Продажи по способам оплаты',
+    'reports.type.cashier_summary': 'Сводка по кассирам',
+    'reports.type.profit_by_sale': 'Прибыль по чекам',
+    'reports.type.profit_by_product': 'Прибыль по товарам',
+    'reports.type.profit_by_category': 'Прибыль по категориям',
+    'reports.type.stock': 'Остатки',
+    'reports.type.low_stock': 'Ниже минимального остатка',
+    'reports.type.stock_valuation': 'Оценка склада по партиям',
+    'reports.type.movements': 'Движения товара',
+    'reports.type.discounts': 'Скидки',
+    'reports.type.returns': 'Возвраты',
+    'reports.type.writeoffs': 'Списания',
+    'reports.type.debt_balances': 'Открытые долги по чекам',
+    'reports.type.debt_history': 'История долгов и распределения оплат',
+    'reports.type.cash': 'Общая касса',
+    'reports.type.noncash': 'Безналичные суммы',
+    'reports.type.reservations': 'Резервы',
+    'reports.type.audit': 'Журнал действий',
+    'reports.column.date': 'Дата',
+    'reports.column.sales': 'Продажи',
+    'reports.column.salesCount': 'Чеков',
+    'reports.column.subtotal': 'До скидок',
+    'reports.column.discount': 'Скидка',
+    'reports.column.total': 'Сумма чеков',
+    'reports.column.paid': 'Оплачено',
+    'reports.column.debt': 'В долг',
+    'reports.column.sku': 'Артикул',
+    'reports.column.product': 'Товар',
+    'reports.column.sale': 'Чек',
+    'reports.column.kind': 'Тип скидки',
+    'reports.column.category': 'Категория',
+    'reports.column.cart': 'Отложенная корзина',
+    'reports.column.qty': 'Количество',
+    'reports.column.returns': 'Возвраты',
+    'reports.column.netSales': 'Продажи за вычетом возвратов',
+    'reports.column.user': 'Пользователь',
+    'reports.column.salesTotal': 'Продажи',
+    'reports.column.returnQty': 'Возвращённое количество',
+    'reports.column.method': 'Способ оплаты',
+    'reports.column.purpose': 'Назначение',
+    'reports.column.direction': 'Направление',
+    'reports.column.payments': 'Операций',
+    'reports.column.amount': 'Сумма',
+    'reports.column.number': 'Номер',
+    'reports.column.customer': 'Клиент',
+    'reports.column.cost': 'Себестоимость',
+    'reports.column.profit': 'Прибыль',
+    'reports.column.warehouse': 'Склад',
+    'reports.column.reserved': 'Резерв',
+    'reports.column.available': 'Доступно',
+    'reports.column.minStock': 'Минимум',
+    'reports.column.batch': 'Партия',
+    'reports.column.receivedAt': 'Дата поступления партии',
+    'reports.column.unitCost': 'Себестоимость единицы',
+    'reports.column.value': 'Стоимость остатка',
+    'reports.column.type': 'Тип',
+    'reports.column.document': 'Документ',
+    'reports.column.note': 'Примечание',
+    'reports.column.percentBp': 'Скидка, базисные пункты',
+    'reports.column.approvedBy': 'Подтвердил',
+    'reports.column.reason': 'Причина',
+    'reports.column.lines': 'Строк',
+    'reports.column.balance': 'Остаток долга',
+    'reports.column.payment': 'Платёж',
+    'reports.column.allocated': 'Распределено',
+    'reports.column.before': 'Было',
+    'reports.column.after': 'Стало',
+    'reports.column.action': 'Действие',
+    'reports.column.entity': 'Раздел',
+    'reports.column.entityId': 'ID записи',
+    'reports.column.expiresAt': 'Истекает',
+    'reports.column.received': 'Получено',
+    'reports.column.returned': 'Выплачено',
+    'reports.column.net': 'Итого',
+    'reports.column.status': 'Статус',
+    'backup.title': 'Резервные копии',
+    'backup.description': 'Ежедневные копии создаются в 02:00 по Ташкенту. Каталог BACKUP_DIR должен находиться на отдельном физическом носителе. Хранятся последние 30 дней.',
+    'backup.create': 'Создать копию сейчас',
+    'backup.not_configured': 'BACKUP_DIR не задан. Укажите путь ко второму физическому носителю в .env и перезапустите сервер.',
+    'backup.latest': 'Последний запуск: {status}; время: {date}; файл: {file}; целостность: {integrity}; расхождения: {discrepancies}.',
+    'backup.no_runs': 'Копии ещё не создавались.',
+    'backup.created': 'Резервная копия создана и проверена.',
+    'backup.directory_not_configured': 'Каталог резервных копий не настроен. Укажите BACKUP_DIR и перезапустите сервер.',
+    'backup.columns': 'Файл,Создана,Размер (байт)',
+    'backup.run.success': 'успешно',
+    'backup.run.error': 'ошибка',
+    'reports.all_warehouses': 'Все склады',
+    'reports.all_products': 'Все товары',
+    'reports.all_users': 'Все пользователи',
+    'reports.discount.qty': 'Цена по количеству',
+    'reports.discount.promo': 'Акция',
+    'reports.discount.customer': 'Скидка клиента',
+    'reports.discount.check': 'Скидка на чек',
+    'reports.discount.manual': 'Ручная скидка',
+    'reports.value.sale': 'Продажа',
+    'reports.value.return': 'Возврат',
+    'reports.value.debt_payment': 'Оплата долга',
+    'reports.value.in': 'Поступление',
+    'reports.value.out': 'Выплата',
+    'reports.reservation.active': 'Активен',
+    'reports.reservation.released': 'Освобождён',
+    'reports.reservation.consumed': 'Использован',
+    'report.invalid_filters': 'Проверьте фильтры отчёта.',
+    'report.invalid_type': 'Выберите допустимый тип отчёта.',
+    'report.filter_not_supported': 'Этот фильтр недоступен для выбранного отчёта.',
+    'report.invalid_period': 'Начало периода не может быть позже его окончания.',
+    'report.amount_out_of_range': 'Сумма отчёта выходит за допустимые пределы.',
     'connection.title': 'Подключение рабочих ПК',
     'connection.description': 'Откройте один из адресов на компьютере в той же локальной сети. Если адрес не открывается, проверьте Wi-Fi и настройки брандмауэра.',
     'connection.refresh': 'Обновить адреса',
@@ -465,6 +591,132 @@ const translations = {
     'nav.returns': 'Qaytarishlar',
     'nav.writeoffs': 'Hisobdan chiqarish',
     'nav.stocktakes': 'Inventarizatsiya',
+    'nav.reports': 'Hisobotlar va nusxalar',
+    'reports.title': 'Hisobotlar',
+    'reports.type': 'Hisobot',
+    'reports.from': 'Boshlanish sanasi (Toshkent)',
+    'reports.to': 'Tugash sanasi (Toshkent)',
+    'reports.warehouse': 'Ombor',
+    'reports.product': 'Tovar',
+    'reports.cashier': 'Foydalanuvchi',
+    'reports.run': 'Shakllantirish',
+    'reports.export': 'Excel uchun CSV yuklab olish',
+    'reports.no_rows': 'Tanlangan shartlar bo‘yicha ma’lumot yo‘q.',
+    'reports.truncated': 'Birinchi 10 000 qator ko‘rsatildi. To‘liq eksport uchun filtrlarni aniqlashtiring.',
+    'reports.summary.cash': 'Hozirgi naqd pul qoldig‘i: {balance}; davr o‘zgarishi: {periodAmount}.',
+    'reports.summary.valuation': 'Partiyalar tannarxi bo‘yicha qoldiq qiymati: {value}.',
+    'reports.summary.backups': 'Nusxalar papkasi: {directory}. Oxirgi amal: {lastRun}.',
+    'reports.type.sales_by_day': 'Kunlar bo‘yicha savdo',
+    'reports.type.sales_by_product': 'Tovarlar bo‘yicha savdo',
+    'reports.type.sales_by_category': 'Toifalar bo‘yicha savdo',
+    'reports.type.sales_by_cashier': 'Sotuvchilar bo‘yicha savdo',
+    'reports.type.sales_by_payment_method': 'To‘lov usullari bo‘yicha savdo',
+    'reports.type.cashier_summary': 'Sotuvchilar hisoboti',
+    'reports.type.profit_by_sale': 'Cheklar bo‘yicha foyda',
+    'reports.type.profit_by_product': 'Tovarlar bo‘yicha foyda',
+    'reports.type.profit_by_category': 'Toifalar bo‘yicha foyda',
+    'reports.type.stock': 'Qoldiqlar',
+    'reports.type.low_stock': 'Minimal qoldiqdan kam',
+    'reports.type.stock_valuation': 'Partiyalar bo‘yicha ombor qiymati',
+    'reports.type.movements': 'Tovar harakati',
+    'reports.type.discounts': 'Chegirmalar',
+    'reports.type.returns': 'Qaytarishlar',
+    'reports.type.writeoffs': 'Hisobdan chiqarish',
+    'reports.type.debt_balances': 'Cheklar bo‘yicha ochiq qarzlar',
+    'reports.type.debt_history': 'Qarz va to‘lov taqsimoti tarixi',
+    'reports.type.cash': 'Umumiy kassa',
+    'reports.type.noncash': 'Naqdsiz summalar',
+    'reports.type.reservations': 'Rezervlar',
+    'reports.type.audit': 'Amallar jurnali',
+    'reports.column.date': 'Sana',
+    'reports.column.sales': 'Savdo',
+    'reports.column.salesCount': 'Cheklar',
+    'reports.column.subtotal': 'Chegirmagacha',
+    'reports.column.discount': 'Chegirma',
+    'reports.column.total': 'Cheklar summasi',
+    'reports.column.paid': 'To‘langan',
+    'reports.column.debt': 'Qarzga',
+    'reports.column.sku': 'Artikul',
+    'reports.column.product': 'Tovar',
+    'reports.column.sale': 'Chek',
+    'reports.column.kind': 'Chegirma turi',
+    'reports.column.category': 'Toifa',
+    'reports.column.cart': 'Saqlangan savatcha',
+    'reports.column.qty': 'Miqdor',
+    'reports.column.returns': 'Qaytarishlar',
+    'reports.column.netSales': 'Qaytarishlardan keyingi savdo',
+    'reports.column.user': 'Foydalanuvchi',
+    'reports.column.salesTotal': 'Savdo',
+    'reports.column.returnQty': 'Qaytarilgan miqdor',
+    'reports.column.method': 'To‘lov usuli',
+    'reports.column.purpose': 'Maqsad',
+    'reports.column.direction': 'Yo‘nalish',
+    'reports.column.payments': 'Amallar',
+    'reports.column.amount': 'Summa',
+    'reports.column.number': 'Raqam',
+    'reports.column.customer': 'Mijoz',
+    'reports.column.cost': 'Tannarx',
+    'reports.column.profit': 'Foyda',
+    'reports.column.warehouse': 'Ombor',
+    'reports.column.reserved': 'Rezerv',
+    'reports.column.available': 'Mavjud',
+    'reports.column.minStock': 'Minimal qoldiq',
+    'reports.column.batch': 'Partiya',
+    'reports.column.receivedAt': 'Partiya kelgan sana',
+    'reports.column.unitCost': 'Birlik tannarxi',
+    'reports.column.value': 'Qoldiq qiymati',
+    'reports.column.type': 'Turi',
+    'reports.column.document': 'Hujjat',
+    'reports.column.note': 'Izoh',
+    'reports.column.percentBp': 'Chegirma, bazis punkt',
+    'reports.column.approvedBy': 'Tasdiqladi',
+    'reports.column.reason': 'Sabab',
+    'reports.column.lines': 'Qatorlar',
+    'reports.column.balance': 'Qarz qoldig‘i',
+    'reports.column.payment': 'To‘lov',
+    'reports.column.allocated': 'Taqsimlangan',
+    'reports.column.before': 'Oldin',
+    'reports.column.after': 'Keyin',
+    'reports.column.action': 'Amal',
+    'reports.column.entity': 'Bo‘lim',
+    'reports.column.entityId': 'Yozuv IDsi',
+    'reports.column.expiresAt': 'Muddati tugaydi',
+    'reports.column.received': 'Qabul qilindi',
+    'reports.column.returned': 'Qaytarildi',
+    'reports.column.net': 'Jami',
+    'reports.column.status': 'Holat',
+    'backup.title': 'Zaxira nusxalari',
+    'backup.description': 'Kunlik nusxalar Toshkent vaqti bilan 02:00 da yaratiladi. BACKUP_DIR alohida fizik tashuvchida bo‘lishi kerak. Oxirgi 30 kun saqlanadi.',
+    'backup.create': 'Hozir nusxa yaratish',
+    'backup.not_configured': 'BACKUP_DIR belgilanmagan. .env faylida ikkinchi fizik tashuvchi yo‘lini ko‘rsating va serverni qayta ishga tushiring.',
+    'backup.latest': 'Oxirgi ishga tushirish: {status}; vaqt: {date}; fayl: {file}; yaxlitlik: {integrity}; tafovutlar: {discrepancies}.',
+    'backup.no_runs': 'Hali nusxa yaratilmagan.',
+    'backup.created': 'Zaxira nusxasi yaratildi va tekshirildi.',
+    'backup.directory_not_configured': 'Zaxira nusxalari papkasi sozlanmagan. BACKUP_DIR ni belgilang va serverni qayta ishga tushiring.',
+    'backup.columns': 'Fayl,Yaratilgan,Hajmi (bayt)',
+    'backup.run.success': 'muvaffaqiyatli',
+    'backup.run.error': 'xato',
+    'reports.all_warehouses': 'Barcha omborlar',
+    'reports.all_products': 'Barcha tovarlar',
+    'reports.all_users': 'Barcha foydalanuvchilar',
+    'reports.discount.qty': 'Miqdor bo‘yicha narx',
+    'reports.discount.promo': 'Aksiya',
+    'reports.discount.customer': 'Mijoz chegirmasi',
+    'reports.discount.check': 'Chek chegirmasi',
+    'reports.discount.manual': 'Qo‘lda chegirma',
+    'reports.value.sale': 'Savdo',
+    'reports.value.return': 'Qaytarish',
+    'reports.value.debt_payment': 'Qarz to‘lovi',
+    'reports.value.in': 'Kirim',
+    'reports.value.out': 'Chiqim',
+    'reports.reservation.active': 'Faol',
+    'reports.reservation.released': 'Bo‘shatilgan',
+    'reports.reservation.consumed': 'Ishlatilgan',
+    'report.invalid_filters': 'Hisobot filtrlarini tekshiring.',
+    'report.invalid_type': 'Hisobot turini tanlang.',
+    'report.filter_not_supported': 'Tanlangan hisobot uchun bu filtr mavjud emas.',
+    'report.invalid_period': 'Davr boshlanishi tugashidan keyin bo‘lishi mumkin emas.',
+    'report.amount_out_of_range': 'Hisobot summasi ruxsat etilgan chegaradan katta.',
     'connection.title': 'Ishchi kompyuterlarni ulash',
     'connection.description': 'Manzillardan birini shu mahalliy tarmoqqa ulangan kompyuterda oching. Manzil ochilmasa, Wi-Fi va xavfsizlik devori sozlamalarini tekshiring.',
     'connection.refresh': 'Manzillarni yangilash',
@@ -646,7 +898,6 @@ const translations = {
     'held.reserve': 'Rezerv qilish',
     'held.release': 'Rezervni bo‘shatish',
     'held.cancel': 'Savatchani bekor qilish',
-    'held.cancel_confirm': 'Bu saqlangan savatcha va uning rezervi bekor qilinsinmi?',
     'held.cancel_confirm': 'Bu saqlangan savatcha va uning rezervi bekor qilinsinmi?',
     'held.none': 'Saqlangan savatchalar yo‘q',
     'held.created': 'Savatcha saqlandi.',
@@ -916,6 +1167,8 @@ const state = {
   debtCustomerId: '',
   debtDetails: null,
   cashSummary: null,
+  report: null,
+  reportOptions: null,
 };
 let movementOffset = 0;
 let cashOffset = 0;
@@ -1004,6 +1257,8 @@ function showLogin(errorKey = '') {
   state.debtCustomerId = '';
   state.debtDetails = null;
   state.cashSummary = null;
+  state.report = null;
+  state.reportOptions = null;
   saleAttemptId = null;
   debtPaymentAttempt = null;
   cashOperationAttempt = null;
@@ -1029,6 +1284,8 @@ function showApp(user) {
   $('#navigation [data-page="returns"]').hidden = user.permissions.return !== 1;
   $('#navigation [data-page="writeoffs"]').hidden = user.permissions.write_off !== 1;
   $('#navigation [data-page="stocktakes"]').hidden = user.permissions.stocktake !== 1;
+  $('#navigation [data-page="reports"]').hidden = user.permissions.reports !== 1;
+  $('#backup-controls').hidden = user.role !== 'admin';
   const canViewDebts = ['debt_payment', 'reports']
     .some((permission) => user.permissions[permission] === 1);
   const canViewCash = ['cash_in', 'cash_out', 'expense', 'cash_collection', 'reports']
@@ -1068,6 +1325,7 @@ function showApp(user) {
   if (user.permissions.sell === 1) void loadSalesPage();
   if (canViewDebts) void loadDebts();
   if (canViewCash) void loadCashPage();
+  if (user.permissions.reports === 1) void loadReportOptions();
 }
 
 async function checkSessionStatus() {
@@ -1100,6 +1358,10 @@ function showPage(name) {
   if (name === 'returns' && state.user?.permissions.return === 1) void loadReturnMethods();
   if (name === 'writeoffs' && state.user?.permissions.write_off === 1) void loadWriteOffs();
   if (name === 'stocktakes' && state.user?.permissions.stocktake === 1) void loadStocktakes();
+  if (name === 'reports' && state.user?.permissions.reports === 1) {
+    void loadReports();
+    if (state.user.role === 'admin') void loadBackupStatus();
+  }
 }
 
 function cell(value) {
@@ -1844,6 +2106,302 @@ async function loadCashPage() {
   } catch (error) {
     message(error.message);
     return false;
+  }
+}
+
+const reportTypes = [
+  'sales_by_day', 'sales_by_product', 'sales_by_category', 'sales_by_cashier',
+  'sales_by_payment_method', 'cashier_summary', 'profit_by_sale', 'profit_by_product',
+  'profit_by_category', 'stock', 'low_stock', 'stock_valuation', 'movements',
+  'discounts', 'returns', 'writeoffs', 'debt_balances', 'debt_history', 'cash',
+  'noncash', 'reservations', 'audit',
+];
+const reportCostTypes = new Set(['profit_by_sale', 'profit_by_product', 'profit_by_category']);
+const reportFilterSupport = {
+  sales_by_day: ['from', 'to', 'userId'],
+  sales_by_product: ['from', 'to', 'productId', 'userId'],
+  sales_by_category: ['from', 'to', 'productId', 'userId'],
+  sales_by_cashier: ['from', 'to', 'userId'],
+  sales_by_payment_method: ['from', 'to', 'userId'],
+  cashier_summary: ['from', 'to', 'productId', 'userId'],
+  profit_by_sale: ['from', 'to', 'warehouseId', 'productId', 'userId'],
+  profit_by_product: ['from', 'to', 'warehouseId', 'productId', 'userId'],
+  profit_by_category: ['from', 'to', 'warehouseId', 'productId', 'userId'],
+  stock: ['warehouseId', 'productId'],
+  low_stock: ['warehouseId', 'productId'],
+  stock_valuation: ['warehouseId', 'productId'],
+  movements: ['from', 'to', 'warehouseId', 'productId', 'userId'],
+  discounts: ['from', 'to', 'productId', 'userId'],
+  returns: ['from', 'to', 'warehouseId', 'productId', 'userId'],
+  writeoffs: ['from', 'to', 'warehouseId', 'productId', 'userId'],
+  debt_balances: ['userId'],
+  debt_history: ['from', 'to', 'userId'],
+  cash: ['from', 'to', 'userId'],
+  noncash: ['from', 'to', 'userId'],
+  reservations: ['from', 'to', 'warehouseId', 'productId', 'userId'],
+  audit: ['from', 'to', 'userId'],
+};
+const reportMoneyColumns = {
+  sales_by_day: ['subtotal', 'discount', 'total', 'paid', 'debt'],
+  sales_by_product: ['sales', 'discount', 'returns', 'netSales'],
+  sales_by_category: ['sales', 'discount', 'returns', 'netSales'],
+  sales_by_cashier: ['subtotal', 'discount', 'total', 'paid', 'debt'],
+  sales_by_payment_method: ['amount'],
+  cashier_summary: ['salesTotal', 'discount'],
+  profit_by_sale: ['sales', 'returns', 'netSales', 'cost', 'profit'],
+  profit_by_product: ['netSales', 'cost', 'profit'],
+  profit_by_category: ['netSales', 'cost', 'profit'],
+  stock_valuation: ['unitCost', 'value'],
+  discounts: ['amount'],
+  returns: ['amount', 'cost'],
+  writeoffs: ['cost'],
+  debt_balances: ['total', 'balance'],
+  debt_history: ['amount', 'allocated'],
+  cash: ['amount'],
+  noncash: ['received', 'returned', 'net'],
+};
+const reportQuantityColumns = new Set(['qty', 'returnQty', 'minStock', 'reserved', 'available']);
+
+function updateReportFilterVisibility() {
+  const supported = reportFilterSupport[$('#report-type').value] ?? [];
+  document.querySelectorAll('[data-report-filter]').forEach((label) => {
+    label.hidden = !supported.includes(label.dataset.reportFilter);
+  });
+}
+
+async function loadReportOptions() {
+  try {
+    const options = await api('/api/reports/options');
+    state.reportOptions = options;
+    const previousType = $('#report-type').value || 'sales_by_day';
+    const typeOptions = reportTypes
+      .filter((type) => state.user?.permissions.view_cost === 1 ||
+        (!reportCostTypes.has(type) && type !== 'stock_valuation'))
+      .map((type) => makeOption(type, t(`reports.type.${type}`)));
+    $('#report-type').replaceChildren(...typeOptions);
+    if (typeOptions.some((option) => option.value === previousType)) {
+      $('#report-type').value = previousType;
+    }
+    updateReportFilterVisibility();
+
+    const selectedWarehouse = $('#report-warehouse').value;
+    const warehouses = [makeOption('', t('reports.all_warehouses')),
+      ...options.warehouses.map((row) => makeOption(row.id, row.name))];
+    $('#report-warehouse').replaceChildren(...warehouses);
+    if (warehouses.some((option) => option.value === selectedWarehouse)) {
+      $('#report-warehouse').value = selectedWarehouse;
+    }
+
+    const selectedProduct = $('#report-product').value;
+    const products = [makeOption('', t('reports.all_products')),
+      ...options.products.map((row) => makeOption(row.id, `${row.sku} — ${row.name}`))];
+    $('#report-product').replaceChildren(...products);
+    if (products.some((option) => option.value === selectedProduct)) {
+      $('#report-product').value = selectedProduct;
+    }
+
+    const selectedUser = $('#report-user').value;
+    const users = [makeOption('', t('reports.all_users')),
+      ...options.users.map((row) => makeOption(row.id, row.fullName))];
+    $('#report-user').replaceChildren(...users);
+    if (users.some((option) => option.value === selectedUser)) {
+      $('#report-user').value = selectedUser;
+    }
+
+    if (!$('#report-to').value) $('#report-to').value = dateForInput();
+    if (!$('#report-from').value) {
+      const current = new Date(`${dateForInput()}T00:00:00.000Z`);
+      current.setUTCDate(current.getUTCDate() - 30);
+      $('#report-from').value = current.toISOString().slice(0, 10);
+    }
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+function reportParams() {
+  const params = new URLSearchParams({
+    type: $('#report-type').value,
+    lang: state.lang,
+  });
+  for (const [field, selector] of [
+    ['from', '#report-from'], ['to', '#report-to'],
+    ['warehouseId', '#report-warehouse'], ['productId', '#report-product'], ['userId', '#report-user'],
+  ]) {
+    const value = $(selector).value;
+    if (value && reportFilterSupport[$('#report-type').value]?.includes(field)) params.set(field, value);
+  }
+  return params;
+}
+
+function reportDisplayValue(type, column, value) {
+  if (value === null || value === undefined) return '';
+  if (reportMoneyColumns[type]?.includes(column)) return formatMoney(value);
+  if (reportQuantityColumns.has(column)) return formatQuantity(value);
+  if (column === 'date' && typeof value === 'string' && value.includes('T')) return formatDateTime(value);
+  if (column === 'kind' && ['qty', 'promo', 'customer', 'check', 'manual'].includes(value)) {
+    return t(`reports.discount.${value}`);
+  }
+  if (column === 'purpose' || column === 'direction') return t(`reports.value.${value}`);
+  if (column === 'status' && ['active', 'released', 'consumed'].includes(value)) {
+    return t(`reports.reservation.${value}`);
+  }
+  if (column === 'reason' && ['damaged', 'lost', 'expired', 'other'].includes(value)) {
+    return t(`writeoff.${value}`);
+  }
+  if (column === 'type' && ['PURCHASE', 'SALE', 'RETURN', 'WRITE_OFF', 'ADJUST_PLUS', 'ADJUST_MINUS', 'REVERSAL'].includes(value)) {
+    return t(`movement.${value}`);
+  }
+  return String(value);
+}
+
+function renderReport() {
+  const report = state.report;
+  const head = $('#reports-head');
+  const body = $('#reports-body');
+  head.replaceChildren();
+  body.replaceChildren();
+  if (!report) {
+    $('#report-export').disabled = true;
+    $('#reports-summary').textContent = '';
+    return;
+  }
+  const header = document.createElement('tr');
+  for (const column of report.columns) {
+    const th = document.createElement('th');
+    th.textContent = t(`reports.column.${column}`);
+    header.append(th);
+  }
+  head.append(header);
+  for (const data of report.rows) {
+    const row = document.createElement('tr');
+    for (const column of report.columns) {
+      row.append(cell(reportDisplayValue(report.type, column, data[column])));
+    }
+    body.append(row);
+  }
+  if (report.rows.length === 0) {
+    const row = document.createElement('tr');
+    const empty = cell(t('reports.no_rows'));
+    empty.colSpan = Math.max(report.columns.length, 1);
+    row.append(empty);
+    body.append(row);
+  }
+  let summary = '';
+  if (report.type === 'cash' && report.summary) {
+    summary = t('reports.summary.cash')
+      .replace('{balance}', formatMoney(report.summary.balance))
+      .replace('{periodAmount}', formatMoney(report.summary.periodAmount));
+  } else if (report.type === 'stock_valuation' && report.summary) {
+    summary = t('reports.summary.valuation').replace('{value}', formatMoney(report.summary.value));
+  }
+  if (report.truncated) summary = `${summary}${summary ? ' ' : ''}${t('reports.truncated')}`;
+  $('#reports-summary').textContent = summary;
+  $('#report-export').disabled = report.truncated;
+}
+
+async function loadReports() {
+  if (!state.reportOptions) await loadReportOptions();
+  try {
+    const { report } = await api(`/api/reports?${reportParams()}`);
+    state.report = report;
+    renderReport();
+    message('');
+  } catch (error) {
+    state.report = null;
+    renderReport();
+    message(error.message);
+  }
+}
+
+function csvValue(value, numeric = false) {
+  if (value === null || value === undefined) return '';
+  if (!numeric && typeof value === 'string' && /^[\s]*[=+\-@]/.test(value)) value = `'${value}`;
+  return `"${String(value).replace(/"/g, '""')}"`;
+}
+
+function reportCsvNumber(value, column) {
+  if (value === null || value === undefined) return '';
+  if (!reportMoneyColumns[state.report.type]?.includes(column)) {
+    if (reportQuantityColumns.has(column)) return formatQuantity(value).replace(',', '.');
+    return reportDisplayValue(state.report.type, column, value);
+  }
+  const negative = value < 0;
+  const absolute = Math.abs(value);
+  const whole = Math.floor(absolute / 100);
+  const fraction = absolute % 100;
+  return `${negative ? '-' : ''}${whole}${fraction ? `.${String(fraction).padStart(2, '0')}` : ''}`;
+}
+
+function exportReportCsv() {
+  const report = state.report;
+  if (!report || report.truncated) return;
+  const lines = [
+    report.columns.map((column) => csvValue(t(`reports.column.${column}`))).join(';'),
+    ...report.rows.map((row) => report.columns.map((column) =>
+      csvValue(reportCsvNumber(row[column], column), typeof row[column] === 'number')).join(';')),
+  ];
+  const blob = new Blob([`\uFEFF${lines.join('\r\n')}`], { type: 'text/csv;charset=utf-8' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `report-${report.type}-${dateForInput()}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+async function loadBackupStatus() {
+  try {
+    const { status } = await api('/api/backups');
+    const note = $('#backup-status');
+    if (!status.configured) {
+      note.textContent = t('backup.not_configured');
+    } else if (!status.lastRun) {
+      note.textContent = t('backup.no_runs');
+    } else {
+      note.textContent = t('backup.latest')
+        .replace('{status}', t(`backup.run.${status.lastRun.status}`))
+        .replace('{date}', formatDateTime(status.lastRun.completedAt))
+        .replace('{file}', status.lastRun.file ?? '—')
+        .replace('{integrity}', status.lastRun.integrity ?? '—')
+        .replace('{discrepancies}', String(status.lastRun.discrepancies ?? '—'));
+      if (status.lastRun.error) note.textContent += ` ${status.lastRun.error}`;
+    }
+    if (status.directory) {
+      $('#backup-directory-status').textContent = t('reports.summary.backups')
+        .replace('{directory}', status.directory)
+        .replace('{lastRun}', status.lastRun?.completedAt ? formatDateTime(status.lastRun.completedAt) : t('backup.no_runs'));
+    }
+    buildHead('#backup-head', 'backup.columns');
+    const body = $('#backup-body');
+    body.replaceChildren();
+    for (const backup of status.backups) {
+      const row = document.createElement('tr');
+      row.append(cell(backup.file), cell(formatDateTime(backup.createdAt)), cell(backup.bytes));
+      body.append(row);
+    }
+    if (status.backups.length === 0) {
+      const row = document.createElement('tr');
+      const empty = cell(t('status.no_data'));
+      empty.colSpan = 3;
+      row.append(empty);
+      body.append(row);
+    }
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function createBackupNow() {
+  const button = $('#backup-create');
+  button.disabled = true;
+  try {
+    await api('/api/backups', { method: 'POST' });
+    message('backup.created');
+    await loadBackupStatus();
+  } catch (error) {
+    message(error.message);
+  } finally {
+    button.disabled = false;
   }
 }
 
@@ -2923,6 +3481,7 @@ $('#language').addEventListener('change', (event) => {
   localize();
   if (state.user) {
     void loadInventoryOptions();
+    if (state.user.permissions.reports === 1) void loadReportOptions();
     $('#current-user').textContent = `${state.user.fullName} (${state.user.login})`;
     document.querySelectorAll('#purchase-lines button').forEach((button) => {
       button.textContent = t('purchases.remove_line');
@@ -2969,6 +3528,13 @@ $('#refresh-connection-info').addEventListener('click', () => { void loadConnect
 $('#print-refresh').addEventListener('click', () => { void loadPrintJobs(); });
 $('#print-profile-form').addEventListener('submit', (event) => { void savePrintProfile(event); });
 $('#save-default-warehouse').addEventListener('click', () => { void saveSalesDefaultWarehouse(); });
+$('#reports-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  void loadReports();
+});
+$('#report-type').addEventListener('change', updateReportFilterVisibility);
+$('#report-export').addEventListener('click', exportReportCsv);
+$('#backup-create').addEventListener('click', () => { void createBackupNow(); });
 $('#sales-search').addEventListener('input', renderSalesProducts);
 $('#sales-customer').addEventListener('change', scheduleSalesQuote);
 $('#sales-held-cart').addEventListener('change', (event) => {

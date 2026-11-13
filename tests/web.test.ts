@@ -1,4 +1,5 @@
 import type { AddressInfo } from 'node:net';
+import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { bootstrapAdmin, createUser, login, setUserPermissions } from '../src/modules/auth/service';
 import { addCartLine } from '../src/modules/carts/service';
@@ -24,7 +25,7 @@ beforeEach(async () => {
     lang: 'ru',
   });
   adminId = admin.id;
-  server = createWebServer(env.db);
+  server = createWebServer(env.db, { backupDirectory: join(env.dir, 'api-backups') });
   await new Promise<void>((resolve, reject) => {
     server.once('error', reject);
     server.listen(0, '127.0.0.1', () => resolve());
@@ -124,6 +125,49 @@ describe('HTTP API этапа 2', () => {
     expect((await fetch(`${baseUrl}/api/print-profile`, { headers: { Cookie: cashierCookie } })).status).toBe(403);
   });
 
+  it('защищает отчёты, исключает себестоимость из API и разрешает ручную копию только администратору', async () => {
+    const cashier = await createUser(env.db, adminId, {
+      login: 'reports-cashier',
+      password: 'cashier secure password',
+      fullName: 'Reports Cashier',
+      role: 'cashier',
+      lang: 'ru',
+    });
+    setUserPermissions(env.db, adminId, cashier.id, { reports: 1 });
+    const cashierCookie = await loginCookie(cashier.login, 'cashier secure password');
+
+    const report = await fetch(`${baseUrl}/api/reports?type=stock_valuation`, {
+      headers: { Cookie: cashierCookie },
+    });
+    expect(report.status).toBe(200);
+    const { report: stockReport } = await report.json() as { report: {
+      columns: string[];
+      rows: Array<Record<string, unknown>>;
+    } };
+    expect(stockReport.columns).not.toContain('unitCost');
+    expect(stockReport.columns).not.toContain('value');
+    expect(stockReport.rows.every((row) => !('unitCost' in row) && !('value' in row))).toBe(true);
+
+    const profit = await fetch(`${baseUrl}/api/reports?type=profit_by_sale`, {
+      headers: { Cookie: cashierCookie },
+    });
+    expect(profit.status).toBe(403);
+    expect((await profit.json()).errorKey).toBe('auth.permission_denied');
+
+    const forbiddenBackup = await fetch(`${baseUrl}/api/backups`, { headers: { Cookie: cashierCookie } });
+    expect(forbiddenBackup.status).toBe(403);
+    const created = await fetch(`${baseUrl}/api/backups`, {
+      method: 'POST',
+      headers: { Cookie: await loginCookie() },
+    });
+    expect(created.status).toBe(201);
+    expect(await created.json()).toMatchObject({
+      backup: { integrity: 'ok', discrepancies: 0 },
+    });
+    const status = await fetch(`${baseUrl}/api/backups`, { headers: { Cookie: await loginCookie() } });
+    expect((await status.json()).status.lastRun.status).toBe('success');
+  });
+
   it('сохраняет права пользователя через API и возвращает обновлённые значения', async () => {
     const cashier = await createUser(env.db, adminId, {
       login: 'rights-cashier',
@@ -132,6 +176,7 @@ describe('HTTP API этапа 2', () => {
       role: 'cashier',
       lang: 'ru',
     });
+
     const cookie = await loginCookie();
     const response = await fetch(`${baseUrl}/api/users/${encodeURIComponent(cashier.id)}/permissions`, {
       method: 'PATCH',

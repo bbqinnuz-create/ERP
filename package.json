@@ -9,6 +9,8 @@
   },
   "scripts": {
     "migrate": "tsx --env-file-if-exists=.env src/cli/migrate.ts",
+    "backup": "tsx --env-file-if-exists=.env src/cli/backup.ts",
+    "restore-backup": "tsx --env-file-if-exists=.env src/cli/restore-backup.ts",
     "setup": "tsx --env-file-if-exists=.env src/cli/setup.ts",
     "create-admin": "tsx --env-file-if-exists=.env src/cli/create-admin.ts",
     "reset-admin-password": "tsx --env-file-if-exists=.env src/cli/reset-admin-password.ts",

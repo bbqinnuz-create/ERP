@@ -39,6 +39,7 @@
           <button type="button" data-page="returns" data-i18n="nav.returns" hidden></button>
           <button type="button" data-page="writeoffs" data-i18n="nav.writeoffs" hidden></button>
           <button type="button" data-page="stocktakes" data-i18n="nav.stocktakes" hidden></button>
+          <button type="button" data-page="reports" data-i18n="nav.reports" hidden></button>
           <button type="button" data-page="products" data-i18n="nav.products"></button>
           <button type="button" data-page="stock" data-i18n="nav.stock"></button>
           <button type="button" data-page="purchases" data-i18n="nav.purchases"></button>
@@ -213,6 +214,33 @@
             <button id="cash-previous" type="button" data-i18n="movements.previous"></button>
             <button id="cash-next" type="button" data-i18n="movements.next"></button>
           </div>
+        </section>
+        <section id="reports-page" class="page" hidden>
+          <h2 data-i18n="reports.title"></h2>
+          <form id="reports-form" class="filter-grid">
+            <label><span data-i18n="reports.type"></span><select id="report-type"></select></label>
+            <label data-report-filter="from"><span data-i18n="reports.from"></span><input id="report-from" type="date"></label>
+            <label data-report-filter="to"><span data-i18n="reports.to"></span><input id="report-to" type="date"></label>
+            <label data-report-filter="warehouseId"><span data-i18n="reports.warehouse"></span><select id="report-warehouse"></select></label>
+            <label data-report-filter="productId"><span data-i18n="reports.product"></span><select id="report-product"></select></label>
+            <label data-report-filter="userId"><span data-i18n="reports.cashier"></span><select id="report-user"></select></label>
+            <button type="submit" data-i18n="reports.run"></button>
+            <button id="report-export" type="button" data-i18n="reports.export" disabled></button>
+          </form>
+          <p id="reports-summary" role="status" aria-live="polite"></p>
+          <div class="table-wrap">
+            <table><thead id="reports-head"></thead><tbody id="reports-body"></tbody></table>
+          </div>
+          <section id="backup-controls" hidden>
+            <h3 data-i18n="backup.title"></h3>
+            <p data-i18n="backup.description"></p>
+            <button id="backup-create" type="button" data-i18n="backup.create"></button>
+            <p id="backup-directory-status" role="status" aria-live="polite"></p>
+            <p id="backup-status" role="status" aria-live="polite"></p>
+            <div class="table-wrap">
+              <table><thead id="backup-head"></thead><tbody id="backup-body"></tbody></table>
+            </div>
+          </section>
         </section>
         <section id="products-page" class="page">
           <h2 data-i18n="products.title"></h2>

@@ -14,11 +14,35 @@ interface InterfaceAddress {
 
 type InterfaceMap = Record<string, InterfaceAddress[] | undefined>;
 
+export interface ServerStartupUrls {
+  localUrl: string;
+  lanAddresses: ConnectionAddress[];
+}
+
 function isPrivateIPv4(address: string): boolean {
   const parts = address.split('.');
   if (parts.length !== 4 || parts.some((part) => !/^\d{1,3}$/.test(part) || Number(part) > 255)) return false;
   const [first, second] = parts.map(Number);
   return first === 10 || (first === 172 && second! >= 16 && second! <= 31) || (first === 192 && second === 168);
+}
+
+function formatHost(address: string): string {
+  return address.includes(':') && !address.startsWith('[') ? `[${address}]` : address;
+}
+
+export function getServerStartupUrls(
+  bindAddress: string,
+  port: number,
+  interfaces: InterfaceMap = networkInterfaces(),
+): ServerStartupUrls {
+  const listensOnAllInterfaces = bindAddress === '0.0.0.0' || bindAddress === '::';
+  const localAddress = listensOnAllInterfaces || bindAddress === '127.0.0.1' || bindAddress === '::1'
+    ? 'localhost'
+    : bindAddress;
+  return {
+    localUrl: `http://${formatHost(localAddress)}:${port}/`,
+    lanAddresses: listLanConnectionAddresses(bindAddress, port, interfaces),
+  };
 }
 
 export function listLanConnectionAddresses(

@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 import type { Db } from '../db/connection';
 import { AuthError, createUserForSession, listUsers, login, logout, setUserPermissions, updateUserForSession, withAuthorizedUser } from '../modules/auth/service';
 import { hasPermission, type Permission } from '../modules/auth/permissions';
+import { createBackup, getBackupStatus } from '../modules/backup/service';
+import { getReport, REPORT_TYPES } from '../modules/reports/service';
 import { createPurchase, getPurchase, listPurchases, reversePurchase } from '../modules/purchases/service';
 import { addCartLine, getActiveCart, removeCartLine, setCartLineQty } from '../modules/carts/service';
 import {
@@ -60,6 +62,7 @@ const STATIC_DIR = fileURLToPath(new URL('./public/', import.meta.url));
 interface ServerOptions {
   now?: () => number;
   printEnabled?: boolean;
+  backupDirectory?: string;
 }
 
 function isLocalAddress(address: string | undefined): boolean {
@@ -194,6 +197,7 @@ async function handleApi(
   now: () => number,
   listenAddress: AddressInfo | string | null,
   printEnabled: boolean,
+  backupDirectory: string | undefined,
 ): Promise<void> {
   const url = new URL(req.url ?? '/', 'http://localhost');
   const path = url.pathname;
@@ -293,6 +297,73 @@ async function handleApi(
       return listStock(db);
     }, now());
     sendJson(res, 200, { rows });
+    return;
+  }
+
+  if (path === '/api/reports' && method === 'GET') {
+    const report = withAuthorizedUser(db, token, 'reports', (session) => {
+      const type = url.searchParams.get('type');
+      if (!type || !(REPORT_TYPES as readonly string[]).includes(type)) {
+        throw new AuthError(400, 'report.invalid_type');
+      }
+      const language = url.searchParams.get('lang') ?? session.user.lang;
+      if (language !== 'ru' && language !== 'uz') throw new AuthError(400, 'validation.invalid_language');
+      return getReport(db, session.user.id, {
+        type,
+        from: url.searchParams.get('from') ?? undefined,
+        to: url.searchParams.get('to') ?? undefined,
+        warehouseId: url.searchParams.get('warehouseId') ?? undefined,
+        productId: url.searchParams.get('productId') ?? undefined,
+        userId: url.searchParams.get('userId') ?? undefined,
+      }, language);
+    }, now());
+    sendJson(res, 200, { report });
+    return;
+  }
+  if (path === '/api/reports/options' && method === 'GET') {
+    const options = withAuthorizedUser(db, token, 'reports', (session) => {
+      const productName = session.user.lang === 'uz'
+        ? 'COALESCE(name_uz, name_ru)'
+        : 'name_ru';
+      const users = db.prepare(
+        'SELECT id, full_name AS fullName FROM users WHERE active = 1 ORDER BY full_name, id',
+      ).all();
+      const products = db.prepare(
+        `SELECT id, sku, ${productName} AS name FROM products
+         WHERE active = 1 ORDER BY name_ru, sku`,
+      ).all();
+      const warehouses = db.prepare(
+        `SELECT w.id, w.name FROM warehouses w JOIN branches b ON b.id = w.branch_id
+         WHERE w.active = 1 AND b.active = 1 ORDER BY w.name, w.id`,
+      ).all();
+      return { users, products, warehouses };
+    }, now());
+    sendJson(res, 200, options);
+    return;
+  }
+
+  if (path === '/api/backups' && method === 'GET') {
+    const isAdmin = withAuthorizedUser(db, token, null, (session) => session.user.role === 'admin', now());
+    if (!isAdmin) throw new AuthError(403, 'auth.permission_denied');
+    const status = await getBackupStatus(backupDirectory);
+    sendJson(res, 200, { status });
+    return;
+  }
+  if (path === '/api/backups' && method === 'POST') {
+    const userId = withAuthorizedUser(db, token, null, (session) => {
+      if (session.user.role !== 'admin') throw new AuthError(403, 'auth.permission_denied');
+      return session.user.id;
+    }, now());
+    const result = await createBackup(db, backupDirectory, userId);
+    sendJson(res, 201, {
+      backup: {
+        file: result.file,
+        createdAt: new Date().toISOString(),
+        bytes: result.bytes,
+        integrity: result.verification.integrity,
+        discrepancies: result.verification.discrepancies.length,
+      },
+    });
     return;
   }
 
@@ -786,7 +857,8 @@ export function createWebServer(db: Db, options: ServerOptions = {}): Server {
     }
     const path = req.url?.split('?')[0] ?? '/';
     if (path.startsWith('/api/')) {
-      void handleApi(db, req, res, now, server.address(), options.printEnabled ?? false)
+      void handleApi(db, req, res, now, server.address(), options.printEnabled ?? false,
+        options.backupDirectory ?? process.env.BACKUP_DIR)
         .catch((error: unknown) => respondError(res, error));
       return;
     }

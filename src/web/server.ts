@@ -4,6 +4,8 @@ import { ensureConfiguredAdmin } from '../modules/auth/service';
 import { createWebServer } from './app-server';
 import { CupsEscPosDriver } from '../modules/print/driver';
 import { recoverInterruptedPrintJobs, startPrintWorker } from '../modules/print/service';
+import { startBackupScheduler } from '../modules/backup/service';
+import { getServerStartupUrls } from './connection-info';
 
 function readBootstrapFlag(): boolean {
   const value = (process.env.DEFADMINLOGIN ?? 'false').trim().toLowerCase();
@@ -53,17 +55,32 @@ async function main(): Promise<void> {
       stopPrintWorker = async () => {};
     }
     const server = createWebServer(db, { printEnabled: Boolean(printerName) });
+    const stopBackupScheduler = startBackupScheduler(db, process.env.BACKUP_DIR);
     server.listen(port, host, () => {
-      console.log(`Kassa слушает ${host}:${port} (доступ только из локальной сети).`);
+      const listenAddress = server.address();
+      if (!listenAddress || typeof listenAddress === 'string') {
+        console.warn('Сервер запущен, но адреса для открытия страницы не определены.');
+      } else {
+        const urls = getServerStartupUrls(listenAddress.address, listenAddress.port);
+        console.log(`Откройте ERP на этом компьютере: ${urls.localUrl}`);
+        if (urls.lanAddresses.length > 0) {
+          console.log('Ссылки для устройств в локальной сети:');
+          for (const address of urls.lanAddresses) {
+            console.log(`  ${address.interfaceName}: ${address.url}`);
+          }
+        } else {
+          console.warn('LAN-адреса не найдены; подключение с других устройств может быть недоступно.');
+        }
+      }
     });
 
     const stop = () => {
       server.close(() => {
-        void stopPrintWorker().then(() => {
+        void Promise.all([stopPrintWorker(), stopBackupScheduler()]).then(() => {
           db.close();
           process.exit(0);
         }).catch((error: unknown) => {
-          console.error('Ошибка остановки очереди печати:', error);
+          console.error('Ошибка остановки фоновых задач:', error);
           db.close();
           process.exitCode = 1;
         });

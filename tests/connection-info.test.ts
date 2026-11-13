@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { listLanConnectionAddresses } from '../src/web/connection-info';
+import { getServerStartupUrls, listLanConnectionAddresses } from '../src/web/connection-info';
 
 const interfaces = {
   Ethernet: [
@@ -16,6 +16,23 @@ const interfaces = {
 };
 
 describe('адреса подключения по локальной сети', () => {
+  it('формирует ссылку для этого компьютера и ссылки частных сетевых интерфейсов', () => {
+    expect(getServerStartupUrls('0.0.0.0', 3456, interfaces)).toEqual({
+      localUrl: 'http://localhost:3456/',
+      lanAddresses: [
+        { interfaceName: 'Ethernet', address: '192.168.0.102', url: 'http://192.168.0.102:3456/' },
+        { interfaceName: 'WiFi', address: '10.0.0.15', url: 'http://10.0.0.15:3456/' },
+        { interfaceName: 'WiFi', address: '172.20.1.10', url: 'http://172.20.1.10:3456/' },
+      ],
+    });
+    expect(getServerStartupUrls('127.0.0.1', 3000, interfaces)).toEqual({
+      localUrl: 'http://localhost:3000/',
+      lanAddresses: [],
+    });
+    expect(getServerStartupUrls('192.168.0.102', 3000, interfaces).localUrl)
+      .toBe('http://192.168.0.102:3000/');
+  });
+
   it('показывает частные IPv4-адреса всех интерфейсов с фактическим портом', () => {
     const addresses = listLanConnectionAddresses('0.0.0.0', 3456, interfaces);
 
