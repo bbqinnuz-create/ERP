@@ -24,6 +24,7 @@ export interface ReceiptPayment {
 
 export interface ReceiptData {
   number: string;
+  documentLabel?: string | null;
   createdAt: string;
   cashier: string;
   customer: string;
@@ -44,6 +45,7 @@ export interface ReceiptData {
 
 export interface ReceiptSnapshot {
   number: string;
+  documentLabel?: string | null;
   createdAt: string;
   cashier: string;
   customer: string;
@@ -81,6 +83,7 @@ export function receiptDataFromSnapshot(
 ): ReceiptData {
   return {
     number: snapshot.number,
+    documentLabel: snapshot.documentLabel ?? null,
     createdAt: snapshot.createdAt,
     cashier: snapshot.cashier,
     customer: snapshot.customer,
@@ -141,6 +144,7 @@ function formatReceiptLines(receipt: ReceiptData): string[] {
   const label = (key: ReceiptMessageKey) => translateReceipt(receipt.lang, key);
   const lines: string[] = [];
   if (receipt.copy) lines.push(label('copy'), '');
+  if (receipt.documentLabel) lines.push(label('return'));
   lines.push(receipt.storeName);
   if (receipt.address) lines.push(receipt.address);
   if (receipt.phone) lines.push(receipt.phone);

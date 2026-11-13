@@ -36,6 +36,9 @@
         <nav id="navigation">
           <button type="button" data-page="sales" data-i18n="nav.sales"></button>
           <button type="button" data-page="print" data-i18n="nav.print" hidden></button>
+          <button type="button" data-page="returns" data-i18n="nav.returns" hidden></button>
+          <button type="button" data-page="writeoffs" data-i18n="nav.writeoffs" hidden></button>
+          <button type="button" data-page="stocktakes" data-i18n="nav.stocktakes" hidden></button>
           <button type="button" data-page="products" data-i18n="nav.products"></button>
           <button type="button" data-page="stock" data-i18n="nav.stock"></button>
           <button type="button" data-page="purchases" data-i18n="nav.purchases"></button>
@@ -73,6 +76,16 @@
               </select>
             </label>
             <h3 data-i18n="sales.cart"></h3>
+            <div id="held-cart-controls" hidden>
+              <label>
+                <span data-i18n="held.select"></span>
+                <select id="sales-held-cart"></select>
+              </label>
+              <button id="sales-hold-cart" type="button" data-i18n="held.hold"></button>
+              <button id="sales-reserve-cart" type="button" data-i18n="held.reserve"></button>
+              <button id="sales-release-cart" type="button" data-i18n="held.release"></button>
+              <button id="sales-cancel-cart" type="button" data-i18n="held.cancel"></button>
+            </div>
             <div class="table-wrap">
               <table><thead id="sales-cart-head"></thead><tbody id="sales-cart-body"></tbody></table>
             </div>
@@ -223,6 +236,71 @@
           <h2 data-i18n="stock.title"></h2>
           <label><span data-i18n="stock.warehouse"></span><select id="stock-warehouse-filter"></select></label>
           <div class="table-wrap"><table><thead id="stock-head"></thead><tbody id="stock-body"></tbody></table></div>
+        </section>
+        <section id="returns-page" class="page" hidden>
+          <h2 data-i18n="returns.title"></h2>
+          <form id="return-search-form" class="form-grid">
+            <label><span data-i18n="returns.search"></span><input id="return-search" required></label>
+            <button type="submit" data-i18n="returns.find"></button>
+          </form>
+          <div id="return-search-results"></div>
+          <form id="return-form" hidden>
+            <h3 id="return-sale-title"></h3>
+            <div id="return-lines" class="purchase-lines"></div>
+            <p id="return-quote" role="status"></p>
+            <label><span data-i18n="returns.reason"></span><input id="return-reason" maxlength="1000" required></label>
+            <label><span data-i18n="returns.payment_method"></span><select id="return-payment-method"></select></label>
+            <label><span data-i18n="sales.receipt_language"></span>
+              <select id="return-receipt-language"><option value="ru">RU</option><option value="uz">UZ</option></select>
+            </label>
+            <button type="submit" data-i18n="returns.submit"></button>
+          </form>
+        </section>
+        <section id="writeoffs-page" class="page" hidden>
+          <h2 data-i18n="writeoff.title"></h2>
+          <form id="writeoff-form" class="form-grid">
+            <label><span data-i18n="purchases.warehouse"></span><select id="writeoff-warehouse" required></select></label>
+            <label><span data-i18n="purchases.product"></span><select id="writeoff-product" required></select></label>
+            <label><span data-i18n="purchases.qty"></span><input id="writeoff-qty" type="number" min="0.001" step="0.001" required></label>
+            <label><span data-i18n="writeoff.reason"></span>
+              <select id="writeoff-reason" required>
+                <option value="damaged" data-i18n="writeoff.damaged"></option>
+                <option value="lost" data-i18n="writeoff.lost"></option>
+                <option value="expired" data-i18n="writeoff.expired"></option>
+                <option value="other" data-i18n="writeoff.other"></option>
+              </select>
+            </label>
+            <label><span data-i18n="purchases.note"></span><input id="writeoff-note" maxlength="1000"></label>
+            <button type="submit" data-i18n="writeoff.submit"></button>
+          </form>
+          <div class="table-wrap"><table><thead id="writeoffs-head"></thead><tbody id="writeoffs-body"></tbody></table></div>
+        </section>
+        <section id="stocktakes-page" class="page" hidden>
+          <h2 data-i18n="stocktake.title"></h2>
+          <form id="stocktake-start-form" class="form-grid">
+            <label><span data-i18n="purchases.warehouse"></span><select id="stocktake-warehouse" required></select></label>
+            <label><span data-i18n="stocktake.mode"></span>
+              <select id="stocktake-mode">
+                <option value="all" data-i18n="stocktake.all"></option>
+                <option value="selected" data-i18n="stocktake.selected"></option>
+              </select>
+            </label>
+            <label id="stocktake-products-field" hidden><span data-i18n="stocktake.products"></span>
+              <select id="stocktake-products" multiple size="8"></select>
+            </label>
+            <label><span data-i18n="purchases.note"></span><input id="stocktake-note" maxlength="1000"></label>
+            <button type="submit" data-i18n="stocktake.start"></button>
+          </form>
+          <div id="stocktake-list"></div>
+          <section id="stocktake-detail" hidden>
+            <h3 id="stocktake-detail-title"></h3>
+            <p id="stocktake-reserve-warning" role="status"></p>
+            <div id="stocktake-lines" class="purchase-lines"></div>
+            <div id="stocktake-reservations" class="purchase-lines"></div>
+            <button id="stocktake-save" type="button" data-i18n="stocktake.save"></button>
+            <button id="stocktake-complete" type="button" data-i18n="stocktake.complete"></button>
+            <button id="stocktake-cancel" type="button" data-i18n="stocktake.cancel"></button>
+          </section>
         </section>
         <section id="purchases-page" class="page" hidden>
           <h2 data-i18n="purchases.title"></h2>

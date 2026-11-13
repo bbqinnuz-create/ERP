@@ -18,6 +18,9 @@ const translations = {
     'nav.users': 'Пользователи и права',
     'nav.connection': 'Подключение ПК',
     'nav.print': 'Печать чеков',
+    'nav.returns': 'Возвраты',
+    'nav.writeoffs': 'Списания',
+    'nav.stocktakes': 'Инвентаризация',
     'connection.title': 'Подключение рабочих ПК',
     'connection.description': 'Откройте один из адресов на компьютере в той же локальной сети. Если адрес не открывается, проверьте Wi-Fi и настройки брандмауэра.',
     'connection.refresh': 'Обновить адреса',
@@ -115,6 +118,98 @@ const translations = {
     'cart.empty': 'Корзина пуста.',
     'cart.line_not_found': 'Строка корзины не найдена.',
     'cart.not_active': 'Корзина уже закрыта.',
+    'cart.held_not_found': 'Отложенная корзина не найдена.',
+    'cart.held_not_open': 'Отложенная корзина уже закрыта.',
+    'cart.held_customer_mismatch': 'Нельзя изменить клиента отложенной корзины.',
+    'reservation.already_active': 'Для корзины уже создан резерв.',
+    'reservation.warehouse_mismatch': 'Резерв создан для другого склада.',
+    'reservation.cart_mismatch': 'Состав резерва не совпадает с корзиной.',
+    'reservation.not_found': 'Резерв не найден.',
+    'reservation.not_active': 'Резерв уже не активен.',
+    'reservation.cannot_increase': 'Резерв можно только уменьшить или освободить.',
+    'returns.title': 'Возврат по чеку',
+    'returns.search': 'Номер чека',
+    'returns.find': 'Найти чек',
+    'returns.reason': 'Причина возврата',
+    'returns.payment_method': 'Способ выплаты остатка',
+    'returns.submit': 'Оформить возврат',
+    'returns.lines': 'Товар,Продано,Возвращено ранее,Вернуть',
+    'returns.sold': 'Продано',
+    'returns.returned': 'Уже возвращено',
+    'returns.qty': 'Количество к возврату',
+    'returns.quote': 'К возврату: {total}; в погашение долга: {debt}; выплатить: {payout}',
+    'returns.no_sales': 'Чек не найден.',
+    'returns.created': 'Возврат оформлен.',
+    'return.invalid_sale': 'Укажите исходный чек.',
+    'return.invalid_reason': 'Укажите причину возврата (до 1000 символов).',
+    'return.invalid_lines': 'Выберите товар и количество для возврата.',
+    'return.invalid_payments': 'Проверьте способы и суммы выплаты.',
+    'return.sale_not_found': 'Исходный чек не найден.',
+    'return.quantity_exceeded': 'Количество превышает остаток, доступный для возврата.',
+    'return.allocation_integrity_error': 'Не удалось восстановить исходные партии товара.',
+    'return.amount_out_of_range': 'Сумма возврата слишком велика.',
+    'return.payment_total_mismatch': 'Сумма выплаты не совпадает с расчётом возврата.',
+    'return.idempotency_conflict': 'Ключ запроса уже использован для другой операции.',
+    'return.invalid_search': 'Введите номер чека.',
+    'writeoff.title': 'Списание товара',
+    'writeoff.reason': 'Причина',
+    'writeoff.damaged': 'Повреждён',
+    'writeoff.lost': 'Утерян',
+    'writeoff.expired': 'Истёк срок годности',
+    'writeoff.other': 'Другое',
+    'writeoff.submit': 'Оформить списание',
+    'writeoff.columns': 'Дата,Номер,Склад,Причина,Товар,Количество,Себестоимость',
+    'writeoff.created': 'Списание оформлено.',
+    'writeoff.invalid_reason': 'Выберите причину списания.',
+    'writeoff.invalid_note': 'Примечание слишком длинное.',
+    'writeoff.invalid_lines': 'Добавьте корректные товары и количества.',
+    'stocktake.title': 'Инвентаризация',
+    'stocktake.mode': 'Объём',
+    'stocktake.all': 'Весь склад',
+    'stocktake.selected': 'Выбранные товары',
+    'stocktake.products': 'Товары',
+    'stocktake.start': 'Начать инвентаризацию',
+    'stocktake.save': 'Сохранить фактические количества',
+    'stocktake.complete': 'Завершить',
+    'stocktake.cancel': 'Отменить',
+    'stocktake.columns': 'Номер,Склад,Режим,Статус,Начата',
+    'stocktake.lines': 'Товар,Системный остаток,Фактический остаток,Резерв,Себестоимость вручную',
+    'stocktake.manual_cost': 'Себестоимость, тийин за единицу',
+    'stocktake.reservations': 'Активные резервы',
+    'stocktake.reduce_reservation': 'Уменьшить / освободить',
+    'stocktake.complete_confirm': 'Сохранить фактические количества и завершить инвентаризацию?',
+    'stocktake.complete_with_deficit_confirm': 'После завершения останется дефицит резерва. Продолжить?',
+    'stocktake.cancel_reason': 'Укажите причину отмены инвентаризации:',
+    'stocktake.active': 'Активна',
+    'stocktake.completed': 'Завершена',
+    'stocktake.cancelled': 'Отменена',
+    'stocktake.reserve_deficit': 'Есть дефицит резерва. Уменьшите резерв или освободите его.',
+    'stocktake.no_reserve_deficit': 'Дефицита резерва нет.',
+    'stocktake.invalid_start': 'Проверьте склад и режим инвентаризации.',
+    'stocktake.invalid_note': 'Примечание слишком длинное.',
+    'stocktake.invalid_products': 'Выберите активные товары для выборочной инвентаризации.',
+    'stocktake.already_active': 'На этом складе уже идёт инвентаризация.',
+    'stocktake.not_found': 'Инвентаризация не найдена.',
+    'stocktake.invalid_counts': 'Проверьте введённые количества.',
+    'stocktake.manual_cost_admin_only': 'Ручную себестоимость может указать только администратор.',
+    'stocktake.not_active': 'Инвентаризация не активна.',
+    'stocktake.counts_incomplete': 'Сначала заполните фактическое количество по всем товарам.',
+    'stocktake.stock_integrity_error': 'Остаток партий не совпадает с журналом движений.',
+    'stocktake.manual_cost_required': 'Для излишка без закупочной цены администратор должен указать себестоимость.',
+    'stocktake.invalid_cancel_reason': 'Укажите причину отмены инвентаризации.',
+    'held.select': 'Отложенная корзина',
+    'held.hold': 'Отложить текущую корзину',
+    'held.reserve': 'Зарезервировать',
+    'held.release': 'Освободить резерв',
+    'held.cancel': 'Отменить корзину',
+    'held.cancel_confirm': 'Отменить эту отложенную корзину и освободить её резерв?',
+    'held.none': 'Нет отложенных корзин',
+    'held.created': 'Корзина отложена.',
+    'held.reserved': 'Резерв создан.',
+    'held.released': 'Резерв освобождён.',
+    'held.cancelled': 'Отложенная корзина отменена.',
+    'held.sold': 'Отложенная корзина продана.',
+    'held.reserve_deficit': 'Резерв превышает фактический остаток. Уменьшите резерв или освободите его.',
     'sale.cart_product_inactive': 'В корзине есть неактивный товар. Удалите его.',
     'sale.discount_limit_exceeded': 'Скидка превышает лимит. Уменьшите скидку.',
     'sale.discount_not_allowed': 'У вас нет права на эту скидку.',
@@ -367,6 +462,9 @@ const translations = {
     'nav.users': 'Foydalanuvchilar va huquqlar',
     'nav.connection': 'Kompyuterlarni ulash',
     'nav.print': 'Cheklarni chop etish',
+    'nav.returns': 'Qaytarishlar',
+    'nav.writeoffs': 'Hisobdan chiqarish',
+    'nav.stocktakes': 'Inventarizatsiya',
     'connection.title': 'Ishchi kompyuterlarni ulash',
     'connection.description': 'Manzillardan birini shu mahalliy tarmoqqa ulangan kompyuterda oching. Manzil ochilmasa, Wi-Fi va xavfsizlik devori sozlamalarini tekshiring.',
     'connection.refresh': 'Manzillarni yangilash',
@@ -464,6 +562,99 @@ const translations = {
     'cart.empty': 'Savat bo‘sh.',
     'cart.line_not_found': 'Savat qatori topilmadi.',
     'cart.not_active': 'Savat allaqachon yopilgan.',
+    'cart.held_not_found': 'Saqlangan savatcha topilmadi.',
+    'cart.held_not_open': 'Saqlangan savatcha allaqachon yopilgan.',
+    'cart.held_customer_mismatch': 'Saqlangan savatcha mijozini o‘zgartirib bo‘lmaydi.',
+    'reservation.already_active': 'Savatcha uchun rezerv allaqachon yaratilgan.',
+    'reservation.warehouse_mismatch': 'Rezerv boshqa ombor uchun yaratilgan.',
+    'reservation.cart_mismatch': 'Rezerv tarkibi savatcha bilan mos emas.',
+    'reservation.not_found': 'Rezerv topilmadi.',
+    'reservation.not_active': 'Rezerv faol emas.',
+    'reservation.cannot_increase': 'Rezervni faqat kamaytirish yoki bo‘shatish mumkin.',
+    'returns.title': 'Chek bo‘yicha qaytarish',
+    'returns.search': 'Chek raqami',
+    'returns.find': 'Chekni topish',
+    'returns.reason': 'Qaytarish sababi',
+    'returns.payment_method': 'Qolgan summani qaytarish usuli',
+    'returns.submit': 'Qaytarishni rasmiylashtirish',
+    'returns.lines': 'Tovar,Sotilgan,Avval qaytarilgan,Qaytarish',
+    'returns.sold': 'Sotilgan',
+    'returns.returned': 'Avval qaytarilgan',
+    'returns.qty': 'Qaytariladigan miqdor',
+    'returns.quote': 'Qaytarish: {total}; qarzni yopish: {debt}; to‘lash: {payout}',
+    'returns.no_sales': 'Chek topilmadi.',
+    'returns.created': 'Qaytarish rasmiylashtirildi.',
+    'return.invalid_sale': 'Asl chekni ko‘rsating.',
+    'return.invalid_reason': 'Qaytarish sababini kiriting (1000 belgigacha).',
+    'return.invalid_lines': 'Qaytariladigan tovar va miqdorni tanlang.',
+    'return.invalid_payments': 'To‘lov usuli va summalarini tekshiring.',
+    'return.sale_not_found': 'Asl chek topilmadi.',
+    'return.quantity_exceeded': 'Qaytariladigan miqdor ruxsat etilganidan oshdi.',
+    'return.allocation_integrity_error': 'Tovarni asl partiyalarga qaytarib bo‘lmadi.',
+    'return.amount_out_of_range': 'Qaytarish summasi juda katta.',
+    'return.payment_total_mismatch': 'To‘lov summasi qaytarish hisobiga mos emas.',
+    'return.idempotency_conflict': 'So‘rov kaliti boshqa amal uchun ishlatilgan.',
+    'return.invalid_search': 'Chek raqamini kiriting.',
+    'writeoff.title': 'Tovarni hisobdan chiqarish',
+    'writeoff.reason': 'Sabab',
+    'writeoff.damaged': 'Shikastlangan',
+    'writeoff.lost': 'Yo‘qolgan',
+    'writeoff.expired': 'Yaroqlilik muddati o‘tgan',
+    'writeoff.other': 'Boshqa',
+    'writeoff.submit': 'Hisobdan chiqarish',
+    'writeoff.columns': 'Sana,Raqam,Ombor,Sabab,Tovar,Miqdor,Tannarx',
+    'writeoff.created': 'Hisobdan chiqarildi.',
+    'writeoff.invalid_reason': 'Hisobdan chiqarish sababini tanlang.',
+    'writeoff.invalid_note': 'Izoh juda uzun.',
+    'writeoff.invalid_lines': 'Tovar va miqdorlarni tekshiring.',
+    'stocktake.title': 'Inventarizatsiya',
+    'stocktake.mode': 'Qamrov',
+    'stocktake.all': 'Butun ombor',
+    'stocktake.selected': 'Tanlangan tovarlar',
+    'stocktake.products': 'Tovarlar',
+    'stocktake.start': 'Inventarizatsiyani boshlash',
+    'stocktake.save': 'Haqiqiy miqdorlarni saqlash',
+    'stocktake.complete': 'Yakunlash',
+    'stocktake.cancel': 'Bekor qilish',
+    'stocktake.columns': 'Raqam,Ombor,Tur,Holat,Boshlangan',
+    'stocktake.lines': 'Tovar,Tizim qoldig‘i,Haqiqiy qoldiq,Rezerv,Qo‘lda tannarx',
+    'stocktake.manual_cost': 'Tannarx, birligi uchun tiyin',
+    'stocktake.reservations': 'Faol rezervlar',
+    'stocktake.reduce_reservation': 'Kamaytirish / bo‘shatish',
+    'stocktake.complete_confirm': 'Haqiqiy miqdorlarni saqlab, inventarizatsiya yakunlansinmi?',
+    'stocktake.complete_with_deficit_confirm': 'Yakunlangandan so‘ng rezerv taqchilligi qoladi. Davom etilsinmi?',
+    'stocktake.cancel_reason': 'Inventarizatsiyani bekor qilish sababini kiriting:',
+    'stocktake.active': 'Faol',
+    'stocktake.completed': 'Yakunlangan',
+    'stocktake.cancelled': 'Bekor qilingan',
+    'stocktake.reserve_deficit': 'Rezerv taqchilligi bor. Rezervni kamaytiring yoki bo‘shating.',
+    'stocktake.no_reserve_deficit': 'Rezerv taqchilligi yo‘q.',
+    'stocktake.invalid_start': 'Ombor va inventarizatsiya turini tekshiring.',
+    'stocktake.invalid_note': 'Izoh juda uzun.',
+    'stocktake.invalid_products': 'Tanlangan inventarizatsiya uchun faol tovarlarni tanlang.',
+    'stocktake.already_active': 'Bu omborda inventarizatsiya allaqachon davom etmoqda.',
+    'stocktake.not_found': 'Inventarizatsiya topilmadi.',
+    'stocktake.invalid_counts': 'Kiritilgan miqdorlarni tekshiring.',
+    'stocktake.manual_cost_admin_only': 'Tannarxni faqat administrator qo‘lda kiritishi mumkin.',
+    'stocktake.not_active': 'Inventarizatsiya faol emas.',
+    'stocktake.counts_incomplete': 'Avval barcha tovarlar bo‘yicha haqiqiy miqdorni kiriting.',
+    'stocktake.stock_integrity_error': 'Partiyalar qoldig‘i harakatlar jurnaliga mos emas.',
+    'stocktake.manual_cost_required': 'Xarid narxi yo‘q ortiqcha uchun administrator tannarx kiritishi kerak.',
+    'stocktake.invalid_cancel_reason': 'Inventarizatsiyani bekor qilish sababini kiriting.',
+    'held.select': 'Saqlangan savatcha',
+    'held.hold': 'Joriy savatchani saqlash',
+    'held.reserve': 'Rezerv qilish',
+    'held.release': 'Rezervni bo‘shatish',
+    'held.cancel': 'Savatchani bekor qilish',
+    'held.cancel_confirm': 'Bu saqlangan savatcha va uning rezervi bekor qilinsinmi?',
+    'held.cancel_confirm': 'Bu saqlangan savatcha va uning rezervi bekor qilinsinmi?',
+    'held.none': 'Saqlangan savatchalar yo‘q',
+    'held.created': 'Savatcha saqlandi.',
+    'held.reserved': 'Rezerv yaratildi.',
+    'held.released': 'Rezerv bo‘shatildi.',
+    'held.cancelled': 'Saqlangan savatcha bekor qilindi.',
+    'held.sold': 'Saqlangan savatcha sotildi.',
+    'held.reserve_deficit': 'Rezerv haqiqiy qoldiqdan katta. Uni kamaytiring yoki bo‘shating.',
     'sale.cart_product_inactive': 'Savatda faol bo‘lmagan tovar bor. Uni olib tashlang.',
     'sale.discount_limit_exceeded': 'Chegirma limitdan oshdi. Chegirmani kamaytiring.',
     'sale.discount_not_allowed': 'Bu chegirma uchun huquqingiz yo‘q.',
@@ -714,6 +905,12 @@ const state = {
   salesCart: null,
   salesQuote: null,
   salesManualDiscounts: {},
+  heldCarts: [],
+  salesHeldCartId: '',
+  returnSale: null,
+  returnQuote: null,
+  selectedStocktakeId: '',
+  stocktakeDetail: null,
   debtors: [],
   debtPaymentMethods: [],
   debtCustomerId: '',
@@ -727,6 +924,7 @@ let inventoryWarehouses = [];
 let sessionCheckInFlight = false;
 let salesQuoteTimer = null;
 let saleAttemptId = null;
+let returnAttemptId = null;
 let debtPaymentAttempt = null;
 let cashOperationAttempt = null;
 const cashReversalAttemptIds = new Map();
@@ -745,6 +943,39 @@ function localize() {
   document.querySelectorAll('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
   document.title = t('app.title');
   $('#language').value = state.lang;
+}
+
+function renderHeldCarts() {
+  const select = $('#sales-held-cart');
+  if (!select) return;
+  const options = [makeOption('', t('held.none'))];
+  for (const cart of state.heldCarts) {
+    options.push(makeOption(cart.id, `${cart.customerName} — ${formatDateTime(cart.createdAt)}`));
+  }
+  select.replaceChildren(...options);
+  if (state.heldCarts.some((cart) => cart.id === state.salesHeldCartId)) {
+    select.value = state.salesHeldCartId;
+  } else {
+    state.salesHeldCartId = '';
+  }
+}
+
+async function selectSalesHeldCart(cartId) {
+  state.salesHeldCartId = cartId;
+  if (!cartId) {
+    const { cart } = await api('/api/cart');
+    state.salesCart = cart;
+    $('#sales-customer').disabled = false;
+  } else {
+    const { cart } = await api(`/api/held-carts/${encodeURIComponent(cartId)}`);
+    state.salesCart = cart;
+    $('#sales-customer').value = cart.customerId;
+    $('#sales-customer').disabled = true;
+  }
+  state.salesQuote = null;
+  state.salesManualDiscounts = {};
+  renderSalesCart();
+  await refreshSalesQuote();
 }
 
 async function api(path, options = {}) {
@@ -793,7 +1024,11 @@ function showApp(user) {
   $('#app-view').hidden = false;
   $('#current-user').textContent = `${user.fullName} (${user.login})`;
   $('#navigation [data-page="sales"]').hidden = user.permissions.sell !== 1;
-  $('#navigation [data-page="print"]').hidden = user.permissions.sell !== 1;
+  $('#navigation [data-page="print"]').hidden =
+    user.permissions.sell !== 1 && user.permissions.return !== 1;
+  $('#navigation [data-page="returns"]').hidden = user.permissions.return !== 1;
+  $('#navigation [data-page="writeoffs"]').hidden = user.permissions.write_off !== 1;
+  $('#navigation [data-page="stocktakes"]').hidden = user.permissions.stocktake !== 1;
   const canViewDebts = ['debt_payment', 'reports']
     .some((permission) => user.permissions[permission] === 1);
   const canViewCash = ['cash_in', 'cash_out', 'expense', 'cash_collection', 'reports']
@@ -805,6 +1040,13 @@ function showApp(user) {
   $('#product-form').hidden = user.permissions.settings !== 1 || user.permissions.price_edit !== 1;
   if (!$('#product-form').hidden) void loadProductUnits();
   $('#purchase-form').hidden = user.permissions.purchase !== 1;
+  $('#held-cart-controls').hidden = user.permissions.hold_cart !== 1;
+  $('#sales-hold-cart').hidden = user.permissions.hold_cart !== 1;
+  $('#sales-reserve-cart').hidden = user.permissions.reserve_cart !== 1;
+  $('#sales-release-cart').hidden = user.permissions.reserve_cart !== 1;
+  $('#sales-cancel-cart').hidden = user.permissions.hold_cart !== 1;
+  $('#writeoff-form').hidden = user.permissions.write_off !== 1;
+  $('#stocktake-start-form').hidden = user.permissions.stocktake !== 1;
   $('#debt-payment-form').hidden = user.permissions.debt_payment !== 1;
   $('#debt-forgiveness-form').hidden = user.role !== 'admin';
   $('#cash-operation-form').hidden = ![
@@ -850,10 +1092,14 @@ function showPage(name) {
   if (name === 'purchases') void loadPurchases();
   if (name === 'movements') void loadMovementHistory();
   if (name === 'connection' && state.user?.role === 'admin') void loadConnectionInfo();
-  if (name === 'print' && state.user?.permissions.sell === 1) {
+  if (name === 'print' &&
+      (state.user?.permissions.sell === 1 || state.user?.permissions.return === 1)) {
     void loadPrintJobs();
     if (state.user.permissions.settings === 1) void loadPrintProfile();
   }
+  if (name === 'returns' && state.user?.permissions.return === 1) void loadReturnMethods();
+  if (name === 'writeoffs' && state.user?.permissions.write_off === 1) void loadWriteOffs();
+  if (name === 'stocktakes' && state.user?.permissions.stocktake === 1) void loadStocktakes();
 }
 
 function cell(value) {
@@ -885,6 +1131,51 @@ async function loadProducts() {
       body.append(row);
     }
     if (rows.length === 0) message('products.empty');
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function createHeldCart() {
+  try {
+    const customerId = $('#sales-customer').value;
+    if (!customerId) throw new Error('validation.invalid_customer');
+    await api('/api/held-carts', {
+      method: 'POST',
+      body: JSON.stringify({ customerId }),
+    });
+    state.salesHeldCartId = '';
+    message('held.created');
+    await loadSalesPage();
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function updateSelectedHeldCart(action) {
+  if (!state.salesHeldCartId) return;
+  try {
+    const warehouseId = state.salesContext?.defaultWarehouseId;
+    if (action === 'reserve' && !warehouseId) throw new Error('settings.default_warehouse_required');
+    if (action === 'reserve') {
+      await api(`/api/held-carts/${encodeURIComponent(state.salesHeldCartId)}/reserve`, {
+        method: 'POST',
+        body: JSON.stringify({ warehouseId }),
+      });
+      message('held.reserved');
+    } else {
+      await api(`/api/held-carts/${encodeURIComponent(state.salesHeldCartId)}/release`, {
+        method: 'POST',
+        body: JSON.stringify({ cancel: action === 'cancel' }),
+      });
+      if (action === 'cancel') {
+        state.salesHeldCartId = '';
+        message('held.cancelled');
+      } else {
+        message('held.released');
+      }
+    }
+    await loadSalesPage();
   } catch (error) {
     message(error.message);
   }
@@ -941,6 +1232,386 @@ async function loadStock() {
       row.append(empty);
       body.append(row);
     }
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function loadReturnMethods() {
+  try {
+    const { rows } = await api('/api/references/payment_methods');
+    const select = $('#return-payment-method');
+    const previous = select.value;
+    const options = [makeOption('', t('status.select_option'))];
+    for (const method of rows) {
+      options.push(makeOption(method.id, state.lang === 'uz' ? method.name_uz || method.name_ru : method.name_ru));
+    }
+    select.replaceChildren(...options);
+    if (options.some((option) => option.value === previous)) select.value = previous;
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function searchReturnSale(event) {
+  event.preventDefault();
+  state.returnSale = null;
+  state.returnQuote = null;
+  $('#return-form').hidden = true;
+  try {
+    const query = $('#return-search').value.trim();
+    const { sales } = await api(`/api/returns/search?q=${encodeURIComponent(query)}`);
+    const results = $('#return-search-results');
+    results.replaceChildren();
+    for (const sale of sales) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = `${sale.number} — ${sale.customer} — ${formatMoney(sale.total)}`;
+      button.addEventListener('click', () => { void selectReturnSale(sale); });
+      results.append(button);
+    }
+    if (sales.length === 0) results.textContent = t('returns.no_sales');
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function selectReturnSale(sale) {
+  state.returnSale = sale;
+  state.returnQuote = null;
+  $('#return-sale-title').textContent = `${sale.number} — ${sale.customer}`;
+  const container = $('#return-lines');
+  container.replaceChildren();
+  for (const line of sale.lines) {
+    const row = document.createElement('div');
+    row.className = 'purchase-line';
+    const title = document.createElement('span');
+    title.textContent = `${line.sku} — ${line.name}`;
+    const sold = document.createElement('span');
+    sold.textContent = `${t('returns.sold')}: ${formatQuantity(line.qty)}`;
+    const returned = document.createElement('span');
+    returned.textContent = `${t('returns.returned')}: ${formatQuantity(line.returnedQty)}`;
+    const qty = document.createElement('input');
+    qty.type = 'text';
+    qty.inputMode = 'decimal';
+    qty.maxLength = 16;
+    qty.placeholder = t('returns.qty');
+    qty.dataset.returnLine = line.id;
+    qty.dataset.maxQty = String(line.qty - line.returnedQty);
+    qty.disabled = line.qty <= line.returnedQty;
+    qty.addEventListener('change', () => { void refreshReturnQuote(); });
+    row.append(title, sold, returned, qty);
+    container.append(row);
+  }
+  $('#return-form').hidden = false;
+  $('#return-reason').value = '';
+  $('#return-quote').textContent = '';
+}
+
+async function refreshReturnQuote() {
+  if (!state.returnSale) return;
+  const lines = [...document.querySelectorAll('#return-lines [data-return-line]')]
+    .filter((input) => input.value.trim() && input.value.trim() !== '0')
+    .map((input) => ({ saleLineId: input.dataset.returnLine, qty: input.value.trim() }));
+  if (lines.length === 0) {
+    state.returnQuote = null;
+    $('#return-quote').textContent = '';
+    return;
+  }
+  try {
+    const { quote } = await api('/api/returns/quote', {
+      method: 'POST',
+      body: JSON.stringify({ saleId: state.returnSale.id, lines }),
+    });
+    state.returnQuote = quote;
+    $('#return-quote').textContent = t('returns.quote')
+      .replace('{total}', formatMoney(quote.totalRefund))
+      .replace('{debt}', formatMoney(quote.debtOffset))
+      .replace('{payout}', formatMoney(quote.payout));
+    $('#return-payment-method').required = quote.payout > 0;
+  } catch (error) {
+    state.returnQuote = null;
+    $('#return-quote').textContent = t(error.message);
+  }
+}
+
+async function submitReturn(event) {
+  event.preventDefault();
+  if (!state.returnSale || !state.returnQuote) {
+    message('return.invalid_lines');
+    return;
+  }
+  const lines = [...document.querySelectorAll('#return-lines [data-return-line]')]
+    .filter((input) => input.value.trim() && input.value.trim() !== '0')
+    .map((input) => ({ saleLineId: input.dataset.returnLine, qty: input.value.trim() }));
+  const payments = state.returnQuote.payout > 0
+    ? [{ methodId: $('#return-payment-method').value, amount: state.returnQuote.payout }]
+    : [];
+  try {
+    if (!returnAttemptId) returnAttemptId = createRequestId();
+    const result = await api('/api/returns', {
+      method: 'POST',
+      body: JSON.stringify({
+        saleId: state.returnSale.id,
+        reason: $('#return-reason').value,
+        lines,
+        payments,
+        idempotencyKey: returnAttemptId,
+      }),
+    });
+    returnAttemptId = null;
+    state.returnSale = null;
+    state.returnQuote = null;
+    $('#return-form').reset();
+    $('#return-form').hidden = true;
+    $('#return-search-results').replaceChildren();
+    message('returns.created');
+    await Promise.all([loadStock(), loadPrintJobs()]);
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function loadWriteOffs() {
+  try {
+    const { writeoffs } = await api('/api/writeoffs');
+    buildHead('#writeoffs-head', 'writeoff.columns');
+    const body = $('#writeoffs-body');
+    body.replaceChildren();
+    for (const item of writeoffs) {
+      const row = document.createElement('tr');
+      row.append(
+        cell(formatDateTime(item.createdAt)),
+        cell(item.number),
+        cell(item.warehouseName),
+        cell(t(`writeoff.${item.reason}`)),
+        cell(`${item.sku} — ${item.productName}`),
+        cell(formatQuantity(item.qty)),
+        cell(formatMoney(item.costTotal)),
+      );
+      body.append(row);
+    }
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function submitWriteOff(event) {
+  event.preventDefault();
+  const productId = $('#writeoff-product').value;
+  const warehouseId = $('#writeoff-warehouse').value;
+  try {
+    await api('/api/writeoffs', {
+      method: 'POST',
+      body: JSON.stringify({
+        warehouseId,
+        reason: $('#writeoff-reason').value,
+        note: $('#writeoff-note').value,
+        lines: [{ productId, qty: $('#writeoff-qty').value }],
+      }),
+    });
+    $('#writeoff-form').reset();
+    message('writeoff.created');
+    await Promise.all([loadWriteOffs(), loadStock()]);
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function loadStocktakes() {
+  try {
+    const { stocktakes } = await api('/api/stocktakes');
+    const container = $('#stocktake-list');
+    container.replaceChildren();
+    for (const item of stocktakes) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = `${item.number} — ${item.warehouseName} — ${t(`stocktake.${item.status}`)} — ${formatDateTime(item.startedAt)}`;
+      button.addEventListener('click', () => { void openStocktake(item.id); });
+      container.append(button);
+    }
+    const active = stocktakes.find((item) => item.status === 'active');
+    if (active && state.selectedStocktakeId !== active.id) await openStocktake(active.id);
+    if (!active && state.selectedStocktakeId) {
+      state.selectedStocktakeId = '';
+      state.stocktakeDetail = null;
+      $('#stocktake-detail').hidden = true;
+    }
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function openStocktake(id) {
+  try {
+    const [detail, reservationResult] = await Promise.all([
+      api(`/api/stocktakes/${encodeURIComponent(id)}`),
+      state.user?.permissions.reserve_cart === 1
+        ? api(`/api/stocktakes/${encodeURIComponent(id)}/reservations`)
+        : Promise.resolve({ reservations: [] }),
+    ]);
+    state.selectedStocktakeId = id;
+    state.stocktakeDetail = detail;
+    renderStocktakeDetail(reservationResult.reservations);
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+function renderStocktakeDetail(reservations) {
+  const detail = state.stocktakeDetail;
+  if (!detail) return;
+  const { stocktake, lines } = detail;
+  const active = stocktake.status === 'active';
+  $('#stocktake-detail').hidden = false;
+  $('#stocktake-detail-title').textContent = `${stocktake.number} — ${stocktake.warehouseName}`;
+  const hasDeficit = lines.some((line) => line.reserveDeficit > 0);
+  $('#stocktake-reserve-warning').textContent = hasDeficit ? t('stocktake.reserve_deficit') : t('stocktake.no_reserve_deficit');
+  $('#stocktake-save').hidden = !active;
+  $('#stocktake-complete').hidden = !active;
+  $('#stocktake-cancel').hidden = !active;
+  const container = $('#stocktake-lines');
+  container.replaceChildren();
+  for (const line of lines) {
+    const row = document.createElement('div');
+    row.className = 'purchase-line';
+    const title = document.createElement('span');
+    title.textContent = `${line.sku} — ${line.name}`;
+    const system = document.createElement('span');
+    system.textContent = formatQuantity(line.qtySystem);
+    const count = document.createElement('input');
+    count.type = 'number';
+    count.min = '0';
+    count.step = '0.001';
+    count.dataset.stocktakeCount = line.productId;
+    count.value = line.qtyCounted == null ? '' : (line.qtyCounted / 1000).toFixed(3);
+    count.disabled = !active;
+    const reserved = document.createElement('span');
+    reserved.textContent = `${formatQuantity(line.reserved)}${line.reserveDeficit > 0 ? ` (${t('held.reserve_deficit')})` : ''}`;
+    row.append(title, system, count, reserved);
+    if (state.user?.role === 'admin' && active) {
+      const cost = document.createElement('input');
+      cost.type = 'number';
+      cost.min = '0';
+      cost.step = '1';
+      cost.placeholder = t('stocktake.manual_cost');
+      cost.dataset.stocktakeCost = line.productId;
+      cost.value = line.manualUnitCost == null ? '' : String(line.manualUnitCost);
+      row.append(cost);
+    }
+    container.append(row);
+  }
+  const reservationContainer = $('#stocktake-reservations');
+  reservationContainer.replaceChildren();
+  if (reservations.length > 0 && state.user?.permissions.reserve_cart === 1) {
+    const heading = document.createElement('h4');
+    heading.textContent = t('stocktake.reservations');
+    reservationContainer.append(heading);
+    for (const reservation of reservations) {
+      const row = document.createElement('div');
+      row.className = 'purchase-line';
+      const title = document.createElement('span');
+      title.textContent = `${reservation.sku} — ${reservation.productName}`;
+      const qty = document.createElement('input');
+      qty.type = 'number';
+      qty.min = '0';
+      qty.max = String(reservation.qty / 1000);
+      qty.step = '0.001';
+      qty.value = (reservation.qty / 1000).toFixed(3);
+      const save = document.createElement('button');
+      save.type = 'button';
+      save.textContent = t('stocktake.reduce_reservation');
+      save.disabled = !active;
+      save.addEventListener('click', () => { void reduceReservation(reservation.id, qty.value); });
+      row.append(title, qty, save);
+      reservationContainer.append(row);
+    }
+  }
+}
+
+async function reduceReservation(id, qty) {
+  try {
+    await api(`/api/reservations/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ qty }),
+    });
+    await openStocktake(state.selectedStocktakeId);
+    message('held.released');
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function saveStocktakeCounts() {
+  if (!state.selectedStocktakeId) return false;
+  const lines = [...document.querySelectorAll('#stocktake-lines [data-stocktake-count]')]
+    .filter((input) => input.value.trim() !== '')
+    .map((input) => {
+      const line = { productId: input.dataset.stocktakeCount, qtyCounted: input.value };
+      const cost = document.querySelector(`#stocktake-lines [data-stocktake-cost="${CSS.escape(line.productId)}"]`);
+      if (cost?.value.trim()) line.manualUnitCost = Number(cost.value);
+      return line;
+    });
+  try {
+    const detail = await api(`/api/stocktakes/${encodeURIComponent(state.selectedStocktakeId)}/counts`, {
+      method: 'POST',
+      body: JSON.stringify({ lines }),
+    });
+    state.stocktakeDetail = detail;
+    return true;
+  } catch (error) {
+    message(error.message);
+    return false;
+  }
+}
+
+async function completeStocktake() {
+  if (!await saveStocktakeCounts()) return;
+  const hasDeficit = state.stocktakeDetail?.lines.some((line) => line.reserveDeficit > 0);
+  if (!window.confirm(t(hasDeficit ? 'stocktake.complete_with_deficit_confirm' : 'stocktake.complete_confirm'))) return;
+  try {
+    await api(`/api/stocktakes/${encodeURIComponent(state.selectedStocktakeId)}/complete`, { method: 'POST', body: '{}' });
+    await Promise.all([loadStocktakes(), loadStock()]);
+    message('status.saved');
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function cancelStocktake() {
+  const reason = window.prompt(t('stocktake.cancel_reason'));
+  if (!reason?.trim()) return;
+  try {
+    await api(`/api/stocktakes/${encodeURIComponent(state.selectedStocktakeId)}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+    await loadStocktakes();
+    message('status.saved');
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function startStocktake(event) {
+  event.preventDefault();
+  const mode = $('#stocktake-mode').value;
+  const productIds = mode === 'selected'
+    ? [...$('#stocktake-products').selectedOptions].map((option) => option.value)
+    : [];
+  try {
+    const { stocktake } = await api('/api/stocktakes', {
+      method: 'POST',
+      body: JSON.stringify({
+        warehouseId: $('#stocktake-warehouse').value,
+        mode,
+        productIds,
+        note: $('#stocktake-note').value,
+      }),
+    });
+    state.selectedStocktakeId = stocktake.id;
+    await loadStocktakes();
+    message('status.created');
   } catch (error) {
     message(error.message);
   }
@@ -1387,8 +2058,14 @@ async function loadInventoryOptions() {
     inventoryWarehouses = warehouses;
     setWarehouseOptions($('#stock-warehouse-filter'), true);
     setWarehouseOptions($('#purchase-warehouse'));
+    setWarehouseOptions($('#writeoff-warehouse'));
+    setWarehouseOptions($('#stocktake-warehouse'));
     setWarehouseOptions($('#movement-warehouse-filter'), true);
     setProductOptions($('#movement-product-filter'), true);
+    setProductOptions($('#writeoff-product'));
+    const stocktakeProducts = inventoryProducts.map((product) =>
+      makeOption(product.id, `${product.sku} — ${product.name}`));
+    $('#stocktake-products').replaceChildren(...stocktakeProducts);
     const dateInput = $('#purchase-form').elements.namedItem('date');
     if (!dateInput.value) dateInput.value = dateForInput();
     document.querySelectorAll('#purchase-lines [data-purchase-product]').forEach((select) => setProductOptions(select));
@@ -1459,7 +2136,12 @@ function salesOptions() {
       }
     }
   }
-  return { customerId, manualDiscounts, checkDiscount };
+  return {
+    customerId,
+    manualDiscounts,
+    checkDiscount,
+    ...(state.salesHeldCartId ? { heldCartId: state.salesHeldCartId } : {}),
+  };
 }
 
 function setSalesDefaultWarehouseOptions() {
@@ -1572,6 +2254,7 @@ function renderSalesCart() {
     return;
   }
   const canDiscount = state.user?.permissions.discount_manual === 1;
+  const isHeld = Boolean(state.salesHeldCartId);
   for (const line of cart.lines) {
     const row = document.createElement('tr');
     row.dataset.salesProductId = line.productId;
@@ -1582,6 +2265,7 @@ function renderSalesCart() {
     qty.inputMode = 'decimal';
     qty.value = formatQuantity(line.qty);
     qty.dataset.cartQty = line.productId;
+    qty.disabled = isHeld;
     qty.setAttribute('aria-label', t('purchases.qty'));
     qty.addEventListener('change', () => { void updateSalesQuantity(line.productId, qty.value); });
     qtyCell.append(qty);
@@ -1614,11 +2298,13 @@ function renderSalesCart() {
     totalCell.textContent = formatMoney(line.basePrice);
     row.append(totalCell);
     const action = document.createElement('td');
-    const remove = document.createElement('button');
-    remove.type = 'button';
-    remove.textContent = t('sales.remove');
-    remove.addEventListener('click', () => { void removeSalesProduct(line.productId); });
-    action.append(remove);
+    if (!isHeld) {
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.textContent = t('sales.remove');
+      remove.addEventListener('click', () => { void removeSalesProduct(line.productId); });
+      action.append(remove);
+    }
     row.append(action);
     body.append(row);
   }
@@ -1686,12 +2372,18 @@ async function refreshSalesQuote() {
 
 async function loadSalesPage() {
   try {
-    const [context, { cart }] = await Promise.all([
+    const [context, { cart }, heldResult] = await Promise.all([
       api('/api/sales/context'),
       api('/api/cart'),
+      state.user?.permissions.hold_cart === 1 ? api('/api/held-carts') : Promise.resolve({ carts: [] }),
     ]);
     state.salesContext = context;
-    state.salesCart = cart;
+    state.heldCarts = heldResult.carts;
+    renderHeldCarts();
+    const heldCart = state.heldCarts.find((item) => item.id === state.salesHeldCartId);
+    state.salesCart = heldCart ?? cart;
+    $('#sales-customer').disabled = Boolean(heldCart);
+    if (heldCart) $('#sales-customer').value = heldCart.customerId;
     state.salesManualDiscounts = Object.fromEntries(
       Object.entries(state.salesManualDiscounts).filter(([id]) =>
         cart.lines.some((line) => line.productId === id)),
@@ -1703,6 +2395,7 @@ async function loadSalesPage() {
       : t(context.warehouses.length === 0 ? 'sales.no_warehouse' : 'sales.warehouse_unconfigured');
     setSalesDefaultWarehouseOptions();
     renderSalesCustomers();
+    if (heldCart) $('#sales-customer').value = heldCart.customerId;
     renderSalesPayments();
     renderSalesProducts();
     renderSalesCart();
@@ -1816,6 +2509,7 @@ async function submitSale(event) {
       }),
     });
     saleAttemptId = null;
+    state.salesHeldCartId = '';
     state.salesManualDiscounts = {};
     $('#sales-check-discount-value').value = '';
     $('#sales-customer').value = '';
@@ -2277,9 +2971,33 @@ $('#print-profile-form').addEventListener('submit', (event) => { void savePrintP
 $('#save-default-warehouse').addEventListener('click', () => { void saveSalesDefaultWarehouse(); });
 $('#sales-search').addEventListener('input', renderSalesProducts);
 $('#sales-customer').addEventListener('change', scheduleSalesQuote);
+$('#sales-held-cart').addEventListener('change', (event) => {
+  void selectSalesHeldCart(event.currentTarget.value).catch((error) => message(error.message));
+});
+$('#sales-hold-cart').addEventListener('click', () => { void createHeldCart(); });
+$('#sales-reserve-cart').addEventListener('click', () => { void updateSelectedHeldCart('reserve'); });
+$('#sales-release-cart').addEventListener('click', () => { void updateSelectedHeldCart('release'); });
+$('#sales-cancel-cart').addEventListener('click', () => {
+  if (window.confirm(t('held.cancel_confirm'))) void updateSelectedHeldCart('cancel');
+});
 $('#sales-check-discount-kind').addEventListener('change', scheduleSalesQuote);
 $('#sales-check-discount-value').addEventListener('input', scheduleSalesQuote);
 $('#sales-checkout').addEventListener('submit', (event) => { void submitSale(event); });
+$('#return-search-form').addEventListener('submit', (event) => { void searchReturnSale(event); });
+$('#return-form').addEventListener('submit', (event) => { void submitReturn(event); });
+$('#writeoff-form').addEventListener('submit', (event) => { void submitWriteOff(event); });
+$('#stocktake-start-form').addEventListener('submit', (event) => { void startStocktake(event); });
+$('#stocktake-mode').addEventListener('change', () => {
+  $('#stocktake-products-field').hidden = $('#stocktake-mode').value !== 'selected';
+});
+$('#stocktake-save').addEventListener('click', async () => {
+  if (await saveStocktakeCounts()) {
+    await openStocktake(state.selectedStocktakeId);
+    message('status.saved');
+  }
+});
+$('#stocktake-complete').addEventListener('click', () => { void completeStocktake(); });
+$('#stocktake-cancel').addEventListener('click', () => { void cancelStocktake(); });
 $('#debt-customer-select').addEventListener('change', (event) => {
   const customerId = event.currentTarget.value;
   state.debtCustomerId = customerId;

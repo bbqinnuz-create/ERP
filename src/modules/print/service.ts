@@ -4,6 +4,7 @@ import { nowIso } from '../../core/time';
 import { inTransaction } from '../../core/tx';
 import { uuidv7 } from '../../core/uuid';
 import { AuthError } from '../auth/service';
+import { hasPermission } from '../auth/permissions';
 import { PrintOutcomeUncertainError, type PrintDriver } from './driver';
 import {
   receiptDataFromSnapshot,
@@ -44,13 +45,18 @@ function validLanguage(value: unknown): value is ReceiptLanguage {
 }
 
 export function listPrintJobs(db: Db, userId: string, isAdmin: boolean): PrintJobView[] {
-  const filter = isAdmin ? '' : 'AND s.user_id = ?';
+  const filter = isAdmin ? '' : 'AND documents.user_id = ?';
   const rows = db.prepare(
-    `SELECT pj.id, pj.doc_type, s.number, pj.kind, pj.status, pj.attempts, pj.error, pj.lang,
-            pj.created_at, u.full_name AS cashier
+    `SELECT pj.id, pj.doc_type, documents.number, pj.kind, pj.status, pj.attempts, pj.error, pj.lang,
+            pj.created_at, documents.cashier
      FROM print_jobs pj
-     JOIN sales s ON pj.doc_type = 'sale' AND s.id = pj.doc_id
-     JOIN users u ON u.id = s.user_id
+     JOIN (
+       SELECT s.id, s.number, s.user_id, u.full_name AS cashier, 'sale' AS doc_type
+       FROM sales s JOIN users u ON u.id = s.user_id
+       UNION ALL
+       SELECT r.id, r.number, r.user_id, u.full_name AS cashier, 'return' AS doc_type
+       FROM returns r JOIN users u ON u.id = r.user_id
+     ) documents ON documents.id = pj.doc_id AND documents.doc_type = pj.doc_type
      WHERE 1 = 1 ${filter}
      ORDER BY pj.created_at DESC, pj.id DESC
      LIMIT 100`,
@@ -98,10 +104,14 @@ export function createCopyJob(
 
   return inTransaction(db, () => {
     const source = db.prepare(
-      `SELECT pj.id, pj.status, pj.doc_type, pj.doc_id, pj.snapshot_json, s.user_id
+      `SELECT pj.id, pj.status, pj.doc_type, pj.doc_id, pj.snapshot_json, documents.user_id
        FROM print_jobs pj
-       JOIN sales s ON pj.doc_type = 'sale' AND s.id = pj.doc_id
-       WHERE pj.id = ?`,
+      JOIN (
+        SELECT id, user_id, 'sale' AS doc_type FROM sales
+        UNION ALL
+        SELECT id, user_id, 'return' AS doc_type FROM returns
+      ) documents ON documents.id = pj.doc_id AND documents.doc_type = pj.doc_type
+      WHERE pj.id = ?`,
     ).get(sourceJobId) as {
       id: string;
       status: PrintJobView['status'];
@@ -112,6 +122,9 @@ export function createCopyJob(
     } | undefined;
     if (!source) throw new AuthError(404, 'print.job_not_found');
     if (!isAdmin && source.user_id !== userId) throw new AuthError(403, 'auth.permission_denied');
+    if (!hasPermission(db, userId, source.doc_type === 'sale' ? 'sell' : 'return')) {
+      throw new AuthError(403, 'auth.permission_denied');
+    }
     if (source.status === 'printing') throw new AuthError(409, 'print.job_in_progress');
     if (source.status === 'uncertain' && body.confirmUncertain !== true) {
       throw new AuthError(409, 'print.confirm_uncertain');
@@ -163,6 +176,67 @@ export function captureSalePrintSnapshot(db: Db, saleId: string): string {
   return JSON.stringify(snapshot);
 }
 
+export function captureReturnPrintSnapshot(db: Db, returnId: string): string {
+  const result = db.prepare(
+    `SELECT r.number, r.created_at AS createdAt, r.total_refund AS subtotal,
+            r.total_refund AS total, r.user_id, s.customer_id,
+            COALESCE(s.customer_name, c.name, s.number) AS customer,
+            u.full_name AS cashier, b.name AS storeName, b.address, b.phone,
+            s.branch_id
+     FROM returns r
+     JOIN sales s ON s.id = r.sale_id
+     JOIN users u ON u.id = r.user_id
+     JOIN branches b ON b.id = s.branch_id
+     LEFT JOIN customers c ON c.id = s.customer_id
+     WHERE r.id = ?`,
+  ).get(returnId) as {
+    number: string; createdAt: string; subtotal: number; total: number; user_id: string;
+    customer_id: string | null; customer: string; cashier: string; storeName: string;
+    address: string | null; phone: string | null; branch_id: string;
+  } | undefined;
+  if (!result) throw new Error(`Print source return was not found: ${returnId}`);
+  const debtOffset = db.prepare(
+    `SELECT COALESCE(-SUM(amount), 0) AS amount FROM debt_ledger
+     WHERE return_id = ? AND type = 'DEBT_PAY'`,
+  ).get(returnId) as { amount: number };
+  const paidTotal = db.prepare(
+    `SELECT COALESCE(SUM(amount), 0) AS amount FROM payments
+     WHERE return_id = ? AND direction = 'out'`,
+  ).get(returnId) as { amount: number };
+  const lines = db.prepare(
+    `SELECT p.name_ru AS nameRu, p.name_uz AS nameUz, rl.qty, p.unit,
+            sl.unit_price AS unitPrice, 0 AS lineDiscount, rl.refund_amount AS lineTotal
+     FROM return_lines rl
+     JOIN sale_lines sl ON sl.id = rl.sale_line_id
+     JOIN products p ON p.id = sl.product_id
+     WHERE rl.return_id = ? ORDER BY rl.rowid`,
+  ).all(returnId) as ReceiptSnapshot['lines'];
+  const payments = db.prepare(
+    `SELECT pm.name_ru AS methodNameRu, pm.name_uz AS methodNameUz, p.amount,
+            NULL AS tendered, 0 AS change
+     FROM payments p JOIN payment_methods pm ON pm.id = p.method_id
+     WHERE p.return_id = ? ORDER BY p.rowid`,
+  ).all(returnId) as ReceiptSnapshot['payments'];
+  const snapshot: ReceiptSnapshot = {
+    number: result.number,
+    documentLabel: 'return',
+    createdAt: result.createdAt,
+    cashier: result.cashier,
+    customer: result.customer,
+    storeName: result.storeName,
+    address: result.address,
+    phone: result.phone,
+    subtotal: result.subtotal,
+    discountTotal: 0,
+    total: result.total,
+    paidTotal: paidTotal.amount,
+    debtAmount: debtOffset.amount,
+    lines,
+    payments,
+  };
+  return JSON.stringify(snapshot);
+}
+
 function isReceiptSnapshot(parsed: unknown): parsed is ReceiptSnapshot {
   const record = (candidate: unknown): candidate is Record<string, unknown> =>
     Boolean(candidate) && typeof candidate === 'object' && !Array.isArray(candidate);
@@ -171,6 +245,7 @@ function isReceiptSnapshot(parsed: unknown): parsed is ReceiptSnapshot {
     candidate === null || typeof candidate === 'string';
   if (!record(parsed)) return false;
   return typeof parsed.number === 'string' &&
+      (parsed.documentLabel === undefined || parsed.documentLabel === null || parsed.documentLabel === 'return') &&
       typeof parsed.createdAt === 'string' &&
       typeof parsed.cashier === 'string' &&
       typeof parsed.customer === 'string' &&
@@ -202,10 +277,13 @@ function parseSnapshot(value: string): ReceiptSnapshot {
 }
 
 function getReceiptData(db: Db, job: PrintJobRow): ReceiptData {
-  if (job.doc_type !== 'sale') throw new Error(`Unsupported print document type: ${job.doc_type}`);
+  if (job.doc_type !== 'sale' && job.doc_type !== 'return') {
+    throw new Error(`Unsupported print document type: ${job.doc_type}`);
+  }
   const footer = db.prepare('SELECT value FROM settings WHERE key = ?')
     .get(job.lang === 'uz' ? 'receipt_footer_uz' : 'receipt_footer_ru') as { value: string } | undefined;
-  const snapshot = parseSnapshot(job.snapshot_json ?? captureSalePrintSnapshot(db, job.doc_id));
+  const snapshot = parseSnapshot(job.snapshot_json ??
+    (job.doc_type === 'sale' ? captureSalePrintSnapshot(db, job.doc_id) : captureReturnPrintSnapshot(db, job.doc_id)));
   return receiptDataFromSnapshot(snapshot, job.lang, footer?.value ?? '', job.kind === 'copy');
 }
 

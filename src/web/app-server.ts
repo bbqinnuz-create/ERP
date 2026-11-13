@@ -9,7 +9,26 @@ import { AuthError, createUserForSession, listUsers, login, logout, setUserPermi
 import { hasPermission, type Permission } from '../modules/auth/permissions';
 import { createPurchase, getPurchase, listPurchases, reversePurchase } from '../modules/purchases/service';
 import { addCartLine, getActiveCart, removeCartLine, setCartLineQty } from '../modules/carts/service';
+import {
+  getHeldCart,
+  holdActiveCart,
+  listHeldCarts,
+  releaseHeldCart,
+  reserveHeldCart,
+  setReservationQuantity,
+} from '../modules/carts/held';
 import { createSale, getSalesContext, quoteSale } from '../modules/sales/service';
+import { createReturn, findSalesForReturn, quoteReturn } from '../modules/returns/service';
+import { createWriteOff, listWriteOffs } from '../modules/writeoffs/service';
+import {
+  cancelStocktake,
+  completeStocktake,
+  getStocktake,
+  listStocktakeReservations,
+  listStocktakes,
+  saveStocktakeCounts,
+  startStocktake,
+} from '../modules/stocktakes/service';
 import {
   collectDebtPayment,
   forgiveDebt,
@@ -21,6 +40,7 @@ import { createCashOperation, getCashSummary, reverseCashOperation } from '../mo
 import { reconcileStockCaches } from '../modules/stock/ledger';
 import { listLanConnectionAddresses } from './connection-info';
 import { createCopyJob, listPrintJobs } from '../modules/print/service';
+import { expireReservations } from '../modules/carts/held';
 import { getReceiptProfile, updateReceiptProfile } from '../modules/print/profile';
 import {
   getSettings,
@@ -268,8 +288,140 @@ async function handleApi(
   }
 
   if (path === '/api/stock' && method === 'GET') {
-    const rows = withAuthorizedUser(db, token, null, () => listStock(db), now());
+    const rows = withAuthorizedUser(db, token, null, () => {
+      expireReservations(db);
+      return listStock(db);
+    }, now());
     sendJson(res, 200, { rows });
+    return;
+  }
+
+  if (path === '/api/returns/search' && method === 'GET') {
+    const sales = withAuthorizedUser(db, token, 'return', () =>
+      findSalesForReturn(db, url.searchParams.get('q')), now());
+    sendJson(res, 200, { sales });
+    return;
+  }
+  if (path === '/api/returns/quote' && method === 'POST') {
+    const body = await readJson(req);
+    const quote = withAuthorizedUser(db, token, 'return', (session) =>
+      quoteReturn(db, session.user.id, body), now());
+    sendJson(res, 200, { quote });
+    return;
+  }
+  if (path === '/api/returns' && method === 'POST') {
+    const body = await readJson(req);
+    const result = withAuthorizedUser(db, token, 'return', (session) =>
+      createReturn(db, session.user.id, body), now());
+    sendJson(res, result.replayed ? 200 : 201, result);
+    return;
+  }
+  if (path === '/api/writeoffs' && method === 'GET') {
+    const writeoffs = withAuthorizedUser(db, token, 'write_off', () => listWriteOffs(db), now());
+    sendJson(res, 200, { writeoffs });
+    return;
+  }
+  if (path === '/api/writeoffs' && method === 'POST') {
+    const body = await readJson(req);
+    const writeoff = withAuthorizedUser(db, token, 'write_off', (session) =>
+      createWriteOff(db, session.user.id, body), now());
+    sendJson(res, 201, { writeoff });
+    return;
+  }
+  if (path === '/api/stocktakes' && method === 'GET') {
+    const stocktakes = withAuthorizedUser(db, token, 'stocktake', () => listStocktakes(db), now());
+    sendJson(res, 200, { stocktakes });
+    return;
+  }
+  if (path === '/api/stocktakes' && method === 'POST') {
+    const body = await readJson(req);
+    const stocktake = withAuthorizedUser(db, token, 'stocktake', (session) =>
+      startStocktake(db, session.user.id, body), now());
+    sendJson(res, 201, { stocktake });
+    return;
+  }
+  const stocktakeRoute = /^\/api\/stocktakes\/([^/]+)(?:\/(counts|complete|cancel|reservations))?$/.exec(path);
+  if (stocktakeRoute) {
+    const id = decodeURIComponent(stocktakeRoute[1]!);
+    if (!stocktakeRoute[2] && method === 'GET') {
+      const result = withAuthorizedUser(db, token, 'stocktake', () => getStocktake(db, id), now());
+      sendJson(res, 200, result);
+      return;
+    }
+    if (stocktakeRoute[2] === 'counts' && method === 'POST') {
+      const body = await readJson(req);
+      const result = withAuthorizedUser(db, token, 'stocktake', (session) =>
+        saveStocktakeCounts(db, session.user.id, id, body.lines), now());
+      sendJson(res, 200, result);
+      return;
+    }
+    if (stocktakeRoute[2] === 'reservations' && method === 'GET') {
+      const reservations = withAuthorizedUser(db, token, 'reserve_cart', (session) =>
+        listStocktakeReservations(db, session.user.id, id), now());
+      sendJson(res, 200, { reservations });
+      return;
+    }
+    if (stocktakeRoute[2] === 'complete' && method === 'POST') {
+      const result = withAuthorizedUser(db, token, 'stocktake', (session) =>
+        completeStocktake(db, session.user.id, id), now());
+      sendJson(res, 200, result);
+      return;
+    }
+    if (stocktakeRoute[2] === 'cancel' && method === 'POST') {
+      const body = await readJson(req);
+      withAuthorizedUser(db, token, 'stocktake', (session) =>
+        cancelStocktake(db, session.user.id, id, body.reason), now());
+      sendJson(res, 200, { status: 'cancelled' });
+      return;
+    }
+  }
+  if (path === '/api/held-carts' && method === 'GET') {
+    const carts = withAuthorizedUser(db, token, 'hold_cart', (session) =>
+      listHeldCarts(db, session.user.id, session.user.role === 'admin'), now());
+    sendJson(res, 200, { carts });
+    return;
+  }
+  if (path === '/api/held-carts' && method === 'POST') {
+    const body = await readJson(req);
+    const cart = withAuthorizedUser(db, token, 'hold_cart', (session) =>
+      holdActiveCart(db, session.user.id, body.customerId), now());
+    sendJson(res, 201, { cart });
+    return;
+  }
+  const heldCartRoute = /^\/api\/held-carts\/([^/]+)(?:\/(reserve|release))?$/.exec(path);
+  if (heldCartRoute) {
+    const id = decodeURIComponent(heldCartRoute[1]!);
+    if (!heldCartRoute[2] && method === 'GET') {
+      const cart = withAuthorizedUser(db, token, 'hold_cart', (session) =>
+        getHeldCart(db, session.user.id, id), now());
+      sendJson(res, 200, { cart });
+      return;
+    }
+    if (heldCartRoute[2] === 'reserve' && method === 'POST') {
+      const body = await readJson(req);
+      const cart = withAuthorizedUser(db, token, 'reserve_cart', (session) =>
+        reserveHeldCart(db, session.user.id, id, body.warehouseId), now());
+      sendJson(res, 200, { cart });
+      return;
+    }
+    if (heldCartRoute[2] === 'release' && method === 'POST') {
+      const body = await readJson(req);
+      if (body.cancel !== undefined && typeof body.cancel !== 'boolean') {
+        throw new AuthError(400, 'validation.invalid_object');
+      }
+      const cart = withAuthorizedUser(db, token, body.cancel === true ? 'hold_cart' : 'reserve_cart', (session) =>
+        releaseHeldCart(db, session.user.id, id, body.cancel === true), now());
+      sendJson(res, 200, { cart });
+      return;
+    }
+  }
+  const reservationRoute = /^\/api\/reservations\/([^/]+)$/.exec(path);
+  if (reservationRoute && method === 'PUT') {
+    const body = await readJson(req);
+    if (Object.keys(body).some((key) => key !== 'qty')) throw new AuthError(400, 'validation.unknown_field');
+    const reservation = withAuthorizedUser(db, token, 'reserve_cart', (session) =>
+      setReservationQuantity(db, session.user.id, decodeURIComponent(reservationRoute[1]!), body.qty), now());
+    sendJson(res, 200, { reservation });
     return;
   }
 
@@ -322,15 +474,19 @@ async function handleApi(
     return;
   }
   if (path === '/api/print-jobs' && method === 'GET') {
-    const jobs = withAuthorizedUser(db, token, 'sell', (session) =>
-      listPrintJobs(db, session.user.id, session.user.role === 'admin'), now());
+    const jobs = withAuthorizedUser(db, token, null, (session) => {
+      if (!hasPermission(db, session.user.id, 'sell') && !hasPermission(db, session.user.id, 'return')) {
+        throw new AuthError(403, 'auth.permission_denied');
+      }
+      return listPrintJobs(db, session.user.id, session.user.role === 'admin');
+    }, now());
     sendJson(res, 200, { jobs, enabled: printEnabled });
     return;
   }
   const copyRoute = /^\/api\/print-jobs\/([^/]+)\/copy$/.exec(path);
   if (copyRoute && method === 'POST') {
     const body = await readJson(req);
-    const result = withAuthorizedUser(db, token, 'sell', (session) =>
+    const result = withAuthorizedUser(db, token, null, (session) =>
       createCopyJob(db, session.user.id, session.user.role === 'admin',
         decodeURIComponent(copyRoute[1]!), body), now());
     sendJson(res, 201, result);

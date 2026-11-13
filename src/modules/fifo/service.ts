@@ -3,6 +3,7 @@ import { mulQty } from '../../core/money';
 import { assertPositiveQty } from '../../core/qty';
 import { AuthError } from '../auth/service';
 import { appendStockMovement } from '../stock/ledger';
+import { expireReservations } from '../carts/held';
 
 export interface FifoConsumptionInput {
   branchId: string;
@@ -71,6 +72,7 @@ export function consumeFifo(db: Db, input: FifoConsumptionInput): FifoAllocation
   ) {
     throw new Error('fifo.document_type_mismatch');
   }
+  expireReservations(db);
   if (input.unitPrice !== undefined && input.unitPrice !== null &&
       (!Number.isSafeInteger(input.unitPrice) || input.unitPrice < 0)) {
     throw new AuthError(400, 'validation.invalid_unit_price');

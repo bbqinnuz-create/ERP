@@ -8,6 +8,7 @@ import { getPermissionValues, hasPermission } from '../auth/permissions';
 import { AuthError } from '../auth/service';
 import { captureSalePrintSnapshot } from '../print/service';
 import { getActiveCart, type Cart } from '../carts/service';
+import { consumeHeldCartReservations, expireReservations, loadHeldCartForSale } from '../carts/held';
 import { consumeFifo, type FifoAllocation } from '../fifo/service';
 import {
   assertNotBelowCost,
@@ -44,6 +45,7 @@ interface WarehouseRow {
 
 interface NormalizedSaleOptions {
   customerId: string | null;
+  heldCartId: string | null;
   manualDiscounts: ManualLineDiscount[];
   checkDiscount: DiscountInput | null;
 }
@@ -142,6 +144,7 @@ function normalizeOptions(input: unknown, allowedKeys: readonly string[]): Norma
     throw new AuthError(400, 'validation.unknown_field');
   }
   const customerId = normalizeId(row.customerId, 'customer', true);
+  const heldCartId = normalizeId(row.heldCartId, 'held_cart', true);
   let manualDiscounts: ManualLineDiscount[] = [];
   if (row.manualDiscounts !== undefined) {
     if (!Array.isArray(row.manualDiscounts) || row.manualDiscounts.length > 200) {
@@ -164,6 +167,7 @@ function normalizeOptions(input: unknown, allowedKeys: readonly string[]): Norma
   }
   return {
     customerId,
+    heldCartId,
     manualDiscounts,
     checkDiscount: row.checkDiscount == null ? null : normalizeDiscount(row.checkDiscount),
   };
@@ -205,7 +209,9 @@ function normalizeCheckoutInput(input: unknown, defaultLanguage: 'ru' | 'uz'): C
     throw new AuthError(400, 'validation.invalid_object');
   }
   const row = input as Record<string, unknown>;
-  const allowed = ['idempotencyKey', 'customerId', 'manualDiscounts', 'checkDiscount', 'payments', 'receiptLang'];
+  const allowed = [
+    'idempotencyKey', 'customerId', 'heldCartId', 'manualDiscounts', 'checkDiscount', 'payments', 'receiptLang',
+  ];
   const options = normalizeOptions(row, allowed);
   if (typeof row.idempotencyKey !== 'string' || row.idempotencyKey.trim().length === 0 ||
       row.idempotencyKey.length > 128) {
@@ -282,7 +288,30 @@ function loadPriceRules(db: Db): PriceRule[] {
 }
 
 function calculateForCart(db: Db, userId: string, options: NormalizedSaleOptions): LoadedPriceData {
-  const cart = getActiveCart(db, userId);
+  let cart: Cart;
+  if (options.heldCartId) {
+    const held = loadHeldCartForSale(db, userId, options.heldCartId);
+    if (options.customerId && options.customerId !== held.customerId) {
+      throw new AuthError(400, 'cart.held_customer_mismatch');
+    }
+    options.customerId = held.customerId;
+    cart = {
+      id: held.cart.id,
+      updatedAt: held.cart.createdAt,
+      lines: held.cart.lines.map((line) => ({
+        id: line.productId,
+        productId: line.productId,
+        sku: line.sku,
+        name: line.name,
+        unit: line.unit,
+        basePrice: line.basePrice,
+        qty: line.qty,
+        active: true,
+      })),
+    };
+  } else {
+    cart = getActiveCart(db, userId);
+  }
   const products = loadProducts(db, cart);
   const byId = new Map(products.map((product) => [product.id, product]));
   const rules = loadPriceRules(db);
@@ -491,7 +520,10 @@ function loadSalesContext(db: Db): {
 }
 
 export function getSalesContext(db: Db): ReturnType<typeof loadSalesContext> {
-  return loadSalesContext(db);
+  return inTransaction(db, () => {
+    expireReservations(db);
+    return loadSalesContext(db);
+  });
 }
 
 export function quoteSale(db: Db, userId: string, input: unknown): {
@@ -500,14 +532,16 @@ export function quoteSale(db: Db, userId: string, input: unknown): {
   discountTotal: number;
   total: number;
 } {
-  const options = normalizeOptions(input, ['customerId', 'manualDiscounts', 'checkDiscount']);
-  const { calculated } = calculateForCart(db, userId, options);
-  return {
-    lines: calculated.lines,
-    subtotal: calculated.subtotal,
-    discountTotal: calculated.discountTotal,
-    total: calculated.total,
-  };
+  return inTransaction(db, () => {
+    const options = normalizeOptions(input, ['customerId', 'heldCartId', 'manualDiscounts', 'checkDiscount']);
+    const { calculated } = calculateForCart(db, userId, options);
+    return {
+      lines: calculated.lines,
+      subtotal: calculated.subtotal,
+      discountTotal: calculated.discountTotal,
+      total: calculated.total,
+    };
+  });
 }
 
 export function createSale(
@@ -532,12 +566,16 @@ export function createSale(
 
     const options: NormalizedSaleOptions = {
       customerId: normalized.customerId,
+      heldCartId: normalized.heldCartId,
       manualDiscounts: normalized.manualDiscounts,
       checkDiscount: normalized.checkDiscount,
     };
-    const customer = getCustomer(db, options.customerId);
     const loaded = calculateForCart(db, userId, options);
+    const customer = getCustomer(db, options.customerId);
     const warehouse = resolveDefaultWarehouse(db);
+    if (normalized.heldCartId) {
+      consumeHeldCartReservations(db, userId, normalized.heldCartId, warehouse.id);
+    }
     const branch = db.prepare(
       'SELECT code FROM branches WHERE id = ? AND active = 1',
     ).get(warehouse.branch_id) as { code: string } | undefined;
@@ -763,15 +801,23 @@ export function createSale(
       ).run(debtId, customer.id, saleId, debtAmount, userId, createdAt);
     }
 
-    const cartUpdate = db.prepare(
-      `UPDATE carts SET status = 'closed', sale_id = ?, updated_at = ?
-       WHERE id = ? AND user_id = ? AND status = 'active'`,
-    ).run(saleId, createdAt, loaded.cart.id, userId);
-    if (cartUpdate.changes !== 1) throw new AuthError(409, 'cart.not_active');
-    db.prepare(
-      `INSERT INTO carts (id, user_id, status, created_at, updated_at)
-       VALUES (?, ?, 'active', ?, ?)`,
-    ).run(uuidv7(), userId, createdAt, createdAt);
+    if (normalized.heldCartId) {
+      const heldUpdate = db.prepare(
+        `UPDATE held_carts SET status = 'closed', sale_id = ?, closed_at = ?
+         WHERE id = ? AND status = 'open'`,
+      ).run(saleId, createdAt, normalized.heldCartId);
+      if (heldUpdate.changes !== 1) throw new AuthError(409, 'cart.held_not_open');
+    } else {
+      const cartUpdate = db.prepare(
+        `UPDATE carts SET status = 'closed', sale_id = ?, updated_at = ?
+         WHERE id = ? AND user_id = ? AND status = 'active'`,
+      ).run(saleId, createdAt, loaded.cart.id, userId);
+      if (cartUpdate.changes !== 1) throw new AuthError(409, 'cart.not_active');
+      db.prepare(
+        `INSERT INTO carts (id, user_id, status, created_at, updated_at)
+         VALUES (?, ?, 'active', ?, ?)`,
+      ).run(uuidv7(), userId, createdAt, createdAt);
+    }
     db.prepare(
       `INSERT INTO idempotency_keys (key, user_id, operation, result_type, result_id, created_at)
        VALUES (?, ?, 'sale', 'sales', ?, ?)`,

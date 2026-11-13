@@ -10,6 +10,7 @@ export type ReceiptMessageKey =
   | 'change'
   | 'debt'
   | 'copy'
+  | 'return'
   | 'currency';
 
 const RECEIPT_TRANSLATIONS: Record<ReceiptLanguage, Record<ReceiptMessageKey, string>> = {
@@ -23,6 +24,7 @@ const RECEIPT_TRANSLATIONS: Record<ReceiptLanguage, Record<ReceiptMessageKey, st
     change: 'Сдача',
     debt: 'Долг',
     copy: 'КОПИЯ',
+    return: 'ВОЗВРАТ',
     currency: 'сум',
   },
   uz: {
@@ -35,6 +37,7 @@ const RECEIPT_TRANSLATIONS: Record<ReceiptLanguage, Record<ReceiptMessageKey, st
     change: 'Qaytim',
     debt: 'Qarz',
     copy: 'NUSXA',
+    return: 'QAYTARISH',
     currency: 'so‘m',
   },
 };
