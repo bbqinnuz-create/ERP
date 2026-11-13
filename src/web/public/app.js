@@ -13,6 +13,8 @@ const translations = {
     'nav.stock': 'Остатки',
     'nav.purchases': 'Приходы',
     'nav.movements': 'Движения',
+    'nav.debts': 'Долги',
+    'nav.cash': 'Общая касса',
     'nav.users': 'Пользователи и права',
     'nav.connection': 'Подключение ПК',
     'connection.title': 'Подключение рабочих ПК',
@@ -61,6 +63,53 @@ const translations = {
     'sales.receipt': 'Чек создан',
     'sales.receipt_summary': 'Чек {number}; итого {total}; оплачено {paid}; долг {debt}; сдача {change}.',
     'sales.no_payment_method': 'Нет активных способов оплаты.',
+    'debts.title': 'Долги клиентов',
+    'debts.customer': 'Клиент',
+    'debts.columns': 'Клиент,Остаток долга,Открытые чеки',
+    'debts.sales_columns': 'Чек,Дата,Итого,Остаток,Прощение',
+    'debts.no_debtors': 'Открытых долгов нет.',
+    'debts.select_customer': 'Выберите клиента',
+    'debts.balance': 'Общий долг клиента',
+    'debts.payment_method': 'Способ оплаты',
+    'debts.payment_amount': 'Сумма оплаты, сум',
+    'debts.collect': 'Принять оплату долга',
+    'debts.forgive': 'Прощение долга',
+    'debts.reason': 'Причина',
+    'debts.forgive_hint': 'Для каждого выбранного чека укажите сумму прощения в сумах.',
+    'debts.forgive_amount': 'Сумма прощения в сумах',
+    'debts.forgive_submit': 'Простить указанные суммы',
+    'debts.forgive_confirm': 'Записать прощение долга по указанным чекам?',
+    'debts.payment_success': 'Оплата долга принята.',
+    'debts.forgive_success': 'Прощение долга записано.',
+    'cash.title': 'Общая касса',
+    'cash.balance': 'Расчётный остаток наличных',
+    'cash.period_balance': 'Изменение наличных за период',
+    'cash.operation_type': 'Операция',
+    'cash.type.cash_in': 'Внесение',
+    'cash.type.cash_out': 'Изъятие',
+    'cash.type.expense': 'Расход',
+    'cash.type.collection': 'Инкассация',
+    'cash.amount': 'Сумма, сум',
+    'cash.category': 'Категория расхода',
+    'cash.reason': 'Причина или назначение',
+    'cash.reference': 'Подтверждающие данные',
+    'cash.create': 'Провести операцию',
+    'cash.from': 'С даты',
+    'cash.to': 'По дату',
+    'cash.refresh': 'Обновить',
+    'cash.noncash': 'Безналичные оплаты за период',
+    'cash.noncash_columns': 'Способ,Получено,Возвращено,Итого',
+    'cash.history': 'Журнал наличных',
+    'cash.columns': 'Дата и время,Документ,Тип,Сумма,Пользователь,Категория,Причина,Подтверждающие данные,Действие',
+    'cash.no_rows': 'Операций за выбранный период нет.',
+    'cash.reverse': 'Сторнировать',
+    'cash.reverse_reason': 'Укажите причину встречной операции:',
+    'cash.reverse_confirm': 'Создать встречную операцию?',
+    'cash.entry.sale': 'Оплата продажи наличными',
+    'cash.entry.debt_payment': 'Оплата долга наличными',
+    'cash.entry.return': 'Возврат наличных',
+    'cash.operation_created': 'Кассовая операция проведена.',
+    'cash.operation_reversed': 'Создана встречная кассовая операция.',
     'cart.empty': 'Корзина пуста.',
     'cart.line_not_found': 'Строка корзины не найдена.',
     'cart.not_active': 'Корзина уже закрыта.',
@@ -148,6 +197,30 @@ const translations = {
     'validation.invalid_payment_method_id': 'Выберите активный способ оплаты.',
     'validation.invalid_customer': 'Выберите активного клиента.',
     'validation.invalid_idempotency_key': 'Не удалось защитить чек от повторного создания.',
+    'validation.idempotency_unavailable': 'Браузер не может создать безопасный ключ запроса.',
+    'debt.invalid_forgiveness_reason': 'Укажите причину прощения долга длиной до 1000 символов.',
+    'debt.invalid_forgiveness': 'Проверьте выбранные чеки и суммы прощения.',
+    'debt.balance_out_of_range': 'Сумма долга выходит за допустимые пределы.',
+    'debt.customer_not_found': 'Клиент не найден.',
+    'debt.no_open_balance': 'У клиента нет открытого долга по выбранному чеку.',
+    'debt.payment_exceeds_balance': 'Сумма оплаты превышает открытый долг.',
+    'debt.idempotency_conflict': 'Ключ запроса уже использован для другой операции.',
+    'debt.forgive_exceeds_balance': 'Сумма прощения превышает остаток выбранного чека.',
+    'debt.admin_required': 'Прощать долг может только администратор.',
+    'cash.invalid_amount': 'Введите положительную сумму в тийинах.',
+    'cash.invalid_operation': 'Выберите допустимую кассовую операцию.',
+    'cash.invalid_category': 'Проверьте категорию расхода.',
+    'cash.category_required': 'Для расхода укажите категорию.',
+    'cash.invalid_reason': 'Укажите причину или назначение длиной до 500 символов.',
+    'cash.invalid_reference': 'Подтверждающие данные слишком длинные.',
+    'cash.invalid_date_range': 'Проверьте период дат.',
+    'cash.balance_out_of_range': 'Остаток кассы выходит за допустимые пределы.',
+    'cash.no_cash_method': 'Нет активного способа оплаты «наличные».',
+    'cash.no_active_branch': 'Нет активной точки продажи для номера документа.',
+    'cash.operation_not_found': 'Кассовая операция не найдена.',
+    'cash.idempotency_conflict': 'Ключ запроса уже использован для другой операции.',
+    'cash.operation_already_reversed': 'Эта кассовая операция уже сторнирована.',
+    'cash.reversal_of_reversal': 'Нельзя сторнировать встречную операцию.',
     'status.select_option': 'Выберите значение',
     'status.all': 'Все',
     'status.no_data': 'Нет данных',
@@ -256,6 +329,8 @@ const translations = {
     'nav.stock': 'Qoldiqlar',
     'nav.purchases': 'Kirimlar',
     'nav.movements': 'Harakatlar',
+    'nav.debts': 'Qarzlar',
+    'nav.cash': 'Umumiy kassa',
     'nav.users': 'Foydalanuvchilar va huquqlar',
     'nav.connection': 'Kompyuterlarni ulash',
     'connection.title': 'Ishchi kompyuterlarni ulash',
@@ -304,6 +379,53 @@ const translations = {
     'sales.receipt': 'Chek yaratildi',
     'sales.receipt_summary': 'Chek {number}; jami {total}; to‘landi {paid}; qarz {debt}; qaytim {change}.',
     'sales.no_payment_method': 'Faol to‘lov usuli yo‘q.',
+    'debts.title': 'Mijozlar qarzi',
+    'debts.customer': 'Mijoz',
+    'debts.columns': 'Mijoz,Qarz qoldig‘i,Ochiq cheklar',
+    'debts.sales_columns': 'Chek,Sana,Jami,Qoldiq,Kechirish',
+    'debts.no_debtors': 'Ochiq qarz yo‘q.',
+    'debts.select_customer': 'Mijozni tanlang',
+    'debts.balance': 'Mijozning umumiy qarzi',
+    'debts.payment_method': 'To‘lov usuli',
+    'debts.payment_amount': 'To‘lov summasi, so‘m',
+    'debts.collect': 'Qarz to‘lovini qabul qilish',
+    'debts.forgive': 'Qarzni kechirish',
+    'debts.reason': 'Sabab',
+    'debts.forgive_hint': 'Har bir tanlangan chek uchun kechiriladigan summani so‘mda kiriting.',
+    'debts.forgive_amount': 'So‘mdagi kechirish summasi',
+    'debts.forgive_submit': 'Ko‘rsatilgan summalarni kechirish',
+    'debts.forgive_confirm': 'Ko‘rsatilgan cheklar bo‘yicha qarz kechirilsinmi?',
+    'debts.payment_success': 'Qarz to‘lovi qabul qilindi.',
+    'debts.forgive_success': 'Qarzni kechirish yozildi.',
+    'cash.title': 'Umumiy kassa',
+    'cash.balance': 'Hisoblangan naqd pul qoldig‘i',
+    'cash.period_balance': 'Davr uchun naqd pul o‘zgarishi',
+    'cash.operation_type': 'Amal',
+    'cash.type.cash_in': 'Kirim',
+    'cash.type.cash_out': 'Olish',
+    'cash.type.expense': 'Xarajat',
+    'cash.type.collection': 'Inkassatsiya',
+    'cash.amount': 'Summa, so‘m',
+    'cash.category': 'Xarajat toifasi',
+    'cash.reason': 'Sabab yoki maqsad',
+    'cash.reference': 'Tasdiqlovchi ma’lumot',
+    'cash.create': 'Amalni rasmiylashtirish',
+    'cash.from': 'Boshlanish sanasi',
+    'cash.to': 'Tugash sanasi',
+    'cash.refresh': 'Yangilash',
+    'cash.noncash': 'Davr uchun naqdsiz to‘lovlar',
+    'cash.noncash_columns': 'Usul,Olingan,Qaytarilgan,Jami',
+    'cash.history': 'Naqd pul jurnali',
+    'cash.columns': 'Sana va vaqt,Hujjat,Turi,Summa,Foydalanuvchi,Toifa,Sabab,Tasdiqlovchi ma’lumot,Amal',
+    'cash.no_rows': 'Tanlangan davrda amallar yo‘q.',
+    'cash.reverse': 'Qarama-qarshi yozuv',
+    'cash.reverse_reason': 'Qarama-qarshi amal sababini kiriting:',
+    'cash.reverse_confirm': 'Qarama-qarshi amal yaratilsinmi?',
+    'cash.entry.sale': 'Savdo uchun naqd to‘lov',
+    'cash.entry.debt_payment': 'Qarz uchun naqd to‘lov',
+    'cash.entry.return': 'Naqd qaytarish',
+    'cash.operation_created': 'Kassa amali rasmiylashtirildi.',
+    'cash.operation_reversed': 'Qarama-qarshi kassa amali yaratildi.',
     'cart.empty': 'Savat bo‘sh.',
     'cart.line_not_found': 'Savat qatori topilmadi.',
     'cart.not_active': 'Savat allaqachon yopilgan.',
@@ -391,6 +513,30 @@ const translations = {
     'validation.invalid_payment_method_id': 'Faol to‘lov usulini tanlang.',
     'validation.invalid_customer': 'Faol mijozni tanlang.',
     'validation.invalid_idempotency_key': 'Chekni takror yaratishdan himoyalab bo‘lmadi.',
+    'validation.idempotency_unavailable': 'Brauzer xavfsiz so‘rov kalitini yarata olmaydi.',
+    'debt.invalid_forgiveness_reason': '1000 belgigacha qarzni kechirish sababini kiriting.',
+    'debt.invalid_forgiveness': 'Tanlangan chek va kechirish summalarini tekshiring.',
+    'debt.balance_out_of_range': 'Qarz summasi ruxsat etilgan chegaradan katta.',
+    'debt.customer_not_found': 'Mijoz topilmadi.',
+    'debt.no_open_balance': 'Tanlangan chek bo‘yicha ochiq qarz yo‘q.',
+    'debt.payment_exceeds_balance': 'To‘lov summasi ochiq qarzdan oshib ketdi.',
+    'debt.idempotency_conflict': 'So‘rov kaliti boshqa amal uchun ishlatilgan.',
+    'debt.forgive_exceeds_balance': 'Kechirish summasi chek qoldig‘idan oshib ketdi.',
+    'debt.admin_required': 'Qarzni faqat administrator kechirishi mumkin.',
+    'cash.invalid_amount': 'Tiyinlarda musbat summa kiriting.',
+    'cash.invalid_operation': 'Kassa amalini tanlang.',
+    'cash.invalid_category': 'Xarajat toifasini tekshiring.',
+    'cash.category_required': 'Xarajat uchun toifani kiriting.',
+    'cash.invalid_reason': '500 belgigacha sabab yoki maqsad kiriting.',
+    'cash.invalid_reference': 'Tasdiqlovchi ma’lumot juda uzun.',
+    'cash.invalid_date_range': 'Sanalar oralig‘ini tekshiring.',
+    'cash.balance_out_of_range': 'Kassa qoldig‘i ruxsat etilgan chegaradan katta.',
+    'cash.no_cash_method': 'Faol «naqd» to‘lov usuli yo‘q.',
+    'cash.no_active_branch': 'Hujjat raqami uchun faol savdo nuqtasi yo‘q.',
+    'cash.operation_not_found': 'Kassa amali topilmadi.',
+    'cash.idempotency_conflict': 'So‘rov kaliti boshqa amal uchun ishlatilgan.',
+    'cash.operation_already_reversed': 'Bu kassa amali allaqachon bekor qilingan.',
+    'cash.reversal_of_reversal': 'Qarama-qarshi amalni bekor qilib bo‘lmaydi.',
     'status.select_option': 'Qiymatni tanlang',
     'status.all': 'Barchasi',
     'status.no_data': 'Ma’lumot yo‘q',
@@ -502,13 +648,22 @@ const state = {
   salesCart: null,
   salesQuote: null,
   salesManualDiscounts: {},
+  debtors: [],
+  debtPaymentMethods: [],
+  debtCustomerId: '',
+  debtDetails: null,
+  cashSummary: null,
 };
 let movementOffset = 0;
+let cashOffset = 0;
 let inventoryProducts = [];
 let inventoryWarehouses = [];
 let sessionCheckInFlight = false;
 let salesQuoteTimer = null;
 let saleAttemptId = null;
+let debtPaymentAttempt = null;
+let cashOperationAttempt = null;
+const cashReversalAttemptIds = new Map();
 const $ = (selector) => document.querySelector(selector);
 const t = (key) => {
   const direct = translations[state.lang][key];
@@ -547,7 +702,15 @@ function showLogin(errorKey = '') {
   state.salesCart = null;
   state.salesQuote = null;
   state.salesManualDiscounts = {};
+  state.debtors = [];
+  state.debtPaymentMethods = [];
+  state.debtCustomerId = '';
+  state.debtDetails = null;
+  state.cashSummary = null;
   saleAttemptId = null;
+  debtPaymentAttempt = null;
+  cashOperationAttempt = null;
+  cashReversalAttemptIds.clear();
   $('#login-view').hidden = false;
   $('#app-view').hidden = true;
   $('#permission-editor').hidden = true;
@@ -564,11 +727,26 @@ function showApp(user) {
   $('#app-view').hidden = false;
   $('#current-user').textContent = `${user.fullName} (${user.login})`;
   $('#navigation [data-page="sales"]').hidden = user.permissions.sell !== 1;
+  const canViewDebts = ['debt_payment', 'reports']
+    .some((permission) => user.permissions[permission] === 1);
+  const canViewCash = ['cash_in', 'cash_out', 'expense', 'cash_collection', 'reports']
+    .some((permission) => user.permissions[permission] === 1);
+  $('#navigation [data-page="debts"]').hidden = !canViewDebts;
+  $('#navigation [data-page="cash"]').hidden = !canViewCash;
   $('#navigation [data-page="users"]').hidden = user.permissions.users_manage !== 1;
   $('#navigation [data-page="connection"]').hidden = user.role !== 'admin';
   $('#product-form').hidden = user.permissions.settings !== 1 || user.permissions.price_edit !== 1;
   if (!$('#product-form').hidden) void loadProductUnits();
   $('#purchase-form').hidden = user.permissions.purchase !== 1;
+  $('#debt-payment-form').hidden = user.permissions.debt_payment !== 1;
+  $('#debt-forgiveness-form').hidden = user.role !== 'admin';
+  $('#cash-operation-form').hidden = ![
+    user.permissions.cash_in,
+    user.permissions.cash_out,
+    user.permissions.expense,
+    user.permissions.cash_collection,
+  ].some((value) => value === 1);
+  updateCashOperationTypes();
   $('#user-form').hidden = user.permissions.users_manage !== 1;
   $('#user-edit-form').hidden = true;
   $('#permission-editor').hidden = true;
@@ -576,6 +754,8 @@ function showApp(user) {
   void loadInventoryOptions();
   void loadProducts();
   if (user.permissions.sell === 1) void loadSalesPage();
+  if (canViewDebts) void loadDebts();
+  if (canViewCash) void loadCashPage();
 }
 
 async function checkSessionStatus() {
@@ -594,6 +774,8 @@ function showPage(name) {
   document.querySelectorAll('.page').forEach((page) => { page.hidden = page.id !== `${name}-page`; });
   if (name === 'users' && state.user?.permissions.users_manage === 1) void loadUsers();
   if (name === 'sales' && state.user?.permissions.sell === 1) void loadSalesPage();
+  if (name === 'debts') void loadDebts();
+  if (name === 'cash') void loadCashPage();
   if (name === 'stock') void loadStock();
   if (name === 'purchases') void loadPurchases();
   if (name === 'movements') void loadMovementHistory();
@@ -685,6 +867,381 @@ async function loadStock() {
       row.append(empty);
       body.append(row);
     }
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+function renderDebtors() {
+  buildHead('#debtors-head', 'debts.columns');
+  const body = $('#debtors-body');
+  body.replaceChildren();
+  for (const debtor of state.debtors) {
+    const row = document.createElement('tr');
+    const customer = document.createElement('td');
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.textContent = debtor.customerName;
+    open.addEventListener('click', () => { void selectDebtCustomer(debtor.customerId); });
+    customer.append(open);
+    row.append(customer, cell(formatMoney(debtor.balance)), cell(debtor.openSaleCount));
+    body.append(row);
+  }
+  if (state.debtors.length === 0) {
+    const row = document.createElement('tr');
+    const empty = cell(t('debts.no_debtors'));
+    empty.colSpan = 3;
+    row.append(empty);
+    body.append(row);
+  }
+}
+
+function renderDebtSales() {
+  buildHead('#debts-sales-head', 'debts.sales_columns');
+  const body = $('#debts-sales-body');
+  body.replaceChildren();
+  const details = state.debtDetails;
+  const selected = state.debtors.find((debtor) => debtor.customerId === state.debtCustomerId);
+  const customerName = details?.customer.name ?? selected?.customerName;
+  $('#debt-customer-balance').textContent = customerName
+    ? `${customerName}: ${t('debts.balance')} ${formatMoney(details?.balance ?? 0)}`
+    : '';
+  $('#debt-payment-form').hidden =
+    state.user?.permissions.debt_payment !== 1 || !details || details.balance <= 0;
+  $('#debt-forgiveness-form').hidden = state.user?.role !== 'admin' || !details || details.sales.length === 0;
+
+  if (!details || details.sales.length === 0) {
+    const row = document.createElement('tr');
+    const empty = cell(t('status.no_data'));
+    empty.colSpan = 5;
+    row.append(empty);
+    body.append(row);
+    return;
+  }
+  for (const sale of details.sales) {
+    const row = document.createElement('tr');
+    row.append(cell(sale.number), cell(formatDateTime(sale.createdAt)),
+      cell(formatMoney(sale.total)), cell(formatMoney(sale.balance)));
+    const forgiveness = document.createElement('td');
+    if (state.user?.role === 'admin') {
+      const amount = document.createElement('input');
+      amount.type = 'text';
+      amount.inputMode = 'decimal';
+      amount.dataset.forgiveSale = sale.id;
+      amount.setAttribute('aria-label', `${t('debts.forgive_amount')} ${sale.number}`);
+      forgiveness.append(amount);
+    }
+    row.append(forgiveness);
+    body.append(row);
+  }
+}
+
+async function selectDebtCustomer(customerId) {
+  state.debtCustomerId = customerId;
+  $('#debt-customer-select').value = customerId;
+  try {
+    state.debtDetails = await api(`/api/debts/${encodeURIComponent(customerId)}`);
+    renderDebtSales();
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function loadDebts() {
+  try {
+    const { debtors, paymentMethods } = await api('/api/debts');
+    state.debtors = debtors;
+    state.debtPaymentMethods = paymentMethods;
+    renderDebtors();
+
+    const customerSelect = $('#debt-customer-select');
+    const previousCustomerId = state.debtCustomerId;
+    const options = [makeOption('', t('debts.select_customer'))];
+    for (const debtor of debtors) {
+      options.push(makeOption(debtor.customerId, `${debtor.customerName} — ${formatMoney(debtor.balance)}`));
+    }
+    customerSelect.replaceChildren(...options);
+    const selected = debtors.some((debtor) => debtor.customerId === previousCustomerId)
+      ? previousCustomerId
+      : (previousCustomerId ? '' : (debtors[0]?.customerId ?? ''));
+    customerSelect.value = selected;
+
+    const methodSelect = $('#debt-payment-method');
+    const selectedMethod = methodSelect.value;
+    methodSelect.replaceChildren(
+      makeOption('', t('status.select_option')),
+      ...paymentMethods.map((method) => makeOption(method.id, method.name)),
+    );
+    if (paymentMethods.some((method) => method.id === selectedMethod)) methodSelect.value = selectedMethod;
+    if (selected) {
+      await selectDebtCustomer(selected);
+    } else {
+      state.debtCustomerId = '';
+      state.debtDetails = null;
+      renderDebtSales();
+    }
+    return true;
+  } catch (error) {
+    message(error.message);
+    return false;
+  }
+}
+
+function cashOperationPermission(type) {
+  const permission = {
+    cash_in: 'cash_in',
+    cash_out: 'cash_out',
+    expense: 'expense',
+    collection: 'cash_collection',
+  }[type];
+  return Boolean(permission && state.user?.permissions[permission] === 1);
+}
+
+function updateCashOperationTypes() {
+  const select = $('#cash-operation-type');
+  if (!select || !state.user) return;
+  const options = [...select.options];
+  for (const option of options) {
+    option.hidden = !cashOperationPermission(option.value);
+    option.disabled = option.hidden;
+  }
+  const permitted = options.find((option) => !option.disabled);
+  if (select.selectedOptions[0]?.disabled) select.value = permitted?.value ?? '';
+  const isExpense = select.value === 'expense';
+  $('#cash-category-field').hidden = !isExpense;
+  $('#cash-operation-category').required = isExpense;
+}
+
+function cashEntryType(entry) {
+  if (entry.operationType) return t(`cash.type.${entry.operationType}`);
+  return t(`cash.entry.${entry.docType}`);
+}
+
+function renderCashSummary() {
+  const summary = state.cashSummary;
+  if (!summary) return;
+  $('#cash-balance').textContent = formatMoney(summary.balance);
+  $('#cash-period-balance').textContent = formatMoney(summary.periodBalance);
+
+  buildHead('#cash-noncash-head', 'cash.noncash_columns');
+  const nonCashBody = $('#cash-noncash-body');
+  nonCashBody.replaceChildren();
+  for (const method of summary.nonCashPayments) {
+    const row = document.createElement('tr');
+    row.append(
+      cell(method.methodName),
+      cell(formatMoney(method.received)),
+      cell(formatMoney(method.paid)),
+      cell(formatMoney(method.net)),
+    );
+    nonCashBody.append(row);
+  }
+  if (summary.nonCashPayments.length === 0) {
+    const row = document.createElement('tr');
+    const empty = cell(t('status.no_data'));
+    empty.colSpan = 4;
+    row.append(empty);
+    nonCashBody.append(row);
+  }
+
+  buildHead('#cash-entries-head', 'cash.columns');
+  const entriesBody = $('#cash-entries-body');
+  entriesBody.replaceChildren();
+  for (const entry of summary.entries) {
+    const row = document.createElement('tr');
+    row.append(
+      cell(formatDateTime(entry.createdAt)),
+      cell(entry.documentNumber),
+      cell(cashEntryType(entry)),
+      cell(formatMoney(entry.amount)),
+      cell(entry.userName),
+      cell(entry.category),
+      cell(entry.reason),
+      cell(entry.reference),
+    );
+    const action = document.createElement('td');
+    if (entry.operationId && !entry.reversesId && !entry.reversed &&
+        cashOperationPermission(entry.operationType === 'cash_in' ? 'cash_out' : 'cash_in')) {
+      const reverse = document.createElement('button');
+      reverse.type = 'button';
+      reverse.textContent = t('cash.reverse');
+      reverse.addEventListener('click', () => { void reverseCashEntry(entry); });
+      action.append(reverse);
+    }
+    row.append(action);
+    entriesBody.append(row);
+  }
+  if (summary.entries.length === 0) {
+    const row = document.createElement('tr');
+    const empty = cell(t('cash.no_rows'));
+    empty.colSpan = 9;
+    row.append(empty);
+    entriesBody.append(row);
+  }
+  $('#cash-previous').disabled = cashOffset === 0;
+  $('#cash-next').disabled = !summary.hasMore;
+}
+
+async function loadCashPage() {
+  try {
+    const from = $('#cash-from');
+    const to = $('#cash-to');
+    if (!from.value && !to.value) {
+      from.value = dateForInput();
+      to.value = from.value;
+    }
+    const params = new URLSearchParams({ limit: '200', offset: String(cashOffset) });
+    if (from.value) params.set('from', from.value);
+    if (to.value) params.set('to', to.value);
+    state.cashSummary = await api(`/api/cash?${params}`);
+    renderCashSummary();
+    return true;
+  } catch (error) {
+    message(error.message);
+    return false;
+  }
+}
+
+async function submitDebtPayment(event) {
+  event.preventDefault();
+  if (!state.debtCustomerId) {
+    message('validation.invalid_customer');
+    return;
+  }
+  const button = $('#debt-payment-form button[type="submit"]');
+  button.disabled = true;
+  try {
+    const payload = {
+      customerId: state.debtCustomerId,
+      methodId: $('#debt-payment-method').value,
+      amount: moneyTextToTiyin($('#debt-payment-amount').value),
+    };
+    const fingerprint = JSON.stringify(payload);
+    if (!debtPaymentAttempt || debtPaymentAttempt.fingerprint !== fingerprint) {
+      debtPaymentAttempt = { fingerprint, id: createRequestId() };
+    }
+    await api('/api/debts/payments', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...payload,
+        idempotencyKey: debtPaymentAttempt.id,
+      }),
+    });
+    debtPaymentAttempt = null;
+    $('#debt-payment-amount').value = '';
+    if (!(await loadDebts())) return;
+    message('debts.payment_success');
+    if (['cash_in', 'cash_out', 'expense', 'cash_collection', 'reports']
+      .some((permission) => state.user?.permissions[permission] === 1)) {
+      cashOffset = 0;
+      if (!(await loadCashPage())) return;
+    }
+  } catch (error) {
+    message(error.message);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function submitDebtForgiveness(event) {
+  event.preventDefault();
+  if (!state.debtCustomerId) {
+    message('validation.invalid_customer');
+    return;
+  }
+  if (!window.confirm(t('debts.forgive_confirm'))) return;
+  const button = $('#debt-forgiveness-form button[type="submit"]');
+  button.disabled = true;
+  try {
+    const items = [...document.querySelectorAll('#debts-sales-body [data-forgive-sale]')]
+      .filter((input) => input.value.trim() !== '')
+      .map((input) => ({
+        saleId: input.dataset.forgiveSale,
+        amount: moneyTextToTiyin(input.value),
+      }));
+    if (items.length === 0) throw new Error('debt.invalid_forgiveness');
+    await api('/api/debts/forgiveness', {
+      method: 'POST',
+      body: JSON.stringify({
+        customerId: state.debtCustomerId,
+        reason: $('#debt-forgiveness-reason').value,
+        items,
+      }),
+    });
+    $('#debt-forgiveness-reason').value = '';
+    if (!(await loadDebts())) return;
+    message('debts.forgive_success');
+  } catch (error) {
+    message(error.message);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function submitCashOperation(event) {
+  event.preventDefault();
+  const button = $('#cash-operation-form button[type="submit"]');
+  button.disabled = true;
+  try {
+    const type = $('#cash-operation-type').value;
+    const payload = {
+      type,
+      amount: moneyTextToTiyin($('#cash-operation-amount').value),
+      reason: $('#cash-operation-reason').value.trim(),
+      category: type === 'expense' ? $('#cash-operation-category').value.trim() : null,
+      reference: $('#cash-operation-reference').value.trim(),
+    };
+    const fingerprint = JSON.stringify(payload);
+    if (!cashOperationAttempt || cashOperationAttempt.fingerprint !== fingerprint) {
+      cashOperationAttempt = { fingerprint, id: createRequestId() };
+    }
+    await api('/api/cash/operations', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...payload,
+        idempotencyKey: cashOperationAttempt.id,
+      }),
+    });
+    cashOperationAttempt = null;
+    $('#cash-operation-amount').value = '';
+    $('#cash-operation-category').value = '';
+    $('#cash-operation-reason').value = '';
+    $('#cash-operation-reference').value = '';
+    cashOffset = 0;
+    if (!(await loadCashPage())) return;
+    message('cash.operation_created');
+  } catch (error) {
+    message(error.message);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function reverseCashEntry(entry) {
+  if (!window.confirm(t('cash.reverse_confirm'))) return;
+  const reason = window.prompt(t('cash.reverse_reason'));
+  if (reason === null) return;
+  try {
+    const normalizedReason = reason.trim();
+    const previousAttempt = cashReversalAttemptIds.get(entry.operationId);
+    if (!previousAttempt || previousAttempt.reason !== normalizedReason) {
+      cashReversalAttemptIds.set(entry.operationId, {
+        reason: normalizedReason,
+        id: createRequestId(),
+      });
+    }
+    const attempt = cashReversalAttemptIds.get(entry.operationId);
+    await api(`/api/cash/operations/${encodeURIComponent(entry.operationId)}/reverse`, {
+      method: 'POST',
+      body: JSON.stringify({
+        reason: normalizedReason,
+        idempotencyKey: attempt.id,
+      }),
+    });
+    cashReversalAttemptIds.delete(entry.operationId);
+    cashOffset = 0;
+    if (!(await loadCashPage())) return;
+    message('cash.operation_reversed');
   } catch (error) {
     message(error.message);
   }
@@ -783,6 +1340,13 @@ function moneyTextToTiyin(value) {
   const amount = BigInt(match[1]) * 100n + BigInt((match[2] ?? '').padEnd(2, '0') || '0');
   if (amount > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('validation.invalid_payment_amount');
   return Number(amount);
+}
+
+function createRequestId() {
+  if (!window.crypto?.getRandomValues) throw new Error('validation.idempotency_unavailable');
+  const bytes = new Uint8Array(16);
+  window.crypto.getRandomValues(bytes);
+  return [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 function percentTextToBasisPoints(value) {
@@ -1167,7 +1731,7 @@ async function submitSale(event) {
     if (!state.salesContext?.warehouse) throw new Error('settings.default_warehouse_required');
     const options = salesOptions();
     const payments = collectSalePayments();
-    if (!saleAttemptId) saleAttemptId = window.crypto.randomUUID();
+    if (!saleAttemptId) saleAttemptId = createRequestId();
     const result = await api('/api/sales', {
       method: 'POST',
       body: JSON.stringify({ ...options, payments, idempotencyKey: saleAttemptId }),
@@ -1549,6 +2113,39 @@ $('#sales-customer').addEventListener('change', scheduleSalesQuote);
 $('#sales-check-discount-kind').addEventListener('change', scheduleSalesQuote);
 $('#sales-check-discount-value').addEventListener('input', scheduleSalesQuote);
 $('#sales-checkout').addEventListener('submit', (event) => { void submitSale(event); });
+$('#debt-customer-select').addEventListener('change', (event) => {
+  const customerId = event.currentTarget.value;
+  state.debtCustomerId = customerId;
+  if (customerId) void selectDebtCustomer(customerId);
+  else {
+    state.debtDetails = null;
+    renderDebtSales();
+  }
+});
+$('#debt-payment-form').addEventListener('submit', (event) => { void submitDebtPayment(event); });
+$('#debt-forgiveness-form').addEventListener('submit', (event) => { void submitDebtForgiveness(event); });
+$('#cash-operation-type').addEventListener('change', updateCashOperationTypes);
+$('#cash-operation-form').addEventListener('submit', (event) => { void submitCashOperation(event); });
+$('#cash-refresh').addEventListener('click', () => {
+  cashOffset = 0;
+  void loadCashPage();
+});
+$('#cash-from').addEventListener('change', () => {
+  cashOffset = 0;
+  void loadCashPage();
+});
+$('#cash-to').addEventListener('change', () => {
+  cashOffset = 0;
+  void loadCashPage();
+});
+$('#cash-previous').addEventListener('click', () => {
+  cashOffset = Math.max(0, cashOffset - 200);
+  void loadCashPage();
+});
+$('#cash-next').addEventListener('click', () => {
+  cashOffset += 200;
+  void loadCashPage();
+});
 
 $('#stock-warehouse-filter').addEventListener('change', () => { void loadStock(); });
 $('#movement-product-filter').addEventListener('change', () => { movementOffset = 0; void loadMovementHistory(); });

@@ -39,6 +39,8 @@
           <button type="button" data-page="stock" data-i18n="nav.stock"></button>
           <button type="button" data-page="purchases" data-i18n="nav.purchases"></button>
           <button type="button" data-page="movements" data-i18n="nav.movements"></button>
+          <button type="button" data-page="debts" data-i18n="nav.debts" hidden></button>
+          <button type="button" data-page="cash" data-i18n="nav.cash" hidden></button>
           <button type="button" data-page="users" data-i18n="nav.users"></button>
           <button type="button" data-page="connection" data-i18n="nav.connection" hidden></button>
         </nav>
@@ -85,6 +87,90 @@
             <h3 data-i18n="sales.receipt"></h3>
             <p id="sales-receipt-summary"></p>
           </section>
+        </section>
+        <section id="debts-page" class="page" hidden>
+          <h2 data-i18n="debts.title"></h2>
+          <div class="table-wrap">
+            <table><thead id="debtors-head"></thead><tbody id="debtors-body"></tbody></table>
+          </div>
+          <label>
+            <span data-i18n="debts.customer"></span>
+            <select id="debt-customer-select"></select>
+          </label>
+          <p id="debt-customer-balance" role="status"></p>
+          <div class="table-wrap">
+            <table><thead id="debts-sales-head"></thead><tbody id="debts-sales-body"></tbody></table>
+          </div>
+          <form id="debt-payment-form" class="form-grid" hidden>
+            <label>
+              <span data-i18n="debts.payment_method"></span>
+              <select id="debt-payment-method" required></select>
+            </label>
+            <label>
+              <span data-i18n="debts.payment_amount"></span>
+              <input id="debt-payment-amount" type="text" inputmode="decimal" required>
+            </label>
+            <button type="submit" data-i18n="debts.collect"></button>
+          </form>
+          <form id="debt-forgiveness-form" hidden>
+            <h3 data-i18n="debts.forgive"></h3>
+            <label>
+              <span data-i18n="debts.reason"></span>
+              <input id="debt-forgiveness-reason" maxlength="1000" required>
+            </label>
+            <p data-i18n="debts.forgive_hint"></p>
+            <button type="submit" data-i18n="debts.forgive_submit"></button>
+          </form>
+        </section>
+        <section id="cash-page" class="page" hidden>
+          <h2 data-i18n="cash.title"></h2>
+          <p><span data-i18n="cash.balance"></span>: <strong id="cash-balance"></strong></p>
+          <form id="cash-operation-form" class="form-grid" hidden>
+            <label>
+              <span data-i18n="cash.operation_type"></span>
+              <select id="cash-operation-type" required>
+                <option value="cash_in" data-i18n="cash.type.cash_in"></option>
+                <option value="cash_out" data-i18n="cash.type.cash_out"></option>
+                <option value="expense" data-i18n="cash.type.expense"></option>
+                <option value="collection" data-i18n="cash.type.collection"></option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="cash.amount"></span>
+              <input id="cash-operation-amount" type="text" inputmode="decimal" required>
+            </label>
+            <label id="cash-category-field">
+              <span data-i18n="cash.category"></span>
+              <input id="cash-operation-category" maxlength="120">
+            </label>
+            <label>
+              <span data-i18n="cash.reason"></span>
+              <input id="cash-operation-reason" maxlength="500" required>
+            </label>
+            <label>
+              <span data-i18n="cash.reference"></span>
+              <input id="cash-operation-reference" maxlength="200">
+            </label>
+            <button type="submit" data-i18n="cash.create"></button>
+          </form>
+          <div class="filter-grid">
+            <label><span data-i18n="cash.from"></span><input id="cash-from" type="date"></label>
+            <label><span data-i18n="cash.to"></span><input id="cash-to" type="date"></label>
+            <button id="cash-refresh" type="button" data-i18n="cash.refresh"></button>
+          </div>
+          <p><span data-i18n="cash.period_balance"></span>: <strong id="cash-period-balance"></strong></p>
+          <h3 data-i18n="cash.noncash"></h3>
+          <div class="table-wrap">
+            <table><thead id="cash-noncash-head"></thead><tbody id="cash-noncash-body"></tbody></table>
+          </div>
+          <h3 data-i18n="cash.history"></h3>
+          <div class="table-wrap">
+            <table><thead id="cash-entries-head"></thead><tbody id="cash-entries-body"></tbody></table>
+          </div>
+          <div class="pagination-controls">
+            <button id="cash-previous" type="button" data-i18n="movements.previous"></button>
+            <button id="cash-next" type="button" data-i18n="movements.next"></button>
+          </div>
         </section>
         <section id="products-page" class="page">
           <h2 data-i18n="products.title"></h2>

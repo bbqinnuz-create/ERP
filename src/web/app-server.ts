@@ -10,6 +10,14 @@ import { hasPermission, type Permission } from '../modules/auth/permissions';
 import { createPurchase, getPurchase, listPurchases, reversePurchase } from '../modules/purchases/service';
 import { addCartLine, getActiveCart, removeCartLine, setCartLineQty } from '../modules/carts/service';
 import { createSale, getSalesContext, quoteSale } from '../modules/sales/service';
+import {
+  collectDebtPayment,
+  forgiveDebt,
+  getCustomerDebt,
+  listDebtors,
+  listDebtPaymentMethods,
+} from '../modules/debts/service';
+import { createCashOperation, getCashSummary, reverseCashOperation } from '../modules/cash/service';
 import { reconcileStockCaches } from '../modules/stock/ledger';
 import { listLanConnectionAddresses } from './connection-info';
 import {
@@ -112,6 +120,12 @@ function isReferenceType(value: string): value is ReferenceType {
 
 function requireAdditionalPermission(db: Db, userId: string, permission: Permission): void {
   if (!hasPermission(db, userId, permission)) throw new AuthError(403, 'auth.permission_denied');
+}
+
+function requireAnyPermission(db: Db, userId: string, permissions: Permission[]): void {
+  if (!permissions.some((permission) => hasPermission(db, userId, permission))) {
+    throw new AuthError(403, 'auth.permission_denied');
+  }
 }
 
 function respondError(res: ServerResponse, error: unknown): void {
@@ -301,6 +315,77 @@ async function handleApi(
     const result = withAuthorizedUser(db, token, 'sell',
       (session) => createSale(db, session.user.id, session.user.lang, body), now());
     sendJson(res, result.replayed ? 200 : 201, { ...result.receipt, replayed: result.replayed });
+    return;
+  }
+
+  if (path === '/api/debts' && method === 'GET') {
+    const result = withAuthorizedUser(db, token, null, (session) => {
+      requireAnyPermission(db, session.user.id, ['debt_payment', 'reports']);
+      return {
+        debtors: listDebtors(db),
+        paymentMethods: listDebtPaymentMethods(db, session.user.lang),
+      };
+    }, now());
+    sendJson(res, 200, result);
+    return;
+  }
+  const debtCustomerRoute = /^\/api\/debts\/([^/]+)$/.exec(path);
+  if (debtCustomerRoute && method === 'GET') {
+    const customerId = decodeURIComponent(debtCustomerRoute[1]!);
+    const debt = withAuthorizedUser(db, token, null, (session) => {
+      requireAnyPermission(db, session.user.id, ['debt_payment', 'reports']);
+      return getCustomerDebt(db, customerId);
+    }, now());
+    sendJson(res, 200, debt);
+    return;
+  }
+  if (path === '/api/debts/payments' && method === 'POST') {
+    const body = await readJson(req);
+    const result = withAuthorizedUser(db, token, 'debt_payment',
+      (session) => collectDebtPayment(db, session.user.id, body, session.user.lang), now());
+    sendJson(res, result.replayed ? 200 : 201, result);
+    return;
+  }
+  if (path === '/api/debts/forgiveness' && method === 'POST') {
+    const body = await readJson(req);
+    const result = withAuthorizedUser(db, token, null,
+      (session) => forgiveDebt(db, session.user.id, body), now());
+    sendJson(res, 201, result);
+    return;
+  }
+  if (path === '/api/cash' && method === 'GET') {
+    const summary = withAuthorizedUser(db, token, null, (session) => {
+      requireAnyPermission(db, session.user.id, [
+        'cash_in',
+        'cash_out',
+        'expense',
+        'cash_collection',
+        'reports',
+      ]);
+      return getCashSummary(db, {
+        from: url.searchParams.get('from') ?? undefined,
+        to: url.searchParams.get('to') ?? undefined,
+        limit: url.searchParams.get('limit') ?? undefined,
+        offset: url.searchParams.get('offset') ?? undefined,
+      }, session.user.lang);
+    }, now());
+    sendJson(res, 200, summary);
+    return;
+  }
+  if (path === '/api/cash/operations' && method === 'POST') {
+    const body = await readJson(req);
+    const result = withAuthorizedUser(db, token, null,
+      (session) => createCashOperation(db, session.user.id, body), now());
+    sendJson(res, result.replayed ? 200 : 201, result);
+    return;
+  }
+  const cashReversalRoute = /^\/api\/cash\/operations\/([^/]+)\/reverse$/.exec(path);
+  if (cashReversalRoute && method === 'POST') {
+    const operationId = decodeURIComponent(cashReversalRoute[1]!);
+    const body = await readJson(req);
+    const result = withAuthorizedUser(db, token, null,
+      (session) => reverseCashOperation(db, session.user.id, operationId, body), now());
+    sendJson(res, result.replayed ? 200 : 201, result);
     return;
   }
 

@@ -1,11 +1,13 @@
 import type { AddressInfo } from 'node:net';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { bootstrapAdmin, createUser, login, setUserPermissions } from '../src/modules/auth/service';
+import { addCartLine } from '../src/modules/carts/service';
 import { createPurchase } from '../src/modules/purchases/service';
 import { saveReference } from '../src/modules/references/service';
+import { createSale } from '../src/modules/sales/service';
 import { createWebServer } from '../src/web/app-server';
 import type { Server } from 'node:http';
-import { addProduct, makeEnv, type TestEnv } from './helpers';
+import { addCustomer, addProduct, makeEnv, type TestEnv } from './helpers';
 
 let env: TestEnv;
 let server: Server;
@@ -341,5 +343,141 @@ describe('HTTP API этапа 2', () => {
     expect(replay.status).toBe(200);
     expect(await replay.json()).toMatchObject({ sale: { id: sale.sale.id }, replayed: true });
     expect((env.db.prepare('SELECT COUNT(*) AS count FROM sales').get() as { count: number }).count).toBe(1);
+  });
+
+  it('проверяет права и проводит оплату долга, прощение и кассовые операции через API', async () => {
+    const adminCookie = await loginCookie();
+    const productId = addProduct(env.db, 'API-DEBT', 'шт', 20_000);
+    const customerId = addCustomer(env.db, 'API debt customer');
+    createPurchase(env.db, adminId, {
+      warehouseId: env.warehouseId,
+      date: '2026-11-13',
+      lines: [{ productId, qty: '2', unitCost: 1_000_000 }],
+    });
+    addCartLine(env.db, adminId, { productId, qty: '1' });
+    const sale = createSale(env.db, adminId, 'ru', {
+      customerId,
+      idempotencyKey: 'api-debt-sale',
+      payments: [],
+    }).receipt.sale;
+
+    expect((await fetch(`${baseUrl}/api/debts`)).status).toBe(401);
+    expect((await fetch(`${baseUrl}/api/cash`)).status).toBe(401);
+    const cashier = await createUser(env.db, adminId, {
+      login: 'debt-cashier',
+      password: 'cashier secure password',
+      fullName: 'Debt Cashier',
+      role: 'cashier',
+      lang: 'ru',
+    });
+    const cashierCookie = await loginCookie('debt-cashier', 'cashier secure password');
+    expect((await fetch(`${baseUrl}/api/debts`, { headers: { Cookie: cashierCookie } })).status).toBe(403);
+    setUserPermissions(env.db, adminId, cashier.id, { debt_payment: 1, cash_in: 1, cash_out: 1 });
+
+    const debtorsResponse = await fetch(`${baseUrl}/api/debts`, { headers: { Cookie: cashierCookie } });
+    expect(debtorsResponse.status).toBe(200);
+    expect(await debtorsResponse.json()).toMatchObject({
+      debtors: [{ customerId, balance: sale.total, openSaleCount: 1 }],
+    });
+    const detailResponse = await fetch(`${baseUrl}/api/debts/${encodeURIComponent(customerId)}`, {
+      headers: { Cookie: cashierCookie },
+    });
+    expect(detailResponse.status).toBe(200);
+    expect(await detailResponse.json()).toMatchObject({
+      customer: { id: customerId },
+      sales: [{ id: sale.id, balance: sale.total }],
+    });
+
+    const cashMethodId = (env.db.prepare("SELECT id FROM payment_methods WHERE kind = 'cash'").get() as { id: string }).id;
+    const debtPaymentInput = {
+      customerId,
+      methodId: cashMethodId,
+      amount: 1_000_000,
+      idempotencyKey: 'api-debt-payment',
+    };
+    const debtPayment = await fetch(`${baseUrl}/api/debts/payments`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify(debtPaymentInput),
+    });
+    expect(debtPayment.status).toBe(201);
+    const paymentResult = await debtPayment.json() as { payment: { id: string }; replayed: boolean };
+    expect(paymentResult.replayed).toBe(false);
+    const debtPaymentReplay = await fetch(`${baseUrl}/api/debts/payments`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify(debtPaymentInput),
+    });
+    expect(debtPaymentReplay.status).toBe(200);
+    expect(await debtPaymentReplay.json()).toMatchObject({
+      payment: { id: paymentResult.payment.id },
+      replayed: true,
+    });
+
+    const cashBeforeOperation = await fetch(`${baseUrl}/api/cash`, { headers: { Cookie: cashierCookie } });
+    expect(cashBeforeOperation.status).toBe(200);
+    expect((await cashBeforeOperation.json() as { balance: number }).balance).toBe(1_000_000);
+    const cashOperationInput = {
+      type: 'cash_in',
+      amount: 500_000,
+      reason: 'Opening funds',
+      idempotencyKey: 'api-cash-in',
+    };
+    const cashOperation = await fetch(`${baseUrl}/api/cash/operations`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify(cashOperationInput),
+    });
+    expect(cashOperation.status).toBe(201);
+    const operationResult = await cashOperation.json() as { operation: { id: string } };
+    const reversal = await fetch(`${baseUrl}/api/cash/operations/${encodeURIComponent(operationResult.operation.id)}/reverse`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: 'Input error', idempotencyKey: 'api-cash-in-reversal' }),
+    });
+    expect(reversal.status).toBe(201);
+    expect(await reversal.json()).toMatchObject({
+      operation: { type: 'cash_out', reversesId: operationResult.operation.id },
+      replayed: false,
+    });
+    const cashAfterReversal = await fetch(`${baseUrl}/api/cash`, { headers: { Cookie: cashierCookie } });
+    expect((await cashAfterReversal.json() as { balance: number }).balance).toBe(1_000_000);
+
+    const deniedExpense = await fetch(`${baseUrl}/api/cash/operations`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'expense',
+        amount: 100_000,
+        reason: 'Denied expense',
+        category: 'Office',
+        idempotencyKey: 'api-denied-expense',
+      }),
+    });
+    expect(deniedExpense.status).toBe(403);
+    const deniedForgiveness = await fetch(`${baseUrl}/api/debts/forgiveness`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerId,
+        reason: 'Not an administrator',
+        items: [{ saleId: sale.id, amount: 250_000 }],
+      }),
+    });
+    expect(deniedForgiveness.status).toBe(403);
+
+    const forgiveness = await fetch(`${baseUrl}/api/debts/forgiveness`, {
+      method: 'POST',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerId,
+        reason: 'Owner approved',
+        items: [{ saleId: sale.id, amount: 250_000 }],
+      }),
+    });
+    expect(forgiveness.status).toBe(201);
+    expect(await forgiveness.json()).toMatchObject({
+      forgiven: [{ saleId: sale.id, amount: 250_000, balanceAfter: 750_000 }],
+    });
   });
 });
