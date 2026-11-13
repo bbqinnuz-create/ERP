@@ -65,6 +65,49 @@ describe('приходы и кэши остатков', () => {
     expect((env.db.prepare('SELECT COUNT(*) AS n FROM counters').get() as { n: number }).n).toBe(0);
   });
 
+  it('updates sale price with the purchase in one transaction and records before/after audit', () => {
+    const expectedBasePrice = (env.db.prepare('SELECT base_price FROM products WHERE id = ?')
+      .get(productA) as { base_price: number }).base_price;
+    const { purchase } = create({
+      productPriceUpdates: [{
+        productId: productA,
+        expectedBasePrice,
+        basePrice: expectedBasePrice + 125,
+      }],
+    });
+
+    expect(env.db.prepare('SELECT base_price FROM products WHERE id = ?').get(productA))
+      .toEqual({ base_price: expectedBasePrice + 125 });
+    const audit = env.db.prepare(
+      "SELECT before_json, after_json FROM audit_log WHERE action = 'products.update' AND entity_id = ?",
+    ).get(productA) as { before_json: string; after_json: string };
+    expect(JSON.parse(audit.before_json)).toEqual({ base_price: expectedBasePrice });
+    expect(JSON.parse(audit.after_json)).toEqual({ base_price: expectedBasePrice + 125 });
+    expect(env.db.prepare('SELECT COUNT(*) AS n FROM purchases WHERE id = ?').get(purchase.id))
+      .toEqual({ n: 1 });
+  });
+
+  it('rolls back the purchase if a requested sale-price update fails', () => {
+    const expectedBasePrice = (env.db.prepare('SELECT base_price FROM products WHERE id = ?')
+      .get(productA) as { base_price: number }).base_price;
+    env.db.exec(
+      `CREATE TRIGGER test_fail_product_price_update BEFORE UPDATE OF base_price ON products
+       BEGIN SELECT RAISE(ABORT, 'test price update failure'); END`,
+    );
+
+    expect(() => create({
+      productPriceUpdates: [{
+        productId: productA,
+        expectedBasePrice,
+        basePrice: expectedBasePrice + 125,
+      }],
+    })).toThrow(/test price update failure/);
+    expect(env.db.prepare('SELECT base_price FROM products WHERE id = ?').get(productA))
+      .toEqual({ base_price: expectedBasePrice });
+    expect(env.db.prepare('SELECT COUNT(*) AS n FROM purchases').get()).toEqual({ n: 0 });
+    expect(env.db.prepare('SELECT COUNT(*) AS n FROM stock_movements').get()).toEqual({ n: 0 });
+  });
+
   it('отклоняет одинаковый товар в нескольких строках и заблокированный товар', () => {
     expect(() => create({
       lines: [

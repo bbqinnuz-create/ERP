@@ -468,6 +468,47 @@ const translations = {
     'purchases.no_product': 'Нет активного товара',
     'purchases.no_rows': 'Приходов пока нет',
     'purchases.no_permission': 'Нет права оформлять приход.',
+    'purchase_import.title': 'Загрузить строки из CSV',
+    'purchase_import.description': 'Загрузите заполненный шаблон CSV. Столбцы: «Артикул», «Количество», «Закупочная цена, сум». Допускаются и прежние заголовки sku, qty, unit_cost_sum.',
+    'purchase_import.template': 'Скачать шаблон XLSX',
+    'purchase_import.category': 'Категория товаров в шаблоне',
+    'purchase_import.products_template': 'Скачать шаблон со всеми товарами',
+    'purchase_import.all_categories': 'Все категории',
+    'purchase_import.update_sale_price': 'Обновить цены продажи из файла при проведении прихода',
+    'purchase_import.csv_file': 'Файл CSV UTF-8',
+    'purchase_import.preview': 'Проверить файл',
+    'purchase_import.apply': 'Добавить строки в приход',
+    'purchase_import.columns': 'Строка,Артикул,Товар,Количество,Закупочная цена,Цена продажи: было → станет,Статус / ошибки',
+    'purchase_import.ready': 'Готово',
+    'purchase_import.error': 'Ошибка',
+    'purchase_import.summary': 'Готово строк: {ready}; с ошибками: {error}.',
+    'purchase_import.applied': 'Строки добавлены в форму прихода. Проверьте документ перед проведением.',
+    'purchase_import.invalid_file': 'Загрузите файл CSV.',
+    'purchase_import.file_too_large': 'Размер файла не должен превышать 2 МБ.',
+    'purchase_import.too_many_rows': 'В файле должно быть не больше 200 строк.',
+    'purchase_import.empty_file': 'В файле нет строк с данными.',
+    'purchase_import.invalid_csv': 'Проверьте формат CSV и кавычки в ячейках.',
+    'purchase_import.invalid_headers': 'CSV должен содержать обязательные столбцы «Артикул», «Количество» и «Закупочная цена, сум».',
+    'purchase_import.sale_price_column_required': 'Для обновления цен в файле нужен столбец «Цена продажи, сум».',
+    'purchase_import.required_sale_price': 'Укажите цену продажи.',
+    'purchase_import.invalid_sale_price': 'Цена продажи должна быть неотрицательной и указана в сумах, не более двух знаков после запятой.',
+    'purchase_import.invalid_category': 'Выберите существующую активную категорию.',
+    'purchase_import.price_update_confirm': 'Вместе с приходом будут обновлены цены продажи {count} товаров. Продолжить?',
+    'purchase_import.price_changed_since_preview': 'Цена одного из товаров изменилась после предпросмотра. Повторите проверку файла.',
+    'purchase_import.invalid_request': 'Проверьте параметры импорта.',
+    'purchase_import.extra_columns': 'Лишние столбцы.',
+    'purchase_import.required_sku': 'Укажите артикул.',
+    'purchase_import.invalid_sku': 'Артикул не должен быть длиннее 200 символов.',
+    'purchase_import.duplicate_sku': 'Артикул повторяется в файле.',
+    'purchase_import.product_not_found': 'Активный товар с таким артикулом не найден.',
+    'purchase_import.product_inactive': 'Товар с таким артикулом неактивен.',
+    'purchase_import.required_qty': 'Укажите количество.',
+    'purchase_import.invalid_qty': 'Количество должно быть положительным и иметь не более 3 знаков после запятой.',
+    'purchase_import.required_unit_cost': 'Укажите закупочную цену.',
+    'purchase_import.invalid_unit_cost': 'Цена должна быть неотрицательной и указана в сумах, не более двух знаков после запятой.',
+    'purchase_import.duplicate_form_product': 'Этот товар уже есть в строках текущего прихода.',
+    'purchase_import.too_many_form_lines': 'В приходе нельзя больше 200 строк.',
+    'purchase_import.fix_errors_before_submit': 'Исправьте ошибки предпросмотра или загрузите другой файл перед проведением прихода.',
     'movements.title': 'История движений товара',
     'movements.product': 'Товар',
     'movements.warehouse': 'Склад',
@@ -486,6 +527,9 @@ const translations = {
     'movement.REVERSAL': 'Сторно',
     'purchase.duplicate_product': 'Один товар можно добавить в приход только одной строкой. Разделите позиции на разные документы.',
     'purchase.not_found': 'Документ прихода не найден.',
+    'purchase.invalid_product_price_updates': 'Проверьте список цен продажи для обновления.',
+    'purchase.invalid_product_price_update': 'Проверьте данные изменения цены продажи.',
+    'purchase.product_price_changed': 'Цена товара изменилась после предпросмотра; повторите импорт.',
     'purchase.already_reversed': 'Приход уже сторнирован.',
     'purchase.reversal_stock_not_restored': 'Нельзя сторнировать: остаток каждой партии должен быть полностью восстановлен.',
     'stock.locked_by_stocktake': 'Нельзя двигать товар: он заблокирован активной инвентаризацией.',
@@ -1100,6 +1144,47 @@ const translations = {
     'purchases.no_product': 'Faol tovar yo‘q',
     'purchases.no_rows': 'Hozircha kirimlar yo‘q',
     'purchases.no_permission': 'Kirim qilish huquqi yo‘q.',
+    'purchase_import.title': 'CSV faylidan qatorlarni yuklash',
+    'purchase_import.description': 'To‘ldirilgan CSV shablonini yuklang. Ustunlar: «Artikul», «Miqdor», «Xarid narxi, so‘m». Eski sku, qty, unit_cost_sum sarlavhalari ham qabul qilinadi.',
+    'purchase_import.template': 'XLSX shablonini yuklab olish',
+    'purchase_import.category': 'Shablondagi tovarlar toifasi',
+    'purchase_import.products_template': 'Barcha tovarlar bilan shablonni yuklab olish',
+    'purchase_import.all_categories': 'Barcha toifalar',
+    'purchase_import.update_sale_price': 'Kirimni rasmiylashtirishda fayldagi sotuv narxlarini yangilash',
+    'purchase_import.csv_file': 'CSV UTF-8 fayli',
+    'purchase_import.preview': 'Faylni tekshirish',
+    'purchase_import.apply': 'Kirimga qatorlarni qo‘shish',
+    'purchase_import.columns': 'Qator,Artikul,Tovar,Miqdor,Xarid narxi,Sotuv narxi: avval → yangi,Holat / xatolar',
+    'purchase_import.ready': 'Tayyor',
+    'purchase_import.error': 'Xato',
+    'purchase_import.summary': 'Tayyor qatorlar: {ready}; xatoli qatorlar: {error}.',
+    'purchase_import.applied': 'Qatorlar kirim shakliga qo‘shildi. Rasmiylashtirishdan oldin hujjatni tekshiring.',
+    'purchase_import.invalid_file': 'CSV faylini yuklang.',
+    'purchase_import.file_too_large': 'Fayl hajmi 2 MB dan oshmasligi kerak.',
+    'purchase_import.too_many_rows': 'Faylda 200 tadan ko‘p qator bo‘lmasligi kerak.',
+    'purchase_import.empty_file': 'Faylda ma’lumot qatorlari yo‘q.',
+    'purchase_import.invalid_csv': 'CSV formatini va kataklardagi qo‘shtirnoqlarni tekshiring.',
+    'purchase_import.invalid_headers': 'CSV faylida «Artikul», «Miqdor» va «Xarid narxi, so‘m» majburiy ustunlari bo‘lishi kerak.',
+    'purchase_import.sale_price_column_required': 'Narxlarni yangilash uchun faylda «Цена продажи, сум» ustuni bo‘lishi kerak.',
+    'purchase_import.required_sale_price': 'Sotuv narxini kiriting.',
+    'purchase_import.invalid_sale_price': 'Sotuv narxi manfiy bo‘lmasligi va so‘mda verguldan keyin ikki raqamgacha bo‘lishi kerak.',
+    'purchase_import.invalid_category': 'Mavjud faol toifani tanlang.',
+    'purchase_import.price_update_confirm': 'Kirim bilan birga {count} ta tovarning sotuv narxi yangilanadi. Davom etilsinmi?',
+    'purchase_import.price_changed_since_preview': 'Tovarlardan birining narxi oldindan ko‘rishdan keyin o‘zgargan. Faylni qayta tekshiring.',
+    'purchase_import.invalid_request': 'Import parametrlarini tekshiring.',
+    'purchase_import.extra_columns': 'Ortiqcha ustunlar.',
+    'purchase_import.required_sku': 'Artikulni kiriting.',
+    'purchase_import.invalid_sku': 'Artikul 200 belgidan oshmasligi kerak.',
+    'purchase_import.duplicate_sku': 'Artikul faylda takrorlangan.',
+    'purchase_import.product_not_found': 'Bunday artikulli faol tovar topilmadi.',
+    'purchase_import.product_inactive': 'Bu artikulli tovar faol emas.',
+    'purchase_import.required_qty': 'Miqdorni kiriting.',
+    'purchase_import.invalid_qty': 'Miqdor musbat va verguldan keyin 3 tagacha raqam bo‘lishi kerak.',
+    'purchase_import.required_unit_cost': 'Xarid narxini kiriting.',
+    'purchase_import.invalid_unit_cost': 'Narx manfiy bo‘lmasligi va so‘mda verguldan keyin ikki raqamgacha bo‘lishi kerak.',
+    'purchase_import.duplicate_form_product': 'Bu tovar joriy kirim qatorlarida allaqachon bor.',
+    'purchase_import.too_many_form_lines': 'Kirimda 200 tadan ortiq qator bo‘lishi mumkin emas.',
+    'purchase_import.fix_errors_before_submit': 'Kirimni rasmiylashtirishdan oldin fayldagi xatolarni tuzating yoki boshqa fayl yuklang.',
     'movements.title': 'Tovar harakati tarixi',
     'movements.product': 'Tovar',
     'movements.warehouse': 'Ombor',
@@ -1118,6 +1203,9 @@ const translations = {
     'movement.REVERSAL': 'Bekor qilish',
     'purchase.duplicate_product': 'Bir tovar kirimga faqat bir marta qo‘shiladi. Turli narxdagi qatorlarni alohida hujjat qiling.',
     'purchase.not_found': 'Kirim hujjati topilmadi.',
+    'purchase.invalid_product_price_updates': 'Sotuv narxlarini yangilash ro‘yxatini tekshiring.',
+    'purchase.invalid_product_price_update': 'Sotuv narxini o‘zgartirish ma’lumotlarini tekshiring.',
+    'purchase.product_price_changed': 'Tovar narxi oldindan ko‘rishdan keyin o‘zgardi; importni qaytadan tekshiring.',
     'purchase.already_reversed': 'Kirim allaqachon bekor qilingan.',
     'purchase.reversal_stock_not_restored': 'Bekor qilib bo‘lmaydi: har bir partiya qoldig‘i to‘liq tiklanishi kerak.',
     'stock.locked_by_stocktake': 'Tovar faol inventarizatsiya tomonidan bloklangan.',
@@ -1299,6 +1387,9 @@ const state = {
   productImportCommitted: false,
   productImportCreateCategories: false,
   productImportLang: 'ru',
+  purchaseImportReport: null,
+  purchaseImportApplied: false,
+  purchaseImportCategories: [],
   activePage: 'products',
 };
 let movementOffset = 0;
@@ -1394,6 +1485,8 @@ function localize() {
   document.querySelectorAll('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
   $('#product-import-template').href =
     `/api/products/import/template?lang=${encodeURIComponent(state.lang)}`;
+  $('#purchase-import-template').href = '/api/purchases/import/template';
+  setPurchaseImportCategoryOptions();
   document.title = state.user
     ? `${document.querySelector(`#${state.activePage}-page h2`)?.textContent ?? t('app.title')} · ${t('app.title')}`
     : t('app.title');
@@ -1517,6 +1610,8 @@ function showApp(user) {
   $('#product-import-panel').hidden = user.permissions.settings !== 1 || user.permissions.price_edit !== 1;
   if (!$('#product-form').hidden) void loadProductUnits();
   $('#purchase-form').hidden = user.permissions.purchase !== 1;
+  $('#purchase-import-panel').hidden = user.permissions.purchase !== 1;
+  $('#purchase-import-update-price-field').hidden = user.permissions.price_edit !== 1;
   $('#held-cart-controls').hidden = user.permissions.hold_cart !== 1;
   $('#sales-hold-cart').hidden = user.permissions.hold_cart !== 1;
   $('#sales-reserve-cart').hidden = user.permissions.reserve_cart !== 1;
@@ -3068,6 +3163,23 @@ function setWarehouseOptions(select, includeAll = false) {
   if (options.some((option) => option.value === selected)) select.value = selected;
 }
 
+function setPurchaseImportCategoryOptions() {
+  const select = $('#purchase-import-category');
+  if (!select) return;
+  const selected = select.value;
+  const options = [makeOption('', t('purchase_import.all_categories'))];
+  for (const category of state.purchaseImportCategories) {
+    options.push(makeOption(category.id, state.lang === 'uz'
+      ? category.name_uz || category.name_ru
+      : category.name_ru));
+  }
+  select.replaceChildren(...options);
+  if (options.some((option) => option.value === selected)) select.value = selected;
+  const url = new URL('/api/purchases/import/products-template', window.location.origin);
+  if (select.value) url.searchParams.set('categoryId', select.value);
+  $('#purchase-import-products-template').href = `${url.pathname}${url.search}`;
+}
+
 function setProductOptions(select, includeAll = false) {
   const selected = select.value;
   const options = [];
@@ -3082,12 +3194,15 @@ function setProductOptions(select, includeAll = false) {
 
 async function loadInventoryOptions() {
   try {
-    const [{ rows: products }, { rows: warehouses }] = await Promise.all([
+    const [{ rows: products }, { rows: warehouses }, { rows: categories }] = await Promise.all([
       api('/api/references/products'),
       api('/api/references/warehouses'),
+      api('/api/references/categories'),
     ]);
     inventoryProducts = products;
     inventoryWarehouses = warehouses;
+    state.purchaseImportCategories = categories;
+    setPurchaseImportCategoryOptions();
     setWarehouseOptions($('#stock-warehouse-filter'), true);
     setWarehouseOptions($('#purchase-warehouse'));
     setWarehouseOptions($('#writeoff-warehouse'));
@@ -3608,6 +3723,112 @@ function addPurchaseLine() {
   $('#purchase-lines').append(row);
 }
 
+function renderPurchaseImportReport(report) {
+  state.purchaseImportReport = report;
+  $('#purchase-import-preview').hidden = false;
+  buildHead('#purchase-import-head', 'purchase_import.columns');
+  const body = $('#purchase-import-body');
+  body.replaceChildren();
+  for (const result of report.rows) {
+    const row = document.createElement('tr');
+    row.append(
+      cell(result.line),
+      cell(result.sku),
+      cell(result.productName ?? ''),
+      cell(result.qty ?? ''),
+      cell(result.unitCost === undefined ? '' : formatMoney(result.unitCost)),
+      cell(result.basePrice === undefined || result.currentBasePrice === undefined
+        ? ''
+        : `${formatMoney(result.currentBasePrice)} → ${formatMoney(result.basePrice)}`),
+      cell([
+        t(`purchase_import.${result.action}`),
+        ...result.errors.map((error) => t(error)),
+      ].join(': ')),
+    );
+    body.append(row);
+  }
+  $('#purchase-import-summary').textContent = t('purchase_import.summary')
+    .replace('{ready}', String(report.counts.ready))
+    .replace('{error}', String(report.counts.error));
+  $('#purchase-import-outcome').textContent = '';
+  $('#purchase-import-apply').disabled = report.counts.ready === 0 || report.counts.error > 0;
+}
+
+function resetPurchaseImportPreview() {
+  state.purchaseImportReport = null;
+  state.purchaseImportApplied = false;
+  $('#purchase-import-preview').hidden = true;
+  $('#purchase-import-summary').textContent = '';
+  $('#purchase-import-outcome').textContent = '';
+  $('#purchase-import-apply').disabled = true;
+}
+
+async function previewPurchaseImport(event) {
+  event.preventDefault();
+  resetPurchaseImportPreview();
+  const button = $('#purchase-import-preview-button');
+  button.disabled = true;
+  try {
+    const file = $('#purchase-import-file').files[0];
+    if (!file) throw new Error('purchase_import.invalid_file');
+    if (file.size > 2 * 1024 * 1024) throw new Error('purchase_import.file_too_large');
+    let csv;
+    try {
+      csv = new TextDecoder('utf-8', { fatal: true }).decode(await file.arrayBuffer());
+    } catch {
+      throw new Error('purchase_import.invalid_csv');
+    }
+    const report = await api('/api/purchases/import/preview', {
+      method: 'POST',
+      body: JSON.stringify({
+        csv,
+        updateSalePrice: $('#purchase-import-update-price').checked,
+      }),
+    });
+    state.purchaseImportApplied = false;
+    renderPurchaseImportReport(report);
+  } catch (error) {
+    message(error.message, 'error');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function applyPurchaseImport() {
+  const report = state.purchaseImportReport;
+  if (!report || state.purchaseImportApplied || report.counts.error > 0 || report.counts.ready === 0) return;
+
+  const existingRows = [...$('#purchase-lines').children];
+  const existingProductIds = new Set(existingRows
+    .map((row) => row.querySelector('[data-purchase-product]').value)
+    .filter(Boolean));
+  if (report.rows.some((row) => existingProductIds.has(row.productId))) {
+    message('purchase_import.duplicate_form_product', 'error');
+    return;
+  }
+  const emptyRows = existingRows.filter((row) =>
+    !row.querySelector('[data-purchase-product]').value &&
+    !row.querySelector('[data-purchase-qty]').value &&
+    !row.querySelector('[data-purchase-cost]').value);
+  const reusableEmptyRows = emptyRows.slice(0, report.counts.ready);
+  const resultingCount = existingRows.length + report.counts.ready - reusableEmptyRows.length;
+  if (resultingCount > 200) {
+    message('purchase_import.too_many_form_lines', 'error');
+    return;
+  }
+
+  const availableEmptyRows = [...reusableEmptyRows];
+  for (const result of report.rows) {
+    const row = availableEmptyRows.shift() ?? (addPurchaseLine(), $('#purchase-lines').lastElementChild);
+    row.querySelector('[data-purchase-product]').value = result.productId;
+    row.querySelector('[data-purchase-qty]').value = result.qty;
+    row.querySelector('[data-purchase-cost]').value = result.unitCost;
+  }
+  state.purchaseImportApplied = true;
+  $('#purchase-import-apply').disabled = true;
+  $('#purchase-import-outcome').textContent = t('purchase_import.applied');
+}
+
 async function loadPurchases() {
   try {
     const { purchases } = await api('/api/purchases');
@@ -3965,6 +4186,11 @@ $('#language').addEventListener('change', (event) => {
     document.querySelectorAll('#purchase-lines [data-purchase-label]').forEach((node) => {
       node.textContent = t(node.dataset.purchaseLabel);
     });
+    if (state.purchaseImportReport) renderPurchaseImportReport(state.purchaseImportReport);
+    if (state.purchaseImportApplied) {
+      $('#purchase-import-apply').disabled = true;
+      $('#purchase-import-outcome').textContent = t('purchase_import.applied');
+    }
     void showPage(document.querySelector('.page:not([hidden])')?.id.replace('-page', '') ?? 'products');
   }
 });
@@ -4020,6 +4246,11 @@ $('#product-import-mode').addEventListener('change', resetProductImportPreview);
 $('#product-import-create-categories').addEventListener('change', resetProductImportPreview);
 $('#product-import-commit').addEventListener('click', () => { void commitProductImport(); });
 $('#product-import-download').addEventListener('click', downloadProductImportReport);
+$('#purchase-import-preview-button').addEventListener('click', (event) => { void previewPurchaseImport(event); });
+$('#purchase-import-file').addEventListener('change', resetPurchaseImportPreview);
+$('#purchase-import-category').addEventListener('change', setPurchaseImportCategoryOptions);
+$('#purchase-import-update-price').addEventListener('change', resetPurchaseImportPreview);
+$('#purchase-import-apply').addEventListener('click', applyPurchaseImport);
 $('#price-form').addEventListener('submit', (event) => { void saveProductPrice(event); });
 $('#price-cancel').addEventListener('click', () => {
   $('#price-dialog').close();
@@ -4117,6 +4348,10 @@ $('#add-purchase-line').addEventListener('click', addPurchaseLine);
 
 $('#purchase-form').addEventListener('submit', async (event) => {
   event.preventDefault();
+  if (state.purchaseImportReport?.counts.error > 0) {
+    message('purchase_import.fix_errors_before_submit', 'error');
+    return;
+  }
   const formElement = event.currentTarget;
   const form = new FormData(formElement);
   const lines = [...$('#purchase-lines').children].map((row) => ({
@@ -4124,6 +4359,23 @@ $('#purchase-form').addEventListener('submit', async (event) => {
     qty: row.querySelector('[data-purchase-qty]').value,
     unitCost: Number(row.querySelector('[data-purchase-cost]').value),
   }));
+  const submittedProductIds = new Set(lines.map((line) => line.productId));
+  const productPriceUpdates = state.purchaseImportApplied && state.purchaseImportReport?.updateSalePrice
+    ? state.purchaseImportReport.rows
+      .filter((row) => submittedProductIds.has(row.productId) &&
+        row.basePrice !== undefined && row.currentBasePrice !== undefined &&
+        row.basePrice !== row.currentBasePrice)
+      .map((row) => ({
+        productId: row.productId,
+        basePrice: row.basePrice,
+        expectedBasePrice: row.currentBasePrice,
+      }))
+    : [];
+  if (productPriceUpdates.length > 0) {
+    const confirmation = t('purchase_import.price_update_confirm')
+      .replace('{count}', String(productPriceUpdates.length));
+    if (!window.confirm(confirmation)) return;
+  }
   try {
     await api('/api/purchases', {
       method: 'POST',
@@ -4133,11 +4385,15 @@ $('#purchase-form').addEventListener('submit', async (event) => {
         supplier: form.get('supplier'),
         note: form.get('note'),
         lines,
+        ...(productPriceUpdates.length > 0 ? { productPriceUpdates } : {}),
       }),
     });
     formElement.reset();
     $('#purchase-lines').replaceChildren();
     addPurchaseLine();
+    $('#purchase-import-file').value = '';
+    resetPurchaseImportPreview();
+    $('#purchase-import-update-price').checked = false;
     formElement.elements.namedItem('date').value = dateForInput();
     message('status.created');
     await Promise.all([loadPurchases(), loadStock()]);

@@ -61,6 +61,12 @@ import {
   previewProductImport,
   type ProductImportOptions,
 } from '../modules/products/import';
+import {
+  buildPurchaseProductImportTemplate,
+  buildPurchaseImportTemplate,
+  MAX_PURCHASE_IMPORT_BYTES,
+  previewPurchaseImport,
+} from '../modules/purchases/import';
 
 const SESSION_COOKIE = 'kassa_session';
 const MAX_BODY_BYTES = 64 * 1024;
@@ -665,9 +671,58 @@ async function handleApi(
     sendJson(res, 200, result);
     return;
   }
+  if (path === '/api/purchases/import/template' && method === 'GET') {
+    withAuthorizedUser(db, token, 'purchase', () => undefined, now());
+    const template = await buildPurchaseImportTemplate();
+    res.writeHead(200, {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="purchase-import-template.xlsx"',
+      'Content-Length': template.byteLength,
+      'Cache-Control': 'no-store',
+    });
+    res.end(template);
+    return;
+  }
+  if (path === '/api/purchases/import/products-template' && method === 'GET') {
+    const categoryId = url.searchParams.get('categoryId');
+    const template = await withAuthorizedUser(
+      db,
+      token,
+      'purchase',
+      () => buildPurchaseProductImportTemplate(db, categoryId || null),
+      now(),
+    );
+    res.writeHead(200, {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="purchase-products-template.xlsx"',
+      'Content-Length': template.byteLength,
+      'Cache-Control': 'no-store',
+    });
+    res.end(template);
+    return;
+  }
+  if (path === '/api/purchases/import/preview' && method === 'POST') {
+    const body = await readJson(req, MAX_PURCHASE_IMPORT_BYTES * 6 + 64 * 1024);
+    if (Object.keys(body).some((key) => !['csv', 'updateSalePrice'].includes(key)) ||
+        typeof body.csv !== 'string' ||
+        (body.updateSalePrice !== undefined && typeof body.updateSalePrice !== 'boolean')) {
+      throw new AuthError(400, 'purchase_import.invalid_request');
+    }
+    const csv = body.csv;
+    const updateSalePrice = body.updateSalePrice === true;
+    const result = withAuthorizedUser(db, token, 'purchase', (session) => {
+      if (updateSalePrice) requireAdditionalPermission(db, session.user.id, 'price_edit');
+      return previewPurchaseImport(db, csv, updateSalePrice);
+    }, now());
+    sendJson(res, 200, result);
+    return;
+  }
   if (path === '/api/purchases' && method === 'POST') {
     const body = await readJson(req);
     const result = withAuthorizedUser(db, token, 'purchase', (session) => {
+      if (Array.isArray(body.productPriceUpdates) && body.productPriceUpdates.length > 0) {
+        requireAdditionalPermission(db, session.user.id, 'price_edit');
+      }
       const created = createPurchase(db, session.user.id, body);
       if (hasPermission(db, session.user.id, 'view_cost')) return created;
       const { purchase, lines } = created;

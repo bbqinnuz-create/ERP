@@ -380,6 +380,39 @@
             <label><span data-i18n="purchases.warehouse"></span><select name="warehouseId" id="purchase-warehouse" required></select></label>
             <label><span data-i18n="purchases.date"></span><input name="date" type="date" required></label>
             <label><span data-i18n="purchases.supplier"></span><input name="supplier" maxlength="200"></label>
+            <section id="purchase-import-panel" class="product-import-panel" hidden>
+              <h3 data-i18n="purchase_import.title"></h3>
+              <p data-i18n="purchase_import.description"></p>
+              <a id="purchase-import-template" class="button-link" href="/api/purchases/import/template" data-i18n="purchase_import.template"></a>
+              <div class="form-grid">
+                <label>
+                  <span data-i18n="purchase_import.category"></span>
+                  <select id="purchase-import-category"></select>
+                </label>
+                <a id="purchase-import-products-template" class="button-link" href="/api/purchases/import/products-template" data-i18n="purchase_import.products_template"></a>
+              </div>
+              <div class="form-grid">
+                <label>
+                  <span data-i18n="purchase_import.csv_file"></span>
+                  <input id="purchase-import-file" type="file" accept=".csv,text/csv">
+                </label>
+                <button id="purchase-import-preview-button" type="button" data-i18n="purchase_import.preview"></button>
+              </div>
+              <label id="purchase-import-update-price-field" class="product-import-checkbox">
+                <input id="purchase-import-update-price" type="checkbox">
+                <span data-i18n="purchase_import.update_sale_price"></span>
+              </label>
+              <div id="purchase-import-preview" hidden>
+                <p id="purchase-import-summary" role="status" aria-live="polite"></p>
+                <div class="table-wrap">
+                  <table><thead id="purchase-import-head"></thead><tbody id="purchase-import-body"></tbody></table>
+                </div>
+                <div class="product-import-actions">
+                  <button id="purchase-import-apply" type="button" data-i18n="purchase_import.apply" disabled></button>
+                </div>
+                <p id="purchase-import-outcome" role="status" aria-live="polite"></p>
+              </div>
+            </section>
             <div>
               <h3 data-i18n="purchases.lines"></h3>
               <div id="purchase-lines" class="purchase-lines"></div>
