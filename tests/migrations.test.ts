@@ -45,6 +45,7 @@ describe('миграции', () => {
     const result = migrate(db);
     expect(result.applied).toContain('001_init.sql');
     expect(result.applied).toContain('002_print_receipts.sql');
+    expect(result.applied).toContain('004_optional_held_cart_customer.sql');
 
     const tables = (db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as { name: string }[]).map(
       (r) => r.name,
@@ -53,6 +54,9 @@ describe('миграции', () => {
     const printColumns = db.pragma('table_info(print_jobs)') as Array<{ name: string }>;
     expect(printColumns.map((column) => column.name)).toContain('lang');
     expect(printColumns.map((column) => column.name)).toContain('snapshot_json');
+    const heldCartCustomer = (db.pragma('table_info(held_carts)') as Array<{ name: string; notnull: number }>)
+      .find((column) => column.name === 'customer_id');
+    expect(heldCartCustomer?.notnull).toBe(0);
   });
 
   it('повторный запуск ничего не меняет', () => {
@@ -62,6 +66,7 @@ describe('миграции', () => {
     expect(second.applied).toEqual([]);
     expect(second.alreadyApplied).toContain('001_init.sql');
     expect(second.alreadyApplied).toContain('002_print_receipts.sql');
+    expect(second.alreadyApplied).toContain('004_optional_held_cart_customer.sql');
   });
 
   it('загружает настройки по умолчанию', () => {

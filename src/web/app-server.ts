@@ -14,7 +14,9 @@ import { addCartLine, getActiveCart, removeCartLine, setCartLineQty } from '../m
 import {
   getHeldCart,
   holdActiveCart,
+  listActiveReservations,
   listHeldCarts,
+  reserveActiveCart,
   releaseHeldCart,
   reserveHeldCart,
   setReservationQuantity,
@@ -460,15 +462,33 @@ async function handleApi(
     }
   }
   if (path === '/api/held-carts' && method === 'GET') {
-    const carts = withAuthorizedUser(db, token, 'hold_cart', (session) =>
-      listHeldCarts(db, session.user.id, session.user.role === 'admin'), now());
+    const carts = withAuthorizedUser(db, token, null, (session) => {
+      if (!hasPermission(db, session.user.id, 'hold_cart') &&
+          !hasPermission(db, session.user.id, 'reserve_cart')) {
+        throw new AuthError(403, 'auth.permission_denied');
+      }
+      return listHeldCarts(db, session.user.id, session.user.role === 'admin');
+    }, now());
     sendJson(res, 200, { carts });
     return;
   }
   if (path === '/api/held-carts' && method === 'POST') {
     const body = await readJson(req);
+    if (Object.keys(body).some((key) => key !== 'customerId')) {
+      throw new AuthError(400, 'validation.unknown_field');
+    }
     const cart = withAuthorizedUser(db, token, 'hold_cart', (session) =>
       holdActiveCart(db, session.user.id, body.customerId), now());
+    sendJson(res, 201, { cart });
+    return;
+  }
+  if (path === '/api/held-carts/reserve-active' && method === 'POST') {
+    const body = await readJson(req);
+    if (Object.keys(body).some((key) => key !== 'customerId' && key !== 'warehouseId')) {
+      throw new AuthError(400, 'validation.unknown_field');
+    }
+    const cart = withAuthorizedUser(db, token, 'reserve_cart', (session) =>
+      reserveActiveCart(db, session.user.id, body.customerId, body.warehouseId), now());
     sendJson(res, 201, { cart });
     return;
   }
@@ -483,8 +503,11 @@ async function handleApi(
     }
     if (heldCartRoute[2] === 'reserve' && method === 'POST') {
       const body = await readJson(req);
+      if (Object.keys(body).some((key) => key !== 'warehouseId' && key !== 'customerId')) {
+        throw new AuthError(400, 'validation.unknown_field');
+      }
       const cart = withAuthorizedUser(db, token, 'reserve_cart', (session) =>
-        reserveHeldCart(db, session.user.id, id, body.warehouseId), now());
+        reserveHeldCart(db, session.user.id, id, body.warehouseId, body.customerId), now());
       sendJson(res, 200, { cart });
       return;
     }
@@ -499,6 +522,12 @@ async function handleApi(
       return;
     }
   }
+  if (path === '/api/reservations' && method === 'GET') {
+    const reservations = withAuthorizedUser(db, token, 'reserve_cart', (session) =>
+      listActiveReservations(db, session.user.id, session.user.role === 'admin'), now());
+    sendJson(res, 200, { reservations });
+    return;
+  }
   const reservationRoute = /^\/api\/reservations\/([^/]+)$/.exec(path);
   if (reservationRoute && method === 'PUT') {
     const body = await readJson(req);
@@ -512,6 +541,21 @@ async function handleApi(
   if (path === '/api/sales/context' && method === 'GET') {
     const context = withAuthorizedUser(db, token, 'sell', () => getSalesContext(db), now());
     sendJson(res, 200, context);
+    return;
+  }
+  if (path === '/api/sales/customers' && method === 'POST') {
+    const body = await readJson(req);
+    if (Object.keys(body).some((key) => !['name', 'phone', 'note'].includes(key))) {
+      throw new AuthError(400, 'validation.unknown_field');
+    }
+    const row = withAuthorizedUser(db, token, null, (session) => {
+      if (!(['sell', 'hold_cart', 'reserve_cart'] as const)
+        .some((permission) => hasPermission(db, session.user.id, permission))) {
+        throw new AuthError(403, 'auth.permission_denied');
+      }
+      return saveReference(db, session.user.id, 'customers', body);
+    }, now());
+    sendJson(res, 201, { row });
     return;
   }
   if (path === '/api/cart' && method === 'GET') {
@@ -954,7 +998,7 @@ async function handleApi(
 }
 
 const CLIENT_ROUTES = new Set([
-  '/sell', '/sales', '/print', '/returns', '/writeoffs', '/stocktakes', '/reports',
+  '/sell', '/sales', '/held-carts', '/reservations', '/print', '/returns', '/writeoffs', '/stocktakes', '/reports',
   '/products', '/stock', '/purchases', '/movements', '/debts', '/cash', '/users', '/connection',
 ]);
 

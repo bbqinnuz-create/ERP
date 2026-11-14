@@ -17,6 +17,8 @@ const translations = {
     'auth.logout': 'Выйти',
     'nav.pages': 'Страницы',
     'nav.sales': 'Продажа',
+    'nav.held_carts': 'Отложенные корзины',
+    'nav.reservations': 'Резерв',
     'nav.products': 'Товары',
     'nav.stock': 'Остатки',
     'nav.purchases': 'Приходы',
@@ -233,9 +235,13 @@ const translations = {
     'sales.warehouse_unconfigured': 'Настройте общий склад по умолчанию.',
     'sales.no_warehouse': 'Нет активного склада.',
     'sales.search': 'Поиск по названию, артикулу или штрихкоду',
+    'sales.product_name': 'Название',
+    'sales.available_stock': 'Остаток (Количество с учётом забронированных)',
+    'sales.product_price': 'Цена',
     'sales.add': 'Добавить',
     'sales.no_products': 'Товары не найдены.',
     'sales.out_of_stock': 'Нет доступного остатка',
+    'sales.quantity': 'Количество',
     'sales.customer': 'Клиент (необязательно)',
     'sales.no_customer': 'Без клиента',
     'sales.cart': 'Корзина',
@@ -248,14 +254,33 @@ const translations = {
     'sales.payments': 'Оплата',
     'sales.payment_amount': 'Оплачиваемая сумма в сумах',
     'sales.tendered': 'Получено наличными в сумах',
+    'sales.confirm_payment': 'Подтвердить оплату',
+    'sales.select_payment_method': 'Выберите способ оплаты',
     'sales.total': 'Итого',
     'sales.paid': 'Оплата',
     'sales.due': 'Остаток в долг',
     'sales.submit': 'Оплатить',
     'sales.receipt': 'Чек создан',
     'sales.receipt_summary': 'Чек {number}; итого {total}; оплачено {paid}; долг {debt}; сдача {change}.',
-    'sales.receipt_language': 'Язык чека',
     'sales.no_payment_method': 'Нет активных способов оплаты.',
+    'customers.add': 'Добавить клиента',
+    'customers.add_title': 'Новый клиент',
+    'customers.name': 'Имя клиента',
+    'customers.phone': 'Телефон (необязательно)',
+    'customers.note': 'Примечание (необязательно)',
+    'customers.save': 'Сохранить клиента',
+    'held.title': 'Отложенные корзины',
+    'held.no_carts': 'Отложенных корзин нет.',
+    'held.customer_required': 'Для резерва выберите клиента.',
+    'held.sell': 'Продать',
+    'held.already_reserved': 'Уже зарезервирована',
+    'held.reserve_success': 'Товары зарезервированы.',
+    'held.reserve_deficit': 'Резерв превышает фактический остаток. Уменьшите его количество.',
+    'reservations.title': 'Зарезервированные товары',
+    'reservations.columns': 'Клиент,Товар,Количество,Склад,Корзина,Создан,Истекает',
+    'reservations.none': 'Активных резервов нет.',
+    'returns.receipt_language': 'Язык чека возврата',
+    'stocktake.reservation_reduced': 'Количество резерва уменьшено.',
     'debts.title': 'Долги клиентов',
     'debts.customer': 'Клиент',
     'debts.columns': 'Клиент,Остаток долга,Открытые чеки',
@@ -371,7 +396,7 @@ const translations = {
     'stocktake.active': 'Активна',
     'stocktake.completed': 'Завершена',
     'stocktake.cancelled': 'Отменена',
-    'stocktake.reserve_deficit': 'Есть дефицит резерва. Уменьшите резерв или освободите его.',
+    'stocktake.reserve_deficit': 'Есть дефицит резерва. Уменьшите его количество.',
     'stocktake.no_reserve_deficit': 'Дефицита резерва нет.',
     'stocktake.invalid_start': 'Проверьте склад и режим инвентаризации.',
     'stocktake.invalid_note': 'Примечание слишком длинное.',
@@ -388,16 +413,10 @@ const translations = {
     'held.select': 'Отложенная корзина',
     'held.hold': 'Отложить текущую корзину',
     'held.reserve': 'Зарезервировать',
-    'held.release': 'Освободить резерв',
-    'held.cancel': 'Отменить корзину',
-    'held.cancel_confirm': 'Отменить эту отложенную корзину и освободить её резерв?',
     'held.none': 'Нет отложенных корзин',
     'held.created': 'Корзина отложена.',
     'held.reserved': 'Резерв создан.',
-    'held.released': 'Резерв освобождён.',
-    'held.cancelled': 'Отложенная корзина отменена.',
     'held.sold': 'Отложенная корзина продана.',
-    'held.reserve_deficit': 'Резерв превышает фактический остаток. Уменьшите резерв или освободите его.',
     'sale.cart_product_inactive': 'В корзине есть неактивный товар. Удалите его.',
     'sale.discount_limit_exceeded': 'Скидка превышает лимит. Уменьшите скидку.',
     'sale.discount_not_allowed': 'У вас нет права на эту скидку.',
@@ -693,6 +712,8 @@ const translations = {
     'auth.logout': 'Chiqish',
     'nav.pages': 'Sahifalar',
     'nav.sales': 'Savdo',
+    'nav.held_carts': 'Saqlangan savatlar',
+    'nav.reservations': 'Rezerv',
     'nav.products': 'Tovarlar',
     'nav.stock': 'Qoldiqlar',
     'nav.purchases': 'Kirimlar',
@@ -909,9 +930,13 @@ const translations = {
     'sales.warehouse_unconfigured': 'Umumiy standart omborni sozlang.',
     'sales.no_warehouse': 'Faol ombor yo‘q.',
     'sales.search': 'Nomi, artikul yoki shtrix-kod bo‘yicha qidirish',
+    'sales.product_name': 'Nomi',
+    'sales.available_stock': 'Qoldiq (band qilingan miqdor hisobga olingan)',
+    'sales.product_price': 'Narx',
     'sales.add': 'Qo‘shish',
     'sales.no_products': 'Tovar topilmadi.',
     'sales.out_of_stock': 'Mavjud qoldiq yo‘q',
+    'sales.quantity': 'Miqdor',
     'sales.customer': 'Mijoz (ixtiyoriy)',
     'sales.no_customer': 'Mijozsiz',
     'sales.cart': 'Savat',
@@ -924,14 +949,33 @@ const translations = {
     'sales.payments': 'To‘lov',
     'sales.payment_amount': 'So‘mda to‘lanadigan summa',
     'sales.tendered': 'Naqd olingan summa (so‘m)',
+    'sales.confirm_payment': 'To‘lovni tasdiqlash',
+    'sales.select_payment_method': 'To‘lov usulini tanlang',
     'sales.total': 'Jami',
     'sales.paid': 'To‘lov',
     'sales.due': 'Qarz qoldig‘i',
     'sales.submit': 'To‘lash',
     'sales.receipt': 'Chek yaratildi',
     'sales.receipt_summary': 'Chek {number}; jami {total}; to‘landi {paid}; qarz {debt}; qaytim {change}.',
-    'sales.receipt_language': 'Chek tili',
     'sales.no_payment_method': 'Faol to‘lov usuli yo‘q.',
+    'customers.add': 'Mijoz qo‘shish',
+    'customers.add_title': 'Yangi mijoz',
+    'customers.name': 'Mijoz ismi',
+    'customers.phone': 'Telefon (ixtiyoriy)',
+    'customers.note': 'Izoh (ixtiyoriy)',
+    'customers.save': 'Mijozni saqlash',
+    'held.title': 'Saqlangan savatlar',
+    'held.no_carts': 'Saqlangan savatlar yo‘q.',
+    'held.customer_required': 'Rezerv uchun mijozni tanlang.',
+    'held.sell': 'Sotish',
+    'held.already_reserved': 'Allaqachon rezerv qilingan',
+    'held.reserve_success': 'Tovarlar rezerv qilindi.',
+    'held.reserve_deficit': 'Rezerv haqiqiy qoldiqdan katta. Uning miqdorini kamaytiring.',
+    'reservations.title': 'Rezerv qilingan tovarlar',
+    'reservations.columns': 'Mijoz,Tovar,Miqdor,Ombor,Savat,Yaratilgan,Muddati',
+    'reservations.none': 'Faol rezervlar yo‘q.',
+    'returns.receipt_language': 'Qaytarish cheki tili',
+    'stocktake.reservation_reduced': 'Rezerv miqdori kamaytirildi.',
     'debts.title': 'Mijozlar qarzi',
     'debts.customer': 'Mijoz',
     'debts.columns': 'Mijoz,Qarz qoldig‘i,Ochiq cheklar',
@@ -1047,7 +1091,7 @@ const translations = {
     'stocktake.active': 'Faol',
     'stocktake.completed': 'Yakunlangan',
     'stocktake.cancelled': 'Bekor qilingan',
-    'stocktake.reserve_deficit': 'Rezerv taqchilligi bor. Rezervni kamaytiring yoki bo‘shating.',
+    'stocktake.reserve_deficit': 'Rezerv taqchilligi bor. Uning miqdorini kamaytiring.',
     'stocktake.no_reserve_deficit': 'Rezerv taqchilligi yo‘q.',
     'stocktake.invalid_start': 'Ombor va inventarizatsiya turini tekshiring.',
     'stocktake.invalid_note': 'Izoh juda uzun.',
@@ -1064,16 +1108,10 @@ const translations = {
     'held.select': 'Saqlangan savatcha',
     'held.hold': 'Joriy savatchani saqlash',
     'held.reserve': 'Rezerv qilish',
-    'held.release': 'Rezervni bo‘shatish',
-    'held.cancel': 'Savatchani bekor qilish',
-    'held.cancel_confirm': 'Bu saqlangan savatcha va uning rezervi bekor qilinsinmi?',
     'held.none': 'Saqlangan savatchalar yo‘q',
     'held.created': 'Savatcha saqlandi.',
     'held.reserved': 'Rezerv yaratildi.',
-    'held.released': 'Rezerv bo‘shatildi.',
-    'held.cancelled': 'Saqlangan savatcha bekor qilindi.',
     'held.sold': 'Saqlangan savatcha sotildi.',
-    'held.reserve_deficit': 'Rezerv haqiqiy qoldiqdan katta. Uni kamaytiring yoki bo‘shating.',
     'sale.cart_product_inactive': 'Savatda faol bo‘lmagan tovar bor. Uni olib tashlang.',
     'sale.discount_limit_exceeded': 'Chegirma limitdan oshdi. Chegirmani kamaytiring.',
     'sale.discount_not_allowed': 'Bu chegirma uchun huquqingiz yo‘q.',
@@ -1369,6 +1407,8 @@ const state = {
   salesQuote: null,
   salesManualDiscounts: {},
   heldCarts: [],
+  customers: [],
+  heldCustomerChoices: {},
   salesHeldCartId: '',
   returnSale: null,
   returnQuote: null,
@@ -1406,8 +1446,12 @@ let returnAttemptId = null;
 let debtPaymentAttempt = null;
 let cashOperationAttempt = null;
 const cashReversalAttemptIds = new Map();
+const ADD_CUSTOMER_VALUE = '__add_customer__';
+let customerSelectionTarget = null;
 const pagePaths = {
   sales: '/sell',
+  heldCarts: '/held-carts',
+  reservations: '/reservations',
   print: '/print',
   returns: '/returns',
   writeoffs: '/writeoffs',
@@ -1433,8 +1477,8 @@ const t = (key) => {
   return translations[state.lang]['server.internal_error'];
 };
 const successMessages = new Set([
-  'status.created', 'status.saved', 'status.logged_out', 'held.created', 'held.reserved',
-  'held.cancelled', 'held.released', 'returns.created', 'writeoff.created', 'backup.created',
+  'status.created', 'status.saved', 'status.logged_out', 'held.created', 'held.reserved', 'held.reserve_success',
+  'returns.created', 'writeoff.created', 'backup.created',
   'debts.payment_success', 'debts.forgive_success', 'cash.operation_created',
   'cash.operation_reversed', 'print.profile_saved', 'connection.copy_done', 'status.server_updated',
 ]);
@@ -1495,37 +1539,195 @@ function localize() {
   if (serverState === 'online' || serverState === 'offline') setServerAvailability(serverState === 'online');
 }
 
-function renderHeldCarts() {
-  const select = $('#sales-held-cart');
-  if (!select) return;
-  const options = [makeOption('', t('held.none'))];
-  for (const cart of state.heldCarts) {
-    options.push(makeOption(cart.id, `${cart.customerName} — ${formatDateTime(cart.createdAt)}`));
-  }
+function setCustomerOptions(select, selectedValue = '', required = false) {
+  const options = [makeOption(ADD_CUSTOMER_VALUE, t('customers.add'))];
+  options.push(makeOption('', required ? t('status.select_option') : t('sales.no_customer')));
+  for (const customer of state.customers) options.push(makeOption(customer.id, customer.name));
   select.replaceChildren(...options);
-  if (state.heldCarts.some((cart) => cart.id === state.salesHeldCartId)) {
-    select.value = state.salesHeldCartId;
-  } else {
-    state.salesHeldCartId = '';
+  select.value = options.some((option) => option.value === selectedValue) ? selectedValue : '';
+  select.dataset.selectedCustomer = select.value === ADD_CUSTOMER_VALUE ? '' : select.value;
+}
+
+function renderSalesCustomers() {
+  const select = $('#sales-customer');
+  if (!select) return;
+  const selected = select.value;
+  setCustomerOptions(select, selected);
+}
+
+function renderHeldCartsPage() {
+  const container = $('#held-carts-list');
+  if (!container) return;
+  if (state.heldCarts.length === 0) {
+    const empty = document.createElement('p');
+    empty.textContent = t('held.no_carts');
+    container.replaceChildren(empty);
+    return;
+  }
+  const cards = state.heldCarts.map((cart) => {
+    const card = document.createElement('article');
+    card.className = 'held-cart-card';
+    const heading = document.createElement('h3');
+    heading.textContent = `${cart.customerName ?? t('sales.no_customer')} — ${formatDateTime(cart.createdAt)}`;
+    card.append(heading);
+    const lines = document.createElement('ul');
+    for (const line of cart.lines) {
+      const item = document.createElement('li');
+      item.textContent = `${line.sku} — ${line.name}: ${formatQuantity(line.qty)} ${line.unit}`;
+      lines.append(item);
+    }
+    card.append(lines);
+    const customerLabel = document.createElement('label');
+    const customerCaption = document.createElement('span');
+    customerCaption.textContent = t('sales.customer');
+    const customer = document.createElement('select');
+    customer.dataset.heldCustomer = cart.id;
+    setCustomerOptions(customer, state.heldCustomerChoices[cart.id] ?? cart.customerId ?? '', true);
+    state.heldCustomerChoices[cart.id] = customer.value;
+    customerLabel.append(customerCaption, customer);
+    card.append(customerLabel);
+    const actions = document.createElement('div');
+    actions.className = 'held-cart-actions';
+    if (state.user?.permissions.sell === 1 && state.user.permissions.hold_cart === 1) {
+      const sell = document.createElement('button');
+      sell.type = 'button';
+      sell.dataset.heldSell = cart.id;
+      sell.textContent = t('held.sell');
+      actions.append(sell);
+    }
+    if (state.user?.permissions.reserve_cart === 1) {
+      const reserve = document.createElement('button');
+      reserve.type = 'button';
+      reserve.dataset.heldReserve = cart.id;
+      reserve.textContent = cart.reservations.length > 0
+        ? t('held.already_reserved')
+        : t('held.reserve');
+      reserve.disabled = cart.reservations.length > 0;
+      actions.append(reserve);
+    }
+    card.append(actions);
+    return card;
+  });
+  container.replaceChildren(...cards);
+}
+
+function renderReservations(reservations) {
+  buildHead('#reservations-head', 'reservations.columns');
+  const body = $('#reservations-body');
+  body.replaceChildren();
+  if (reservations.length === 0) {
+    const row = document.createElement('tr');
+    const empty = cell(t('reservations.none'));
+    empty.colSpan = 7;
+    row.append(empty);
+    body.append(row);
+    return;
+  }
+  for (const reservation of reservations) {
+    const row = document.createElement('tr');
+    row.append(
+      cell(reservation.customerName ?? t('sales.no_customer')),
+      cell(`${reservation.sku} — ${reservation.name} (${reservation.unit})`),
+      cell(formatQuantity(reservation.qty)),
+      cell(reservation.warehouseName),
+      cell(reservation.cartId),
+      cell(formatDateTime(reservation.createdAt)),
+      cell(reservation.expiresAt ? formatDateTime(reservation.expiresAt) : '—'),
+    );
+    body.append(row);
   }
 }
 
-async function selectSalesHeldCart(cartId) {
-  state.salesHeldCartId = cartId;
-  if (!cartId) {
-    const { cart } = await api('/api/cart');
-    state.salesCart = cart;
-    $('#sales-customer').disabled = false;
-  } else {
-    const { cart } = await api(`/api/held-carts/${encodeURIComponent(cartId)}`);
-    state.salesCart = cart;
-    $('#sales-customer').value = cart.customerId;
-    $('#sales-customer').disabled = true;
+function beginAddCustomer(select) {
+  customerSelectionTarget = {
+    selectId: select.id || '',
+    heldCartId: select.dataset.heldCustomer || '',
+  };
+  select.value = select.dataset.selectedCustomer ?? '';
+  $('#customer-form').reset();
+  $('#customer-dialog').showModal();
+  $('#customer-form [name="name"]').focus();
+}
+
+async function saveNewCustomer(event) {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  const button = $('#customer-form button[type="submit"]');
+  button.disabled = true;
+  try {
+    const { row } = await api('/api/sales/customers', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: String(form.get('name') ?? '').trim(),
+        phone: String(form.get('phone') ?? '').trim() || null,
+        note: String(form.get('note') ?? '').trim() || null,
+      }),
+    });
+    state.customers.push({ id: row.id, name: row.name });
+    if (state.salesContext) state.salesContext.customers = state.customers;
+    $('#customer-dialog').close();
+    if (customerSelectionTarget?.selectId === 'sales-customer') {
+      renderSalesCustomers();
+      $('#sales-customer').value = row.id;
+      $('#sales-customer').dataset.selectedCustomer = row.id;
+      scheduleSalesQuote();
+    }
+    if (customerSelectionTarget?.heldCartId) {
+      state.heldCustomerChoices[customerSelectionTarget.heldCartId] = row.id;
+    }
+    customerSelectionTarget = null;
+    renderHeldCartsPage();
+    message('status.created');
+  } catch (error) {
+    message(error.message);
+  } finally {
+    button.disabled = false;
   }
-  state.salesQuote = null;
-  state.salesManualDiscounts = {};
-  renderSalesCart();
-  await refreshSalesQuote();
+}
+
+async function loadHeldCartsPage() {
+  try {
+    const [{ carts }, { rows: customers }] = await Promise.all([
+      api('/api/held-carts'),
+      api('/api/references/customers'),
+    ]);
+    state.customers = customers.map((customer) => ({ id: customer.id, name: customer.name }));
+    state.heldCarts = carts;
+    renderHeldCartsPage();
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function loadReservationsPage() {
+  try {
+    const { reservations } = await api('/api/reservations');
+    renderReservations(reservations);
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+function sellHeldCart(cartId) {
+  state.salesHeldCartId = cartId;
+  showPage('sales');
+}
+
+async function reserveHeldCartFromPage(cartId) {
+  try {
+    const customerId = state.heldCustomerChoices[cartId];
+    if (!customerId) throw new Error('held.customer_required');
+    const warehouseId = state.salesContext?.defaultWarehouseId;
+    await api(`/api/held-carts/${encodeURIComponent(cartId)}/reserve`, {
+      method: 'POST',
+      body: JSON.stringify({ ...(warehouseId ? { warehouseId } : {}), customerId }),
+    });
+    message('held.reserve_success');
+    await loadHeldCartsPage();
+    await loadReservationsPage();
+  } catch (error) {
+    message(error.message);
+  }
 }
 
 async function api(path, options = {}) {
@@ -1563,6 +1765,10 @@ function showLogin(errorKey = '') {
   state.salesCart = null;
   state.salesQuote = null;
   state.salesManualDiscounts = {};
+  state.heldCarts = [];
+  state.customers = [];
+  state.heldCustomerChoices = {};
+  state.salesHeldCartId = '';
   state.debtors = [];
   state.debtPaymentMethods = [];
   state.debtCustomerId = '';
@@ -1597,6 +1803,12 @@ function showApp(user) {
   $('#navigation [data-page="writeoffs"]').hidden = user.permissions.write_off !== 1;
   $('#navigation [data-page="stocktakes"]').hidden = user.permissions.stocktake !== 1;
   $('#navigation [data-page="reports"]').hidden = user.permissions.reports !== 1;
+  $('#navigation [data-page="heldCarts"]').hidden =
+    user.permissions.hold_cart !== 1 && user.permissions.reserve_cart !== 1;
+  $('#navigation [data-page="reservations"]').hidden = user.permissions.reserve_cart !== 1;
+  $('#sales-held-carts-link').hidden =
+    user.permissions.hold_cart !== 1 && user.permissions.reserve_cart !== 1;
+  $('#sales-reservations-link').hidden = user.permissions.reserve_cart !== 1;
   $('#backup-controls').hidden = user.role !== 'admin';
   const canViewDebts = ['debt_payment', 'reports']
     .some((permission) => user.permissions[permission] === 1);
@@ -1612,11 +1824,9 @@ function showApp(user) {
   $('#purchase-form').hidden = user.permissions.purchase !== 1;
   $('#purchase-import-panel').hidden = user.permissions.purchase !== 1;
   $('#purchase-import-update-price-field').hidden = user.permissions.price_edit !== 1;
-  $('#held-cart-controls').hidden = user.permissions.hold_cart !== 1;
   $('#sales-hold-cart').hidden = user.permissions.hold_cart !== 1;
-  $('#sales-reserve-cart').hidden = user.permissions.reserve_cart !== 1;
-  $('#sales-release-cart').hidden = user.permissions.reserve_cart !== 1;
-  $('#sales-cancel-cart').hidden = user.permissions.hold_cart !== 1;
+  $('#sales-reserve-cart').hidden =
+    user.permissions.reserve_cart !== 1 || user.permissions.hold_cart !== 1;
   $('#writeoff-form').hidden = user.permissions.write_off !== 1;
   $('#stocktake-start-form').hidden = user.permissions.stocktake !== 1;
   $('#debt-payment-form').hidden = user.permissions.debt_payment !== 1;
@@ -1630,7 +1840,6 @@ function showApp(user) {
   updateCashOperationTypes();
   $('#user-form').hidden = user.permissions.users_manage !== 1;
   $('#print-profile-form').hidden = user.permissions.settings !== 1;
-  $('#sales-receipt-language').value = user.lang;
   $('#print-copy-language').value = user.lang;
   $('#user-edit-form').hidden = true;
   $('#permission-editor').hidden = true;
@@ -1672,6 +1881,8 @@ function canAccessPage(name) {
   if (!state.user) return false;
   const permissionMap = {
     sales: 'sell',
+    heldCarts: ['hold_cart', 'reserve_cart'],
+    reservations: 'reserve_cart',
     print: ['sell', 'return'],
     returns: 'return',
     writeoffs: 'write_off',
@@ -1695,26 +1906,10 @@ function setNavigationExpanded(expanded) {
   $('#app-view').classList.toggle('navigation-expanded', expanded);
 }
 
-function mountNavigationToggle(page) {
-  const heading = document.querySelector(`#${page}-page > h2`);
-  const toggle = $('#navigation-toggle');
-  if (!heading) return;
-
-  let headingRow = heading.parentElement;
-  if (!headingRow?.classList.contains('page-heading')) {
-    headingRow = document.createElement('div');
-    headingRow.className = 'page-heading';
-    heading.before(headingRow);
-    headingRow.append(heading);
-  }
-  headingRow.prepend(toggle);
-}
-
 function showPage(name, updateHistory = true) {
   if (!pagePaths[name] || !canAccessPage(name)) name = 'products';
   state.activePage = name;
   document.querySelectorAll('.page').forEach((page) => { page.hidden = page.id !== `${name}-page`; });
-  mountNavigationToggle(name);
   document.querySelectorAll('#navigation [data-page]').forEach((link) => {
     if (link.dataset.page === name) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
@@ -1727,6 +1922,13 @@ function showPage(name, updateHistory = true) {
   document.title = pageTitle ? `${pageTitle} · ${t('app.title')}` : t('app.title');
   if (name === 'users' && state.user?.permissions.users_manage === 1) void loadUsers();
   if (name === 'sales' && state.user?.permissions.sell === 1) void loadSalesPage();
+  if (name === 'heldCarts' &&
+      (state.user?.permissions.hold_cart === 1 || state.user?.permissions.reserve_cart === 1)) {
+    void loadHeldCartsPage();
+  }
+  if (name === 'reservations' && state.user?.permissions.reserve_cart === 1) {
+    void loadReservationsPage();
+  }
   if (name === 'debts') void loadDebts();
   if (name === 'cash') void loadCashPage();
   if (name === 'stock') void loadStock();
@@ -1970,43 +2172,38 @@ async function saveProductPrice(event) {
 async function createHeldCart() {
   try {
     const customerId = $('#sales-customer').value;
-    if (!customerId) throw new Error('validation.invalid_customer');
     await api('/api/held-carts', {
       method: 'POST',
-      body: JSON.stringify({ customerId }),
+      body: JSON.stringify({ customerId: customerId || null }),
     });
     state.salesHeldCartId = '';
     message('held.created');
-    await loadSalesPage();
+    showPage('heldCarts');
   } catch (error) {
     message(error.message);
   }
 }
 
-async function updateSelectedHeldCart(action) {
-  if (!state.salesHeldCartId) return;
+async function reserveSalesCart() {
   try {
+    const customerId = $('#sales-customer').value;
+    if (!customerId) throw new Error('held.customer_required');
     const warehouseId = state.salesContext?.defaultWarehouseId;
-    if (action === 'reserve' && !warehouseId) throw new Error('settings.default_warehouse_required');
-    if (action === 'reserve') {
+    if (!warehouseId) throw new Error('settings.default_warehouse_required');
+    if (state.salesHeldCartId) {
       await api(`/api/held-carts/${encodeURIComponent(state.salesHeldCartId)}/reserve`, {
         method: 'POST',
-        body: JSON.stringify({ warehouseId }),
+        body: JSON.stringify({ warehouseId, customerId }),
       });
-      message('held.reserved');
     } else {
-      await api(`/api/held-carts/${encodeURIComponent(state.salesHeldCartId)}/release`, {
+      await api('/api/held-carts/reserve-active', {
         method: 'POST',
-        body: JSON.stringify({ cancel: action === 'cancel' }),
+        body: JSON.stringify({ warehouseId, customerId }),
       });
-      if (action === 'cancel') {
-        state.salesHeldCartId = '';
-        message('held.cancelled');
-      } else {
-        message('held.released');
-      }
     }
-    await loadSalesPage();
+    state.salesHeldCartId = '';
+    message('held.reserve_success');
+    showPage('reservations');
   } catch (error) {
     message(error.message);
   }
@@ -2367,7 +2564,7 @@ async function reduceReservation(id, qty) {
       body: JSON.stringify({ qty }),
     });
     await openStocktake(state.selectedStocktakeId);
-    message('held.released');
+    message('stocktake.reservation_reduced');
   } catch (error) {
     message(error.message);
   }
@@ -3127,6 +3324,13 @@ function formatQuantity(value) {
   return `${negative ? '−' : ''}${whole}${fraction ? `${state.lang === 'ru' ? ',' : '.'}${fraction}` : ''}`;
 }
 
+function isValidProductQuantity(value) {
+  const match = /^(\d{1,13})(?:[.,](\d{1,3}))?$/.exec(value.trim());
+  if (!match) return false;
+  const qty = BigInt(match[1]) * 1000n + BigInt((match[2] ?? '').padEnd(3, '0') || '0');
+  return qty > 0n && qty <= BigInt(Number.MAX_SAFE_INTEGER);
+}
+
 function formatDateTime(value) {
   return new Date(value).toLocaleString(state.lang === 'uz' ? 'uz-UZ' : 'ru-RU', {
     timeZone: 'Asia/Tashkent',
@@ -3302,17 +3506,6 @@ function setSalesDefaultWarehouseOptions() {
   select.value = state.salesContext.defaultWarehouseId ?? '';
 }
 
-function renderSalesCustomers() {
-  const select = $('#sales-customer');
-  const selected = select.value;
-  const options = [makeOption('', t('sales.no_customer'))];
-  for (const customer of state.salesContext?.customers ?? []) {
-    options.push(makeOption(customer.id, customer.name));
-  }
-  select.replaceChildren(...options);
-  if (options.some((option) => option.value === selected)) select.value = selected;
-}
-
 function renderSalesPayments() {
   const container = $('#sales-payments');
   container.replaceChildren();
@@ -3321,13 +3514,22 @@ function renderSalesPayments() {
     container.textContent = t('sales.no_payment_method');
     return;
   }
+  const prompt = document.createElement('p');
+  prompt.className = 'sales-payment-prompt';
+  prompt.textContent = t('sales.select_payment_method');
+  container.append(prompt);
   for (const method of methods) {
     const card = document.createElement('div');
     card.className = 'sales-payment';
-    const title = document.createElement('strong');
-    title.textContent = method.name;
+    const methodLabel = document.createElement('label');
+    methodLabel.className = 'sales-payment-method';
+    const methodChoice = document.createElement('input');
+    methodChoice.type = 'checkbox';
+    methodChoice.dataset.paymentMethod = method.id;
+    methodLabel.append(methodChoice, document.createTextNode(method.name));
     const fields = document.createElement('div');
     fields.className = 'sales-payment-fields';
+    fields.hidden = true;
     const amountLabel = document.createElement('label');
     const amountCaption = document.createElement('span');
     amountCaption.textContent = t('sales.payment_amount');
@@ -3352,7 +3554,11 @@ function renderSalesPayments() {
       tenderedLabel.append(tenderedCaption, tendered);
       fields.append(tenderedLabel);
     }
-    card.append(title, fields);
+    methodChoice.addEventListener('change', () => {
+      fields.hidden = !methodChoice.checked;
+      renderSalesSummary();
+    });
+    card.append(methodLabel, fields);
     container.append(card);
   }
 }
@@ -3367,15 +3573,36 @@ function renderSalesProducts() {
   const rows = visible.map((product) => {
     const row = document.createElement('div');
     row.className = 'sales-product';
-    const info = document.createElement('span');
-    info.textContent = `${product.sku} — ${product.name} (${formatQuantity(product.availableQty)} ${product.unit}) — ${formatMoney(product.base_price)}`;
+    const name = document.createElement('span');
+    name.textContent = `${product.sku} — ${product.name}`;
+    const stock = document.createElement('span');
+    stock.textContent = `${formatQuantity(product.availableQty)} ${product.unit}`;
+    const price = document.createElement('span');
+    price.textContent = formatMoney(product.base_price);
+    const quantityLabel = document.createElement('label');
+    quantityLabel.className = 'sales-product-quantity';
+    const quantityCaption = document.createElement('span');
+    quantityCaption.textContent = t('sales.quantity');
+    const quantity = document.createElement('input');
+    quantity.type = 'text';
+    quantity.inputMode = 'decimal';
+    quantity.required = true;
+    quantity.dataset.productQty = product.id;
+    quantity.setAttribute('aria-label', t('sales.quantity'));
+    quantity.addEventListener('input', () => {
+      button.disabled = !state.salesContext.warehouse ||
+        product.availableQty <= 0 || !isValidProductQuantity(quantity.value);
+    });
+    quantityLabel.append(quantityCaption, quantity);
     const button = document.createElement('button');
     button.type = 'button';
     button.dataset.addProduct = product.id;
     button.textContent = product.availableQty > 0 ? t('sales.add') : t('sales.out_of_stock');
-    button.disabled = !state.salesContext.warehouse || product.availableQty <= 0;
-    button.addEventListener('click', () => { void addSalesProduct(product.id); });
-    row.append(info, button);
+    button.disabled = true;
+    button.addEventListener('click', () => {
+      void addSalesProduct(product.id, quantity.value);
+    });
+    row.append(name, stock, price, quantityLabel, button);
     return row;
   });
   if (rows.length === 0) {
@@ -3383,7 +3610,8 @@ function renderSalesProducts() {
     empty.textContent = t('sales.no_products');
     rows.push(empty);
   }
-  container.replaceChildren(...rows);
+  const header = container.querySelector('.sales-product-header');
+  container.replaceChildren(...(header ? [header, ...rows] : rows));
 }
 
 function renderSalesCart() {
@@ -3478,6 +3706,8 @@ function renderSalesSummary() {
   let paid = 0n;
   try {
     document.querySelectorAll('#sales-payments [data-payment-amount]').forEach((input) => {
+      const methodChoice = input.closest('.sales-payment')?.querySelector('[data-payment-method]');
+      if (!methodChoice?.checked) return;
       if (input.value.trim()) paid += BigInt(moneyTextToTiyin(input.value));
     });
     if (paid > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('validation.invalid_payment_amount');
@@ -3522,15 +3752,15 @@ async function loadSalesPage() {
     const [context, { cart }, heldResult] = await Promise.all([
       api('/api/sales/context'),
       api('/api/cart'),
-      state.user?.permissions.hold_cart === 1 ? api('/api/held-carts') : Promise.resolve({ carts: [] }),
+      state.user?.permissions.hold_cart === 1 || state.user?.permissions.reserve_cart === 1
+        ? api('/api/held-carts')
+        : Promise.resolve({ carts: [] }),
     ]);
     state.salesContext = context;
+    state.customers = context.customers;
     state.heldCarts = heldResult.carts;
-    renderHeldCarts();
     const heldCart = state.heldCarts.find((item) => item.id === state.salesHeldCartId);
     state.salesCart = heldCart ?? cart;
-    $('#sales-customer').disabled = Boolean(heldCart);
-    if (heldCart) $('#sales-customer').value = heldCart.customerId;
     state.salesManualDiscounts = Object.fromEntries(
       Object.entries(state.salesManualDiscounts).filter(([id]) =>
         cart.lines.some((line) => line.productId === id)),
@@ -3542,7 +3772,13 @@ async function loadSalesPage() {
       : t(context.warehouses.length === 0 ? 'sales.no_warehouse' : 'sales.warehouse_unconfigured');
     setSalesDefaultWarehouseOptions();
     renderSalesCustomers();
-    if (heldCart) $('#sales-customer').value = heldCart.customerId;
+    $('#sales-customer').disabled = Boolean(heldCart?.customerId);
+    $('#sales-hold-cart').disabled = Boolean(heldCart);
+    $('#sales-reserve-cart').disabled = Boolean(heldCart?.reservations.length);
+    if (heldCart) {
+      $('#sales-customer').value = heldCart.customerId ?? '';
+      $('#sales-customer').dataset.selectedCustomer = heldCart.customerId ?? '';
+    }
     renderSalesPayments();
     renderSalesProducts();
     renderSalesCart();
@@ -3553,11 +3789,11 @@ async function loadSalesPage() {
   }
 }
 
-async function addSalesProduct(productId) {
+async function addSalesProduct(productId, qty) {
   try {
     const { cart } = await api('/api/cart/lines', {
       method: 'POST',
-      body: JSON.stringify({ productId, qty: '1' }),
+      body: JSON.stringify({ productId, qty }),
     });
     state.salesCart = cart;
     renderSalesCart();
@@ -3620,6 +3856,8 @@ async function saveSalesDefaultWarehouse() {
 function collectSalePayments() {
   const payments = [];
   document.querySelectorAll('#sales-payments [data-payment-amount]').forEach((input) => {
+    const methodChoice = input.closest('.sales-payment')?.querySelector('[data-payment-method]');
+    if (!methodChoice?.checked) return;
     const rawAmount = input.value.trim();
     if (!rawAmount) return;
     const amount = moneyTextToTiyin(rawAmount);
@@ -3639,7 +3877,7 @@ function collectSalePayments() {
 
 async function submitSale(event) {
   event.preventDefault();
-  const button = $('#sales-submit');
+  const button = $('#sales-confirm-payment');
   button.disabled = true;
   try {
     if (!state.salesContext?.warehouse) throw new Error('settings.default_warehouse_required');
@@ -3651,11 +3889,12 @@ async function submitSale(event) {
       body: JSON.stringify({
         ...options,
         payments,
-        receiptLang: $('#sales-receipt-language').value,
+        receiptLang: state.lang,
         idempotencyKey: saleAttemptId,
       }),
     });
     saleAttemptId = null;
+    $('#sales-payment-dialog').close();
     state.salesHeldCartId = '';
     state.salesManualDiscounts = {};
     $('#sales-check-discount-value').value = '';
@@ -4233,6 +4472,13 @@ $('#navigation').addEventListener('click', (event) => {
   event.preventDefault();
   showPage(link.dataset.page);
 });
+$('#sales-page').addEventListener('click', (event) => {
+  const link = event.target.closest('a[data-page]');
+  if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey ||
+      event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  showPage(link.dataset.page);
+});
 window.addEventListener('popstate', () => {
   if (state.user) showPage(pageByPath[window.location.pathname] ?? 'products', false);
 });
@@ -4270,19 +4516,52 @@ $('#report-type').addEventListener('change', updateReportFilterVisibility);
 $('#report-export').addEventListener('click', exportReportCsv);
 $('#backup-create').addEventListener('click', () => { void createBackupNow(); });
 $('#sales-search').addEventListener('input', renderSalesProducts);
-$('#sales-customer').addEventListener('change', scheduleSalesQuote);
-$('#sales-held-cart').addEventListener('change', (event) => {
-  void selectSalesHeldCart(event.currentTarget.value).catch((error) => message(error.message));
+$('#sales-customer').addEventListener('change', (event) => {
+  const select = event.currentTarget;
+  if (select.value === ADD_CUSTOMER_VALUE) {
+    beginAddCustomer(select);
+    return;
+  }
+  select.dataset.selectedCustomer = select.value;
+  scheduleSalesQuote();
 });
 $('#sales-hold-cart').addEventListener('click', () => { void createHeldCart(); });
-$('#sales-reserve-cart').addEventListener('click', () => { void updateSelectedHeldCart('reserve'); });
-$('#sales-release-cart').addEventListener('click', () => { void updateSelectedHeldCart('release'); });
-$('#sales-cancel-cart').addEventListener('click', () => {
-  if (window.confirm(t('held.cancel_confirm'))) void updateSelectedHeldCart('cancel');
+$('#sales-reserve-cart').addEventListener('click', () => { void reserveSalesCart(); });
+$('#held-carts-list').addEventListener('change', (event) => {
+  const select = event.target.closest('[data-held-customer]');
+  if (!select) return;
+  if (select.value === ADD_CUSTOMER_VALUE) {
+    beginAddCustomer(select);
+    return;
+  }
+  select.dataset.selectedCustomer = select.value;
+  state.heldCustomerChoices[select.dataset.heldCustomer] = select.value;
+});
+$('#held-carts-list').addEventListener('click', (event) => {
+  const sell = event.target.closest('[data-held-sell]');
+  if (sell) {
+    void sellHeldCart(sell.dataset.heldSell);
+    return;
+  }
+  const reserve = event.target.closest('[data-held-reserve]');
+  if (reserve) void reserveHeldCartFromPage(reserve.dataset.heldReserve);
+});
+$('#customer-form').addEventListener('submit', (event) => { void saveNewCustomer(event); });
+$('#customer-cancel').addEventListener('click', () => {
+  $('#customer-dialog').close();
+  customerSelectionTarget = null;
 });
 $('#sales-check-discount-kind').addEventListener('change', scheduleSalesQuote);
 $('#sales-check-discount-value').addEventListener('input', scheduleSalesQuote);
-$('#sales-checkout').addEventListener('submit', (event) => { void submitSale(event); });
+$('#sales-submit').addEventListener('click', () => {
+  $('#sales-payment-dialog').showModal();
+  renderSalesSummary();
+});
+$('#sales-payment-cancel').addEventListener('click', () => {
+  $('#sales-payment-dialog').close();
+});
+$('#sales-checkout').addEventListener('submit', (event) => { event.preventDefault(); });
+$('#sales-payment-form').addEventListener('submit', (event) => { void submitSale(event); });
 $('#return-search-form').addEventListener('submit', (event) => { void searchReturnSale(event); });
 $('#return-form').addEventListener('submit', (event) => { void submitReturn(event); });
 $('#writeoff-form').addEventListener('submit', (event) => { void submitWriteOff(event); });

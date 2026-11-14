@@ -9,8 +9,8 @@ import { hasPermission } from '../auth/permissions';
 
 export interface HeldCart {
   id: string;
-  customerId: string;
-  customerName: string;
+  customerId: string | null;
+  customerName: string | null;
   userId: string;
   userName: string;
   status: 'open' | 'closed' | 'cancelled';
@@ -89,7 +89,7 @@ function readHeldCart(db: Db, cartId: string): HeldCart {
             hc.user_id AS userId, u.full_name AS userName, hc.status,
             hc.sale_id AS saleId, hc.created_at AS createdAt
      FROM held_carts hc
-     JOIN customers c ON c.id = hc.customer_id
+     LEFT JOIN customers c ON c.id = hc.customer_id
      JOIN users u ON u.id = hc.user_id
      WHERE hc.id = ?`,
   ).get(cartId) as Omit<HeldCart, 'lines' | 'reservations'> | undefined;
@@ -107,12 +107,21 @@ function readHeldCart(db: Db, cartId: string): HeldCart {
   return { ...row, lines, reservations };
 }
 
-export function holdActiveCart(db: Db, userId: string, customerIdInput: unknown): HeldCart {
-  if (typeof customerIdInput !== 'string' || !customerIdInput) throw new AuthError(400, 'validation.invalid_customer');
+function normalizeOptionalCustomerId(value: unknown): string | null {
+  if (value === undefined || value === null || value === '') return null;
+  if (typeof value !== 'string' || value.length > 64) {
+    throw new AuthError(400, 'validation.invalid_customer');
+  }
+  return value;
+}
+
+export function holdActiveCart(db: Db, userId: string, customerIdInput?: unknown): HeldCart {
+  const customerId = normalizeOptionalCustomerId(customerIdInput);
   return inTransaction(db, () => {
     assertPermission(db, userId, 'hold_cart');
-    const customer = db.prepare('SELECT id FROM customers WHERE id = ? AND active = 1').get(customerIdInput);
-    if (!customer) throw new AuthError(400, 'validation.invalid_customer');
+    if (customerId && !db.prepare('SELECT id FROM customers WHERE id = ? AND active = 1').get(customerId)) {
+      throw new AuthError(400, 'validation.invalid_customer');
+    }
     const cart = db.prepare("SELECT id FROM carts WHERE user_id = ? AND status = 'active'").get(userId) as
       { id: string } | undefined;
     if (!cart) throw new AuthError(409, 'cart.not_active');
@@ -124,7 +133,7 @@ export function holdActiveCart(db: Db, userId: string, customerIdInput: unknown)
     db.prepare(
       `INSERT INTO held_carts (id, customer_id, user_id, status, created_at)
        VALUES (?, ?, ?, 'open', ?)`,
-    ).run(heldId, customerIdInput, userId, now);
+    ).run(heldId, customerId, userId, now);
     const insertLine = db.prepare(
       'INSERT INTO held_cart_lines (id, cart_id, product_id, qty) VALUES (?, ?, ?, ?)',
     );
@@ -140,7 +149,7 @@ export function holdActiveCart(db: Db, userId: string, customerIdInput: unknown)
       action: 'cart.hold',
       entity: 'held_carts',
       entityId: heldId,
-      after: { customerId: customerIdInput, lines: lines.length },
+      after: { customerId, lines: lines.length },
     });
     return readHeldCart(db, heldId);
   });
@@ -164,7 +173,7 @@ export function getHeldCart(db: Db, userId: string, cartId: string): HeldCart {
 
 export function loadHeldCartForSale(db: Db, userId: string, cartId: string): {
   cart: HeldCart;
-  customerId: string;
+  customerId: string | null;
 } {
   assertPermission(db, userId, 'hold_cart');
   const held = assertOwner(db, userId, cartId);
@@ -216,12 +225,40 @@ export function consumeHeldCartReservations(db: Db, userId: string, cartId: stri
   });
 }
 
-export function reserveHeldCart(db: Db, userId: string, cartId: string, warehouseId: unknown): HeldCart {
-  if (typeof warehouseId !== 'string' || !warehouseId) throw new AuthError(400, 'validation.invalid_warehouse');
+export function reserveHeldCart(
+  db: Db,
+  userId: string,
+  cartId: string,
+  warehouseId: unknown,
+  customerIdInput?: unknown,
+): HeldCart {
+  let selectedWarehouseId: string | null = typeof warehouseId === 'string' && warehouseId ? warehouseId : null;
+  const requestedCustomerId = customerIdInput === undefined
+    ? undefined
+    : normalizeOptionalCustomerId(customerIdInput);
   return inTransaction(db, () => {
     assertPermission(db, userId, 'reserve_cart');
+    if (!selectedWarehouseId) {
+      const setting = db.prepare("SELECT value FROM settings WHERE key = 'default_warehouse_id'").get() as
+        { value: string } | undefined;
+      selectedWarehouseId = setting?.value ?? null;
+    }
+    if (!selectedWarehouseId) throw new AuthError(400, 'settings.default_warehouse_required');
     const held = assertOwner(db, userId, cartId);
     if (held.status !== 'open') throw new AuthError(409, 'cart.held_not_open');
+    const customer = db.prepare(
+      'SELECT customer_id AS customerId FROM held_carts WHERE id = ?',
+    ).get(cartId) as { customerId: string | null } | undefined;
+    const customerId = requestedCustomerId === undefined ? customer?.customerId ?? null : requestedCustomerId;
+    if (!customerId || !db.prepare(
+      'SELECT id FROM customers WHERE id = ? AND active = 1',
+    ).get(customerId)) {
+      throw new AuthError(400, 'validation.invalid_customer');
+    }
+    if (customerId !== customer?.customerId) {
+      db.prepare('UPDATE held_carts SET customer_id = ? WHERE id = ? AND status = \'open\'')
+        .run(customerId, cartId);
+    }
     expireReservations(db);
     if (db.prepare("SELECT 1 FROM reservations WHERE cart_id = ? AND status = 'active'").get(cartId)) {
       throw new AuthError(409, 'reservation.already_active');
@@ -229,7 +266,7 @@ export function reserveHeldCart(db: Db, userId: string, cartId: string, warehous
     const warehouse = db.prepare(
       `SELECT w.id FROM warehouses w JOIN branches b ON b.id = w.branch_id
        WHERE w.id = ? AND w.active = 1 AND b.active = 1`,
-    ).get(warehouseId);
+    ).get(selectedWarehouseId);
     if (!warehouse) throw new AuthError(400, 'validation.invalid_warehouse');
     const lines = db.prepare('SELECT product_id, qty FROM held_cart_lines WHERE cart_id = ?')
       .all(cartId) as Array<{ product_id: string; qty: number }>;
@@ -247,32 +284,81 @@ export function reserveHeldCart(db: Db, userId: string, cartId: string, warehous
       if (db.prepare(
         `SELECT 1 FROM stocktake_locks WHERE warehouse_id = ? AND released_at IS NULL
          AND (product_id IS NULL OR product_id = ?)`,
-      ).get(warehouseId, line.product_id)) throw new AuthError(409, 'stock.locked_by_stocktake');
+      ).get(selectedWarehouseId, line.product_id)) throw new AuthError(409, 'stock.locked_by_stocktake');
       const stock = db.prepare(
         `SELECT COALESCE(SUM(qty), 0) AS qty FROM stock_movements
          WHERE product_id = ? AND warehouse_id = ?`,
-      ).get(line.product_id, warehouseId) as { qty: number };
+      ).get(line.product_id, selectedWarehouseId) as { qty: number };
       const reserved = db.prepare(
         `SELECT COALESCE(SUM(qty), 0) AS qty FROM reservations
          WHERE product_id = ? AND warehouse_id = ? AND status = 'active'`,
-      ).get(line.product_id, warehouseId) as { qty: number };
+      ).get(line.product_id, selectedWarehouseId) as { qty: number };
       if (!Number.isSafeInteger(stock.qty) || !Number.isSafeInteger(reserved.qty) ||
           stock.qty - reserved.qty < line.qty) throw new AuthError(409, 'stock.insufficient');
       db.prepare(
         `INSERT INTO reservations
          (id, cart_id, product_id, warehouse_id, qty, status, user_id, created_at, expires_at)
          VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?)`,
-      ).run(uuidv7(), cartId, line.product_id, warehouseId, line.qty, userId, now, expiresAt);
-      updateReservedCache(db, line.product_id, warehouseId);
+      ).run(uuidv7(), cartId, line.product_id, selectedWarehouseId, line.qty, userId, now, expiresAt);
+      updateReservedCache(db, line.product_id, selectedWarehouseId);
     }
     writeAudit(db, {
       userId,
       action: 'reservation.create',
       entity: 'held_carts',
       entityId: cartId,
-      after: { warehouseId, lines: lines.length, expiresAt },
+      before: { customerId: customer?.customerId ?? null },
+      after: { warehouseId: selectedWarehouseId, customerId, lines: lines.length, expiresAt },
     });
     return readHeldCart(db, cartId);
+  });
+}
+
+export function reserveActiveCart(
+  db: Db,
+  userId: string,
+  customerId: unknown,
+  warehouseId: unknown,
+): HeldCart {
+  if (normalizeOptionalCustomerId(customerId) === null) {
+    throw new AuthError(400, 'validation.invalid_customer');
+  }
+  return inTransaction(db, () => {
+    const held = holdActiveCart(db, userId, customerId);
+    return reserveHeldCart(db, userId, held.id, warehouseId);
+  });
+}
+
+export function listActiveReservations(db: Db, userId: string, isAdmin: boolean) {
+  return inTransaction(db, () => {
+    expireReservations(db);
+    return db.prepare(
+      `SELECT r.id, r.cart_id AS cartId, r.product_id AS productId,
+              p.sku, p.name_ru AS name, p.unit, r.warehouse_id AS warehouseId,
+              w.name AS warehouseName, r.qty, r.created_at AS createdAt,
+              r.expires_at AS expiresAt, hc.customer_id AS customerId, c.name AS customerName
+       FROM reservations r
+       JOIN held_carts hc ON hc.id = r.cart_id
+       LEFT JOIN customers c ON c.id = hc.customer_id
+       JOIN products p ON p.id = r.product_id
+       JOIN warehouses w ON w.id = r.warehouse_id
+       WHERE r.status = 'active' ${isAdmin ? '' : 'AND hc.user_id = ?'}
+       ORDER BY r.created_at DESC, r.id`,
+    ).all(...(isAdmin ? [] : [userId])) as Array<{
+      id: string;
+      cartId: string;
+      productId: string;
+      sku: string;
+      name: string;
+      unit: string;
+      warehouseId: string;
+      warehouseName: string;
+      qty: number;
+      createdAt: string;
+      expiresAt: string | null;
+      customerId: string | null;
+      customerName: string | null;
+    }>;
   });
 }
 

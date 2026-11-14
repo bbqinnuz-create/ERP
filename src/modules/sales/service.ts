@@ -291,10 +291,10 @@ function calculateForCart(db: Db, userId: string, options: NormalizedSaleOptions
   let cart: Cart;
   if (options.heldCartId) {
     const held = loadHeldCartForSale(db, userId, options.heldCartId);
-    if (options.customerId && options.customerId !== held.customerId) {
+    if (held.customerId && options.customerId && options.customerId !== held.customerId) {
       throw new AuthError(400, 'cart.held_customer_mismatch');
     }
-    options.customerId = held.customerId;
+    options.customerId = held.customerId ?? options.customerId;
     cart = {
       id: held.cart.id,
       updatedAt: held.cart.createdAt,

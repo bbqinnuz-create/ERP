@@ -58,17 +58,31 @@ describe('HTTP API этапа 2', () => {
     expect(clientResponse.status).toBe(200);
     const clientHtml = await clientResponse.text();
     expect(clientHtml).toContain('id="navigation-toggle" type="button" aria-expanded="false" aria-controls="navigation-menu"');
+    const sessionBarHtml = clientHtml.match(/<div class="session-bar">([\s\S]*?)<\/div>/)?.[1] ?? '';
+    expect(sessionBarHtml.indexOf('id="navigation-toggle"')).toBeGreaterThanOrEqual(0);
+    expect(sessionBarHtml.indexOf('id="navigation-toggle"')).toBeLessThan(sessionBarHtml.indexOf('id="current-user"'));
+    expect(clientHtml.match(/<nav id="navigation">([\s\S]*?)<\/nav>/)?.[1]).not.toContain('id="navigation-toggle"');
     expect(clientHtml).toContain('<div id="navigation-menu" hidden>');
-    const navigationPages = [...clientHtml.matchAll(/data-page="([^"]+)"/g)].map((match) => match[1]);
+    expect(clientHtml).toContain('id="sales-held-carts-link"');
+    expect(clientHtml).toContain('id="sales-reservations-link"');
+    expect(clientHtml).toContain('data-i18n="sales.product_name"');
+    expect(clientHtml).toContain('data-i18n="sales.available_stock"');
+    expect(clientHtml).toContain('data-i18n="sales.product_price"');
+    expect(clientHtml).toContain('<dialog id="sales-payment-dialog"');
+    expect(clientHtml).toContain('id="sales-confirm-payment" type="submit"');
+    expect(clientHtml).toContain('id="sales-submit" type="button"');
+    expect(clientHtml).not.toContain('<h3 data-i18n="sales.payments"></h3>');
+    const navigationHtml = clientHtml.match(/<nav id="navigation">([\s\S]*?)<\/nav>/)?.[1] ?? '';
+    const navigationPages = [...navigationHtml.matchAll(/data-page="([^"]+)"/g)].map((match) => match[1]);
     expect(navigationPages).toEqual([
-      'sales', 'print', 'returns', 'writeoffs', 'stocktakes', 'reports', 'products',
+      'sales', 'heldCarts', 'reservations', 'print', 'returns', 'writeoffs', 'stocktakes', 'reports', 'products',
       'stock', 'purchases', 'movements', 'debts', 'cash', 'users', 'connection',
     ]);
     expect(clientHtml.indexOf('id="logout"')).toBeGreaterThan(clientHtml.indexOf('data-page="connection"'));
     expect((await fetch(`${baseUrl}/app.js`)).status).toBe(200);
     expect((await fetch(`${baseUrl}/app.js`)).status).toBe(200);
     for (const route of [
-      '/sell', '/sales', '/print', '/returns', '/writeoffs', '/stocktakes', '/reports',
+      '/sell', '/sales', '/held-carts', '/reservations', '/print', '/returns', '/writeoffs', '/stocktakes', '/reports',
       '/products', '/stock', '/purchases', '/movements', '/debts', '/cash', '/users', '/connection',
     ]) {
       const page = await fetch(`${baseUrl}${route}`);
@@ -109,6 +123,7 @@ describe('HTTP API этапа 2', () => {
       role: 'cashier',
       lang: 'ru',
     });
+
     setUserPermissions(env.db, adminId, cashier.id, { price_edit: 1 });
     const cookie = await loginCookie(cashier.login, 'cashier secure password');
 
@@ -136,6 +151,67 @@ describe('HTTP API этапа 2', () => {
       body: JSON.stringify({ base_price: 222 }),
     });
     expect(denied.status).toBe(403);
+  });
+
+  it('создаёт клиента, откладывает корзину без клиента и резервирует её только с клиентом', async () => {
+    const cookie = await loginCookie();
+    const productId = addProduct(env.db, 'WEB-HELD-OPTIONAL', 'шт', 20_000);
+    createPurchase(env.db, adminId, {
+      warehouseId: env.warehouseId,
+      date: '2026-11-13',
+      lines: [{ productId, qty: '3', unitCost: 1_000_000 }],
+    });
+    addCartLine(env.db, adminId, { productId, qty: '1' });
+
+    const customerResponse = await fetch(`${baseUrl}/api/sales/customers`, {
+      method: 'POST',
+      headers: { Cookie: cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Inline client' }),
+    });
+    expect(customerResponse.status).toBe(201);
+    const { row: customer } = await customerResponse.json() as { row: { id: string; name: string } };
+    expect(customer.name).toBe('Inline client');
+
+    const heldResponse = await fetch(`${baseUrl}/api/held-carts`, {
+      method: 'POST',
+      headers: { Cookie: cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    expect(heldResponse.status).toBe(201);
+    const { cart: held } = await heldResponse.json() as {
+      cart: { id: string; customerId: string | null; reservations: unknown[] };
+    };
+    expect(held).toMatchObject({ customerId: null, reservations: [] });
+
+    const reserveWithoutCustomer = await fetch(`${baseUrl}/api/held-carts/${held.id}/reserve`, {
+      method: 'POST',
+      headers: { Cookie: cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ warehouseId: env.warehouseId }),
+    });
+    expect(reserveWithoutCustomer.status).toBe(400);
+
+    const reserveResponse = await fetch(`${baseUrl}/api/held-carts/${held.id}/reserve`, {
+      method: 'POST',
+      headers: { Cookie: cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ warehouseId: env.warehouseId, customerId: customer.id }),
+    });
+    expect(reserveResponse.status).toBe(200);
+    expect((await reserveResponse.json()).cart.customerId).toBe(customer.id);
+
+    const reservationsResponse = await fetch(`${baseUrl}/api/reservations`, { headers: { Cookie: cookie } });
+    expect(reservationsResponse.status).toBe(200);
+    expect((await reservationsResponse.json()).reservations).toMatchObject([
+      { cartId: held.id, customerId: customer.id, productId, qty: 1000 },
+    ]);
+
+    addCartLine(env.db, adminId, { productId, qty: '1' });
+    const reserveActive = await fetch(`${baseUrl}/api/held-carts/reserve-active`, {
+      method: 'POST',
+      headers: { Cookie: cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ warehouseId: env.warehouseId, customerId: customer.id }),
+    });
+    expect(reserveActive.status).toBe(201);
+    expect((await reserveActive.json()).cart).toMatchObject({ customerId: customer.id });
   });
 
   it('защищает очередь печати правом sell и профиль чека правом settings', async () => {

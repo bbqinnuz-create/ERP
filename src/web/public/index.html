@@ -34,14 +34,16 @@
       </section>
       <section id="app-view" hidden>
         <div class="session-bar">
-          <span id="current-user"></span>
-        </div>
-        <nav id="navigation">
           <button id="navigation-toggle" type="button" aria-expanded="false" aria-controls="navigation-menu">
             <span id="navigation-toggle-label" data-i18n="nav.pages"></span>
           </button>
+          <span id="current-user"></span>
+        </div>
+        <nav id="navigation">
           <div id="navigation-menu" hidden>
             <a href="/sell" data-page="sales" data-i18n="nav.sales"></a>
+            <a href="/held-carts" data-page="heldCarts" data-i18n="nav.held_carts" hidden></a>
+            <a href="/reservations" data-page="reservations" data-i18n="nav.reservations" hidden></a>
             <a href="/print" data-page="print" data-i18n="nav.print" hidden></a>
             <a href="/returns" data-page="returns" data-i18n="nav.returns" hidden></a>
             <a href="/writeoffs" data-page="writeoffs" data-i18n="nav.writeoffs" hidden></a>
@@ -60,6 +62,12 @@
         </nav>
         <section id="sales-page" class="page" hidden>
           <h2 data-i18n="sales.title"></h2>
+          <div class="sales-page-links">
+            <a id="sales-held-carts-link" class="button-link" href="/held-carts" data-page="heldCarts"
+              data-i18n="nav.held_carts" hidden></a>
+            <a id="sales-reservations-link" class="button-link" href="/reservations" data-page="reservations"
+              data-i18n="nav.reservations" hidden></a>
+          </div>
           <div id="sales-warehouse-config" hidden>
             <label>
               <span data-i18n="sales.default_warehouse"></span>
@@ -72,30 +80,17 @@
             <span data-i18n="sales.search"></span>
             <input id="sales-search" type="search" autocomplete="off">
           </label>
-          <div id="sales-search-results" class="sales-results"></div>
-          <form id="sales-checkout">
-            <label>
-              <span data-i18n="sales.customer"></span>
-              <select id="sales-customer"></select>
-            </label>
-            <label>
-              <span data-i18n="sales.receipt_language"></span>
-              <select id="sales-receipt-language">
-                <option value="ru">RU</option>
-                <option value="uz">UZ</option>
-              </select>
-            </label>
-            <h3 data-i18n="sales.cart"></h3>
-            <div id="held-cart-controls" hidden>
-              <label>
-                <span data-i18n="held.select"></span>
-                <select id="sales-held-cart"></select>
-              </label>
-              <button id="sales-hold-cart" type="button" data-i18n="held.hold"></button>
-              <button id="sales-reserve-cart" type="button" data-i18n="held.reserve"></button>
-              <button id="sales-release-cart" type="button" data-i18n="held.release"></button>
-              <button id="sales-cancel-cart" type="button" data-i18n="held.cancel"></button>
+          <div id="sales-search-results" class="sales-results">
+            <div class="sales-product sales-product-header" aria-hidden="true">
+              <span data-i18n="sales.product_name"></span>
+              <span data-i18n="sales.available_stock"></span>
+              <span data-i18n="sales.product_price"></span>
+              <span></span>
+              <span></span>
             </div>
+          </div>
+          <form id="sales-checkout">
+            <h3 data-i18n="sales.cart"></h3>
             <div class="table-wrap">
               <table><thead id="sales-cart-head"></thead><tbody id="sales-cart-body"></tbody></table>
             </div>
@@ -109,15 +104,42 @@
                 <input id="sales-check-discount-value" type="text" inputmode="decimal">
               </label>
             </div>
-            <h3 data-i18n="sales.payments"></h3>
-            <div id="sales-payments" class="sales-payments"></div>
-            <p id="sales-summary" aria-live="polite"></p>
-            <button id="sales-submit" type="submit" data-i18n="sales.submit"></button>
+            <button id="sales-submit" type="button" data-i18n="sales.submit"></button>
+            <label>
+              <span data-i18n="sales.customer"></span>
+              <select id="sales-customer"></select>
+            </label>
+            <div class="sales-cart-actions">
+              <button id="sales-hold-cart" type="button" data-i18n="held.hold"></button>
+              <button id="sales-reserve-cart" type="button" data-i18n="held.reserve"></button>
+            </div>
           </form>
+          <dialog id="sales-payment-dialog" class="modal-dialog sales-payment-dialog">
+            <form id="sales-payment-form">
+              <h2 data-i18n="sales.payments"></h2>
+              <div id="sales-payments" class="sales-payments"></div>
+              <p id="sales-summary" aria-live="polite"></p>
+              <div class="dialog-actions">
+                <button id="sales-payment-cancel" class="button-secondary" type="button"
+                  data-i18n="common.cancel"></button>
+                <button id="sales-confirm-payment" type="submit" data-i18n="sales.confirm_payment"></button>
+              </div>
+            </form>
+          </dialog>
           <section id="sales-receipt" hidden>
             <h3 data-i18n="sales.receipt"></h3>
             <p id="sales-receipt-summary"></p>
           </section>
+        </section>
+        <section id="heldCarts-page" class="page" hidden>
+          <h2 data-i18n="held.title"></h2>
+          <div id="held-carts-list"></div>
+        </section>
+        <section id="reservations-page" class="page" hidden>
+          <h2 data-i18n="reservations.title"></h2>
+          <div class="table-wrap">
+            <table><thead id="reservations-head"></thead><tbody id="reservations-body"></tbody></table>
+          </div>
         </section>
         <section id="print-page" class="page" hidden>
           <h2 data-i18n="print.title"></h2>
@@ -322,7 +344,7 @@
             <p id="return-quote" role="status"></p>
             <label><span data-i18n="returns.reason"></span><input id="return-reason" maxlength="1000" required></label>
             <label><span data-i18n="returns.payment_method"></span><select id="return-payment-method"></select></label>
-            <label><span data-i18n="sales.receipt_language"></span>
+            <label><span data-i18n="returns.receipt_language"></span>
               <select id="return-receipt-language"><option value="ru">RU</option><option value="uz">UZ</option></select>
             </label>
             <button type="submit" data-i18n="returns.submit"></button>
@@ -488,6 +510,18 @@
         <div class="dialog-actions">
           <button id="price-cancel" type="button" class="button-secondary" data-i18n="common.cancel"></button>
           <button type="submit" data-i18n="products.save_price"></button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="customer-dialog" class="modal-dialog">
+      <form id="customer-form">
+        <h2 data-i18n="customers.add_title"></h2>
+        <label><span data-i18n="customers.name"></span><input name="name" maxlength="120" required></label>
+        <label><span data-i18n="customers.phone"></span><input name="phone" maxlength="200"></label>
+        <label><span data-i18n="customers.note"></span><input name="note" maxlength="1000"></label>
+        <div class="dialog-actions">
+          <button id="customer-cancel" type="button" class="button-secondary" data-i18n="common.cancel"></button>
+          <button type="submit" data-i18n="customers.save"></button>
         </div>
       </form>
     </dialog>

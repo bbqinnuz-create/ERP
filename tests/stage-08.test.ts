@@ -6,6 +6,7 @@ import { migrate } from '../src/db/migrate';
 import { addCartLine } from '../src/modules/carts/service';
 import {
   holdActiveCart,
+  listActiveReservations,
   reserveHeldCart,
   setReservationQuantity,
 } from '../src/modules/carts/held';
@@ -247,6 +248,7 @@ describe('этап 8: возвраты, списания, инвентариза
       heldCartId: held.id,
       payments: [{ methodId: cashMethod(), amount: 3_000_000 }],
     });
+
     expect((env.db.prepare('SELECT cart_id FROM sales WHERE id = ?').get(result.receipt.sale.id) as
       { cart_id: string }).cart_id).toBe(held.id);
     expect((env.db.prepare('SELECT status, sale_id FROM held_carts WHERE id = ?').get(held.id) as
@@ -256,6 +258,27 @@ describe('этап 8: возвраты, списания, инвентариза
     expect((env.db.prepare(
       'SELECT qty, reserved FROM stock_cache WHERE product_id = ? AND warehouse_id = ?',
     ).get(productId, env.warehouseId) as { qty: number; reserved: number })).toEqual({ qty: 1000, reserved: 0 });
+  });
+
+  it('позволяет отложить корзину без клиента, но требует клиента для резервирования', () => {
+    const productId = addProduct(env.db, 'HELD-OPTIONAL-CUSTOMER', 'шт');
+    purchase(productId, '3', 100_000);
+    addCartLine(env.db, adminId, { productId, qty: '1' });
+    const held = holdActiveCart(env.db, adminId);
+    expect(held.customerId).toBeNull();
+    expect(held.reservations).toHaveLength(0);
+    expect(() => reserveHeldCart(env.db, adminId, held.id, env.warehouseId)).toThrowError(
+      expect.objectContaining({ errorKey: 'validation.invalid_customer' }),
+    );
+    expect(env.db.prepare('SELECT COUNT(*) AS count FROM reservations').get()).toEqual({ count: 0 });
+
+    const customerId = addCustomer(env.db);
+    const reserved = reserveHeldCart(env.db, adminId, held.id, env.warehouseId, customerId);
+    expect(reserved.customerId).toBe(customerId);
+    expect(reserved.reservations).toHaveLength(1);
+    expect(listActiveReservations(env.db, adminId, true)).toMatchObject([
+      { cartId: held.id, customerId, productId, qty: 1000 },
+    ]);
   });
 
   it('показывает дефицит резерва после инвентаризации и позволяет уполномоченному пользователю освободить его', () => {
