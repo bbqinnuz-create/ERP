@@ -232,9 +232,13 @@ const translations = {
     'product_import.no_update_fields': 'Для обновления заполните хотя бы одно поле помимо артикула.',
     'sales.title': 'Продажа',
     'sales.default_warehouse': 'Общий склад по умолчанию',
+    'sales.choose_warehouse': 'Склад для этой продажи',
+    'sales.selected_warehouse': 'Склад продажи',
     'sales.save_default_warehouse': 'Сохранить склад',
     'sales.warehouse_unconfigured': 'Настройте общий склад по умолчанию.',
     'sales.no_warehouse': 'Нет активного склада.',
+    'sales.no_permitted_warehouse': 'Нет склада, разрешённого для продаж.',
+    'sales.choose_warehouse_first': 'Выберите склад для продажи.',
     'sales.search': 'Поиск по названию, артикулу или штрихкоду',
     'sales.product_name': 'Название',
     'sales.available_stock': 'Остаток (Количество с учётом забронированных)',
@@ -615,6 +619,10 @@ const translations = {
     'users.language': 'Язык',
     'users.create': 'Создать пользователя',
     'users.permissions': 'Права пользователя',
+    'users.pages': 'Доступ к страницам',
+    'users.pages_help': 'Эти разрешения ограничивают доступ к страницам дополнительно к правам на операции.',
+    'users.sales_warehouses': 'Склады для продаж',
+    'users.sales_warehouses_help': 'Если список пуст, используется общий склад по умолчанию.',
     'users.edit': 'Изменить пользователя',
     'users.new_password': 'Новый пароль (необязательно)',
     'users.save_user': 'Сохранить пользователя',
@@ -659,6 +667,29 @@ const translations = {
     'permission.cash_collection': 'Инкассация',
     'permission.users_manage': 'Управление пользователями',
     'permission.settings': 'Настройки и справочники',
+    'page.sales': 'Продажа',
+    'page.heldCarts': 'Отложенные корзины',
+    'page.reservations': 'Резервы',
+    'page.print': 'Печать',
+    'page.returns': 'Возвраты',
+    'page.writeoffs': 'Списания',
+    'page.stocktakes': 'Инвентаризация',
+    'page.reports': 'Отчёты',
+    'page.products': 'Товары',
+    'page.stock': 'Остатки',
+    'page.warehouses': 'Склады',
+    'page.purchases': 'Приходы',
+    'page.movements': 'Движения',
+    'page.debts': 'Долги',
+    'page.cash': 'Касса',
+    'page.users': 'Пользователи',
+    'page.connection': 'Подключение ПК',
+    'auth.page_permission_denied': 'Нет доступа к этой странице.',
+    'auth.warehouse_permission_denied': 'Продажа с этого склада запрещена.',
+    'auth.no_accessible_pages': 'Для пользователя не настроен доступ ни к одной странице.',
+    'validation.unknown_page': 'Неизвестная страница.',
+    'validation.invalid_page_permissions': 'Неверный список прав на страницы.',
+    'validation.invalid_warehouses': 'Неверный список складов.',
     'permission.discount_check_limit_bp': 'Лимит скидки на чек (б.п.)',
     'permission.discount_manual_limit_bp': 'Лимит ручной скидки (б.п.)',
     'auth.invalid_credentials': 'Неверный логин или пароль.',
@@ -940,9 +971,13 @@ const translations = {
     'product_import.no_update_fields': 'Yangilash uchun artikuldan tashqari kamida bitta maydonni to‘ldiring.',
     'sales.title': 'Savdo',
     'sales.default_warehouse': 'Umumiy standart ombor',
+    'sales.choose_warehouse': 'Ushbu savdo uchun ombor',
+    'sales.selected_warehouse': 'Savdo ombori',
     'sales.save_default_warehouse': 'Omborni saqlash',
     'sales.warehouse_unconfigured': 'Umumiy standart omborni sozlang.',
     'sales.no_warehouse': 'Faol ombor yo‘q.',
+    'sales.no_permitted_warehouse': 'Savdo uchun ruxsat etilgan ombor yo‘q.',
+    'sales.choose_warehouse_first': 'Savdo uchun omborni tanlang.',
     'sales.search': 'Nomi, artikul yoki shtrix-kod bo‘yicha qidirish',
     'sales.product_name': 'Nomi',
     'sales.available_stock': 'Qoldiq (band qilingan miqdor hisobga olingan)',
@@ -1323,6 +1358,10 @@ const translations = {
     'users.language': 'Til',
     'users.create': 'Foydalanuvchi yaratish',
     'users.permissions': 'Foydalanuvchi huquqlari',
+    'users.pages': 'Sahifalarga kirish',
+    'users.pages_help': 'Bu ruxsatlar operatsiya huquqlariga qo‘shimcha ravishda sahifalarga kirishni cheklaydi.',
+    'users.sales_warehouses': 'Savdo omborlari',
+    'users.sales_warehouses_help': 'Ro‘yxat bo‘sh bo‘lsa, umumiy standart ombor ishlatiladi.',
     'users.edit': 'Foydalanuvchini tahrirlash',
     'users.new_password': 'Yangi parol (ixtiyoriy)',
     'users.save_user': 'Foydalanuvchini saqlash',
@@ -1367,6 +1406,29 @@ const translations = {
     'permission.cash_collection': 'Inkassatsiya',
     'permission.users_manage': 'Foydalanuvchilarni boshqarish',
     'permission.settings': 'Sozlamalar va ma’lumotnomalar',
+    'page.sales': 'Savdo',
+    'page.heldCarts': 'Saqlangan savatchalar',
+    'page.reservations': 'Rezervlar',
+    'page.print': 'Chop etish',
+    'page.returns': 'Qaytarishlar',
+    'page.writeoffs': 'Hisobdan chiqarish',
+    'page.stocktakes': 'Inventarizatsiya',
+    'page.reports': 'Hisobotlar',
+    'page.products': 'Tovarlar',
+    'page.stock': 'Qoldiqlar',
+    'page.warehouses': 'Omborlar',
+    'page.purchases': 'Kirimlar',
+    'page.movements': 'Harakatlar',
+    'page.debts': 'Qarzlar',
+    'page.cash': 'Kassa',
+    'page.users': 'Foydalanuvchilar',
+    'page.connection': 'Kompyuterlarni ulash',
+    'auth.page_permission_denied': 'Bu sahifaga kirish ruxsati yo‘q.',
+    'auth.warehouse_permission_denied': 'Bu ombordan savdo qilish taqiqlangan.',
+    'auth.no_accessible_pages': 'Foydalanuvchi uchun hech bir sahifaga kirish sozlanmagan.',
+    'validation.unknown_page': 'Noma’lum sahifa.',
+    'validation.invalid_page_permissions': 'Sahifa ruxsatlari ro‘yxati noto‘g‘ri.',
+    'validation.invalid_warehouses': 'Omborlar ro‘yxati noto‘g‘ri.',
     'permission.discount_check_limit_bp': 'Chek chegirmasi limiti (bazis punkt)',
     'permission.discount_manual_limit_bp': 'Qo‘lda chegirma limiti (bazis punkt)',
     'auth.invalid_credentials': 'Login yoki parol noto‘g‘ri.',
@@ -1423,12 +1485,17 @@ const permissionKeys = [
   'view_cost', 'reports', 'cash_in', 'cash_out', 'expense', 'cash_collection', 'users_manage', 'settings',
   'discount_check_limit_bp', 'discount_manual_limit_bp',
 ];
+const pagePermissionKeys = [
+  'sales', 'heldCarts', 'reservations', 'print', 'returns', 'writeoffs', 'stocktakes', 'reports',
+  'products', 'stock', 'warehouses', 'purchases', 'movements', 'debts', 'cash', 'users', 'connection',
+];
 
 const state = {
   lang: localStorage.getItem('kassa_lang') === 'uz' ? 'uz' : 'ru',
   user: null,
   selectedUser: null,
   salesContext: null,
+  salesWarehouseId: '',
   salesCart: null,
   salesQuote: null,
   salesManualDiscounts: {},
@@ -1746,7 +1813,7 @@ async function reserveHeldCartFromPage(cartId) {
   try {
     const customerId = state.heldCustomerChoices[cartId];
     if (!customerId) throw new Error('held.customer_required');
-    const warehouseId = state.salesContext?.defaultWarehouseId;
+    const warehouseId = state.salesContext?.warehouse?.id;
     await api(`/api/held-carts/${encodeURIComponent(cartId)}/reserve`, {
       method: 'POST',
       body: JSON.stringify({ ...(warehouseId ? { warehouseId } : {}), customerId }),
@@ -1815,6 +1882,8 @@ function showLogin(errorKey = '') {
   $('#app-view').hidden = true;
   $('#permission-editor').hidden = true;
   $('#user-edit-form').hidden = true;
+  state.salesWarehouseId = '';
+  state.salesContext = null;
   message(errorKey);
 }
 
@@ -1827,32 +1896,20 @@ function showApp(user) {
   $('#login-view').hidden = true;
   $('#app-view').hidden = false;
   $('#current-user').textContent = `${user.fullName} (${user.login})`;
-  $('#navigation [data-page="sales"]').hidden = user.permissions.sell !== 1;
-  $('#navigation [data-page="print"]').hidden =
-    user.permissions.sell !== 1 && user.permissions.return !== 1;
-  $('#navigation [data-page="returns"]').hidden = user.permissions.return !== 1;
-  $('#navigation [data-page="writeoffs"]').hidden = user.permissions.write_off !== 1;
-  $('#navigation [data-page="stocktakes"]').hidden = user.permissions.stocktake !== 1;
-  $('#navigation [data-page="reports"]').hidden = user.permissions.reports !== 1;
-  $('#navigation [data-page="heldCarts"]').hidden =
-    user.permissions.hold_cart !== 1 && user.permissions.reserve_cart !== 1;
-  $('#navigation [data-page="reservations"]').hidden = user.permissions.reserve_cart !== 1;
+  document.querySelectorAll('#navigation [data-page]').forEach((link) => {
+    link.hidden = !canAccessPage(link.dataset.page);
+  });
   $('#sales-held-carts-link').hidden =
-    user.permissions.hold_cart !== 1 && user.permissions.reserve_cart !== 1;
-  $('#sales-reservations-link').hidden = user.permissions.reserve_cart !== 1;
+    !canAccessPage('heldCarts');
+  $('#sales-reservations-link').hidden = !canAccessPage('reservations');
   $('#backup-controls').hidden = user.role !== 'admin';
   const canViewDebts = ['debt_payment', 'reports']
     .some((permission) => user.permissions[permission] === 1);
   const canViewCash = ['cash_in', 'cash_out', 'expense', 'cash_collection', 'reports']
     .some((permission) => user.permissions[permission] === 1);
-  $('#navigation [data-page="debts"]').hidden = !canViewDebts;
-  $('#navigation [data-page="cash"]').hidden = !canViewCash;
-  $('#navigation [data-page="users"]').hidden = user.permissions.users_manage !== 1;
-  $('#navigation [data-page="warehouses"]').hidden = user.permissions.settings !== 1;
-  $('#navigation [data-page="connection"]').hidden = user.role !== 'admin';
   $('#product-form').hidden = user.permissions.settings !== 1 || user.permissions.price_edit !== 1;
   $('#product-import-panel').hidden = user.permissions.settings !== 1 || user.permissions.price_edit !== 1;
-  if (!$('#product-form').hidden) void loadProductUnits();
+  if (!$('#product-form').hidden && canAccessPage('products')) void loadProductUnits();
   $('#purchase-form').hidden = user.permissions.purchase !== 1;
   $('#purchase-import-panel').hidden = user.permissions.purchase !== 1;
   $('#purchase-import-update-price-field').hidden = user.permissions.price_edit !== 1;
@@ -1877,12 +1934,13 @@ function showApp(user) {
   $('#user-edit-form').hidden = true;
   $('#permission-editor').hidden = true;
   showPage(pageByPath[window.location.pathname] ?? 'products');
-  void loadInventoryOptions();
-  void loadProducts();
-  if (user.permissions.sell === 1) void loadSalesPage();
-  if (canViewDebts) void loadDebts();
-  if (canViewCash) void loadCashPage();
-  if (user.permissions.reports === 1) void loadReportOptions();
+  if (['products', 'sales', 'stock', 'purchases', 'movements', 'returns', 'writeoffs', 'stocktakes', 'reports']
+    .some((page) => canAccessPage(page))) void loadInventoryOptions();
+  if (canAccessPage('products')) void loadProducts();
+  if (canAccessPage('sales')) void loadSalesPage();
+  if (canViewDebts && canAccessPage('debts')) void loadDebts();
+  if (canViewCash && canAccessPage('cash')) void loadCashPage();
+  if (user.permissions.reports === 1 && canAccessPage('reports')) void loadReportOptions();
 }
 
 async function checkSessionStatus() {
@@ -1912,6 +1970,7 @@ async function checkServerHealth() {
 
 function canAccessPage(name) {
   if (!state.user) return false;
+  if (state.user.pagePermissions?.[name] !== 1) return false;
   const permissionMap = {
     sales: 'sell',
     heldCarts: ['hold_cart', 'reserve_cart'],
@@ -1941,7 +2000,14 @@ function setNavigationExpanded(expanded) {
 }
 
 function showPage(name, updateHistory = true) {
-  if (!pagePaths[name] || !canAccessPage(name)) name = 'products';
+  if (!pagePaths[name] || !canAccessPage(name)) {
+    name = Object.keys(pagePaths).find((page) => canAccessPage(page)) ?? 'products';
+    if (!canAccessPage(name)) {
+      document.querySelectorAll('.page').forEach((page) => { page.hidden = true; });
+      message('auth.no_accessible_pages');
+      return;
+    }
+  }
   state.activePage = name;
   document.querySelectorAll('.page').forEach((page) => { page.hidden = page.id !== `${name}-page`; });
   document.querySelectorAll('#navigation [data-page]').forEach((link) => {
@@ -2223,7 +2289,7 @@ async function reserveSalesCart() {
   try {
     const customerId = $('#sales-customer').value;
     if (!customerId) throw new Error('held.customer_required');
-    const warehouseId = state.salesContext?.defaultWarehouseId;
+    const warehouseId = state.salesContext?.warehouse?.id;
     if (!warehouseId) throw new Error('settings.default_warehouse_required');
     if (state.salesHeldCartId) {
       await api(`/api/held-carts/${encodeURIComponent(state.salesHeldCartId)}/reserve`, {
@@ -3541,6 +3607,17 @@ function setSalesDefaultWarehouseOptions() {
   select.value = state.salesContext.defaultWarehouseId ?? '';
 }
 
+function setSalesWarehouseOptions() {
+  const field = $('#sales-warehouse-choice-field');
+  const select = $('#sales-warehouse-choice');
+  const warehouses = state.salesContext?.salesWarehouses ?? [];
+  field.hidden = warehouses.length < 2;
+  const options = [makeOption('', t('status.select_option')),
+    ...warehouses.map((warehouse) => makeOption(warehouse.id, warehouse.name))];
+  select.replaceChildren(...options);
+  select.value = state.salesWarehouseId;
+}
+
 function renderSalesPayments() {
   const container = $('#sales-payments');
   container.replaceChildren();
@@ -3784,14 +3861,18 @@ async function refreshSalesQuote() {
 
 async function loadSalesPage() {
   try {
+    const contextUrl = new URL('/api/sales/context', window.location.origin);
+    if (state.salesWarehouseId) contextUrl.searchParams.set('warehouseId', state.salesWarehouseId);
     const [context, { cart }, heldResult] = await Promise.all([
-      api('/api/sales/context'),
+      api(`${contextUrl.pathname}${contextUrl.search}`),
       api('/api/cart'),
-      state.user?.permissions.hold_cart === 1 || state.user?.permissions.reserve_cart === 1
+      canAccessPage('heldCarts') &&
+        (state.user?.permissions.hold_cart === 1 || state.user?.permissions.reserve_cart === 1)
         ? api('/api/held-carts')
         : Promise.resolve({ carts: [] }),
     ]);
     state.salesContext = context;
+    state.salesWarehouseId = context.warehouse?.id ?? '';
     state.customers = context.customers;
     state.heldCarts = heldResult.carts;
     const heldCart = state.heldCarts.find((item) => item.id === state.salesHeldCartId);
@@ -3803,9 +3884,14 @@ async function loadSalesPage() {
     $('#sales-warehouse-config').hidden = state.user?.permissions.settings !== 1;
     $('#sales-check-discount').hidden = state.user?.permissions.discount_check !== 1;
     $('#sales-warehouse-status').textContent = context.warehouse
-      ? `${t('sales.default_warehouse')}: ${context.warehouse.name}`
-      : t(context.warehouses.length === 0 ? 'sales.no_warehouse' : 'sales.warehouse_unconfigured');
+      ? `${t('sales.selected_warehouse')}: ${context.warehouse.name}`
+      : t(context.salesWarehouses.length === 0
+        ? 'sales.no_permitted_warehouse'
+        : context.salesWarehouses.length > 1
+          ? 'sales.choose_warehouse_first'
+          : 'sales.warehouse_unconfigured');
     setSalesDefaultWarehouseOptions();
+    setSalesWarehouseOptions();
     renderSalesCustomers();
     $('#sales-customer').disabled = Boolean(heldCart?.customerId);
     $('#sales-hold-cart').disabled = Boolean(heldCart);
@@ -3879,6 +3965,7 @@ async function saveSalesDefaultWarehouse() {
       method: 'PUT',
       body: JSON.stringify({ default_warehouse_id: warehouseId }),
     });
+    state.salesWarehouseId = warehouseId;
     await loadSalesPage();
     message('status.saved');
   } catch (error) {
@@ -3923,6 +4010,7 @@ async function submitSale(event) {
       method: 'POST',
       body: JSON.stringify({
         ...options,
+        warehouseId: state.salesWarehouseId,
         payments,
         receiptLang: state.lang,
         idempotencyKey: saleAttemptId,
@@ -4478,37 +4566,74 @@ function editUser(user) {
   form.elements.namedItem('password').value = '';
 }
 
-function editPermissions(user) {
-  state.selectedUser = user;
-  $('#permission-editor').hidden = false;
-  $('#permission-user').textContent = user.fullName;
-  const list = $('#permission-list');
-  list.replaceChildren();
-  if (user.role === 'admin') {
-    const note = document.createElement('p');
-    note.textContent = t('status.admin_permissions');
-    list.append(note);
-    return;
-  }
-  for (const key of permissionKeys) {
-    const label = document.createElement('label');
-    label.className = 'permission-item';
-    const name = document.createElement('span');
-    name.textContent = t(`permission.${key}`);
-    const input = document.createElement('input');
-    input.dataset.permission = key;
-    if (key.endsWith('_limit_bp')) {
-      input.type = 'number';
-      input.min = '0';
-      input.max = '10000';
-      input.step = '1';
-      input.value = String(user.permissions[key] ?? 0);
-    } else {
+async function editPermissions(user) {
+  const editor = $('#permission-editor');
+  editor.hidden = false;
+  message('status.loading');
+  try {
+    const access = await api(`/api/users/${encodeURIComponent(user.id)}/permissions`);
+    state.selectedUser = { ...user, ...access };
+    $('#permission-user').textContent = user.fullName;
+    const pageList = $('#page-permission-list');
+    pageList.replaceChildren();
+    for (const key of pagePermissionKeys) {
+      const label = document.createElement('label');
+      label.className = 'permission-item';
+      const name = document.createElement('span');
+      name.textContent = t(`page.${key}`);
+      const input = document.createElement('input');
       input.type = 'checkbox';
-      input.checked = user.permissions[key] === 1;
+      input.dataset.pagePermission = key;
+      input.checked = access.pagePermissions[key] === 1;
+      label.append(input, name);
+      pageList.append(label);
     }
-    label.append(input, name);
-    list.append(label);
+
+    const warehouseList = $('#sales-warehouse-permission-list');
+    warehouseList.replaceChildren();
+    for (const warehouse of access.warehouses) {
+      const label = document.createElement('label');
+      label.className = 'permission-item';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.dataset.salesWarehouse = warehouse.id;
+      input.checked = access.salesWarehouseIds.includes(warehouse.id);
+      label.append(input, document.createTextNode(warehouse.name));
+      warehouseList.append(label);
+    }
+    const salesPagePermission = pageList.querySelector('[data-page-permission="sales"]');
+    const warehouseField = $('#sales-warehouse-permission');
+    warehouseField.hidden = !salesPagePermission?.checked;
+    salesPagePermission?.addEventListener('change', () => {
+      warehouseField.hidden = !salesPagePermission.checked;
+    });
+
+    const list = $('#permission-list');
+    list.replaceChildren();
+    for (const key of permissionKeys) {
+      const label = document.createElement('label');
+      label.className = 'permission-item';
+      const name = document.createElement('span');
+      name.textContent = t(`permission.${key}`);
+      const input = document.createElement('input');
+      input.dataset.permission = key;
+      if (key.endsWith('_limit_bp')) {
+        input.type = 'number';
+        input.min = '0';
+        input.max = '10000';
+        input.step = '1';
+        input.value = String(access.permissions[key] ?? 0);
+      } else {
+        input.type = 'checkbox';
+        input.checked = access.permissions[key] === 1;
+      }
+      label.append(input, name);
+      list.append(label);
+    }
+    message('');
+  } catch (error) {
+    editor.hidden = true;
+    message(error.message);
   }
 }
 
@@ -4519,8 +4644,9 @@ $('#language').addEventListener('change', (event) => {
   localStorage.setItem('kassa_lang', state.lang);
   localize();
   if (state.user) {
-    void loadInventoryOptions();
-    if (state.user.permissions.reports === 1) void loadReportOptions();
+    if (['products', 'sales', 'stock', 'purchases', 'movements', 'returns', 'writeoffs', 'stocktakes', 'reports']
+      .some((page) => canAccessPage(page))) void loadInventoryOptions();
+    if (state.user.permissions.reports === 1 && canAccessPage('reports')) void loadReportOptions();
     $('#current-user').textContent = `${state.user.fullName} (${state.user.login})`;
     document.querySelectorAll('#purchase-lines button').forEach((button) => {
       button.textContent = t('purchases.remove_line');
@@ -4611,6 +4737,10 @@ $('#refresh-connection-info').addEventListener('click', () => { void loadConnect
 $('#print-refresh').addEventListener('click', () => { void loadPrintJobs(); });
 $('#print-profile-form').addEventListener('submit', (event) => { void savePrintProfile(event); });
 $('#save-default-warehouse').addEventListener('click', () => { void saveSalesDefaultWarehouse(); });
+$('#sales-warehouse-choice').addEventListener('change', (event) => {
+  state.salesWarehouseId = event.currentTarget.value;
+  void loadSalesPage();
+});
 $('#reports-form').addEventListener('submit', (event) => {
   event.preventDefault();
   void loadReports();
@@ -4914,11 +5044,18 @@ $('#save-permissions').addEventListener('click', async () => {
     $('#permission-list').querySelectorAll('[data-permission]').forEach((input) => {
       permissions[input.dataset.permission] = input.type === 'checkbox' ? Number(input.checked) : Number(input.value);
     });
+    const pagePermissions = {};
+    $('#page-permission-list').querySelectorAll('[data-page-permission]').forEach((input) => {
+      pagePermissions[input.dataset.pagePermission] = Number(input.checked);
+    });
+    const salesWarehouseIds = [...$('#sales-warehouse-permission-list').querySelectorAll('[data-sales-warehouse]')]
+      .filter((input) => input.checked)
+      .map((input) => input.dataset.salesWarehouse);
     const result = await api(`/api/users/${encodeURIComponent(state.selectedUser.id)}/permissions`, {
       method: 'PATCH',
-      body: JSON.stringify({ permissions }),
+      body: JSON.stringify({ permissions, pagePermissions, salesWarehouseIds }),
     });
-    state.selectedUser = { ...state.selectedUser, permissions: result.permissions };
+    state.selectedUser = { ...state.selectedUser, ...result };
     message('status.saved');
     await loadUsers();
   } catch (error) {

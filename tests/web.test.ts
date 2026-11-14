@@ -390,6 +390,106 @@ describe('HTTP API этапа 2', () => {
     });
   });
 
+  it('ограничивает доступ к страницам и складам продаж серверными правами', async () => {
+    const cashier = await createUser(env.db, adminId, {
+      login: 'page-access-cashier',
+      password: 'cashier secure password',
+      fullName: 'Page Access Cashier',
+      role: 'cashier',
+      lang: 'ru',
+    });
+    setUserPermissions(env.db, adminId, cashier.id, { sell: 1 });
+    const otherWarehouse = saveReference(env.db, adminId, 'warehouses', {
+      branch_id: env.branchId,
+      name: 'Разрешённый склад',
+    });
+    const productId = addProduct(env.db, 'PAGE-WAREHOUSE-ACCESS');
+    createPurchase(env.db, adminId, {
+      warehouseId: otherWarehouse.id,
+      date: '2026-11-14',
+      lines: [{ productId, qty: '2', unitCost: 1_000 }],
+    });
+    const adminCookie = await loginCookie();
+    const cashierCookie = await loginCookie(cashier.login, 'cashier secure password');
+
+    const disabledPage = await fetch(`${baseUrl}/api/users/${encodeURIComponent(cashier.id)}/permissions`, {
+      method: 'PATCH',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pagePermissions: { sales: 0, stock: 0 } }),
+    });
+    expect(disabledPage.status).toBe(200);
+    const deniedPage = await fetch(`${baseUrl}/api/sales/context`, { headers: { Cookie: cashierCookie } });
+    expect(deniedPage.status).toBe(403);
+    expect(await deniedPage.json()).toMatchObject({ errorKey: 'auth.page_permission_denied' });
+
+    const updated = await fetch(`${baseUrl}/api/users/${encodeURIComponent(cashier.id)}/permissions`, {
+      method: 'PATCH',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        pagePermissions: { sales: 1, stock: 0 },
+        salesWarehouseIds: [otherWarehouse.id],
+      }),
+    });
+    expect(updated.status).toBe(200);
+    expect(await updated.json()).toMatchObject({
+      pagePermissions: { sales: 1, stock: 0 },
+      salesWarehouseIds: [otherWarehouse.id],
+    });
+
+    const deniedStock = await fetch(`${baseUrl}/api/stock`, { headers: { Cookie: cashierCookie } });
+    expect(deniedStock.status).toBe(403);
+    expect(await deniedStock.json()).toMatchObject({ errorKey: 'auth.page_permission_denied' });
+
+    const contextResponse = await fetch(`${baseUrl}/api/sales/context`, { headers: { Cookie: cashierCookie } });
+    expect(contextResponse.status).toBe(200);
+    const context = await contextResponse.json() as {
+      warehouse: { id: string };
+      salesWarehouses: Array<{ id: string }>;
+      products: Array<{ id: string; qty: number; availableQty: number }>;
+    };
+    expect(context.warehouse.id).toBe(otherWarehouse.id);
+    expect(context.salesWarehouses.map((warehouse) => warehouse.id)).toEqual([otherWarehouse.id]);
+    expect(context.products.find((product) => product.id === productId))
+      .toMatchObject({ qty: 2_000, availableQty: 2_000 });
+
+    addCartLine(env.db, cashier.id, { productId, qty: '1' });
+    const cashMethodId = (env.db.prepare("SELECT id FROM payment_methods WHERE kind = 'cash'").get() as { id: string }).id;
+    const forbiddenSale = await fetch(`${baseUrl}/api/sales`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        warehouseId: env.warehouseId,
+        idempotencyKey: 'forbidden-sales-warehouse',
+        payments: [{ methodId: cashMethodId, amount: 1_500_000 }],
+        receiptLang: 'ru',
+      }),
+    });
+    expect(forbiddenSale.status).toBe(403);
+    expect(await forbiddenSale.json()).toMatchObject({ errorKey: 'auth.warehouse_permission_denied' });
+
+    const allowedSale = await fetch(`${baseUrl}/api/sales`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        warehouseId: otherWarehouse.id,
+        idempotencyKey: 'allowed-sales-warehouse',
+        payments: [{ methodId: cashMethodId, amount: 1_500_000 }],
+        receiptLang: 'ru',
+      }),
+    });
+    expect(allowedSale.status).toBe(201);
+    expect(env.db.prepare(
+      "SELECT warehouse_id FROM stock_movements WHERE doc_type = 'sale' AND product_id = ?",
+    ).get(productId)).toEqual({ warehouse_id: otherWarehouse.id });
+
+    const deniedWarehouse = await fetch(
+      `${baseUrl}/api/sales/context?warehouseId=${encodeURIComponent(env.warehouseId)}`,
+      { headers: { Cookie: cashierCookie } },
+    );
+    expect(deniedWarehouse.status).toBe(403);
+    expect(await deniedWarehouse.json()).toMatchObject({ errorKey: 'auth.warehouse_permission_denied' });
+  });
+
   it('проверяет права на сервере и позволяет администратору вести справочник', async () => {
     const adminCookie = await loginCookie();
     const unitsResponse = await fetch(`${baseUrl}/api/product-units`, { headers: { Cookie: adminCookie } });

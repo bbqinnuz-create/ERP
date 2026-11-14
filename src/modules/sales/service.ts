@@ -5,6 +5,7 @@ import { nowIso } from '../../core/time';
 import { inTransaction } from '../../core/tx';
 import { uuidv7 } from '../../core/uuid';
 import { getPermissionValues, hasPermission } from '../auth/permissions';
+import { listUserSalesWarehouses, resolveUserSalesWarehouse } from '../auth/access';
 import { AuthError } from '../auth/service';
 import { captureSalePrintSnapshot } from '../print/service';
 import { getActiveCart, type Cart } from '../carts/service';
@@ -58,6 +59,7 @@ interface NormalizedPayment {
 
 interface CheckoutInput extends NormalizedSaleOptions {
   idempotencyKey: string;
+  warehouseId: string | null;
   payments: NormalizedPayment[];
   receiptLang: 'ru' | 'uz';
 }
@@ -211,6 +213,7 @@ function normalizeCheckoutInput(input: unknown, defaultLanguage: 'ru' | 'uz'): C
   const row = input as Record<string, unknown>;
   const allowed = [
     'idempotencyKey', 'customerId', 'heldCartId', 'manualDiscounts', 'checkDiscount', 'payments', 'receiptLang',
+    'warehouseId',
   ];
   const options = normalizeOptions(row, allowed);
   if (typeof row.idempotencyKey !== 'string' || row.idempotencyKey.trim().length === 0 ||
@@ -219,9 +222,13 @@ function normalizeCheckoutInput(input: unknown, defaultLanguage: 'ru' | 'uz'): C
   }
   const receiptLang = row.receiptLang === undefined ? defaultLanguage : row.receiptLang;
   if (receiptLang !== 'ru' && receiptLang !== 'uz') throw new AuthError(400, 'validation.invalid_language');
+  const warehouseId = row.warehouseId === undefined || row.warehouseId === null
+    ? null
+    : normalizeId(row.warehouseId, 'warehouse');
   return {
     ...options,
     idempotencyKey: row.idempotencyKey.trim(),
+    warehouseId,
     payments: normalizePayments(row.payments),
     receiptLang,
   };
@@ -461,10 +468,11 @@ function saleReceipt(db: Db, saleId: string): SaleReceipt {
   };
 }
 
-function loadSalesContext(db: Db): {
+function loadSalesContext(db: Db, userId?: string, requestedWarehouseId?: string | null): {
   warehouse: WarehouseRow | null;
   defaultWarehouseId: string | null;
   warehouses: Array<Pick<WarehouseRow, 'id' | 'name'>>;
+  salesWarehouses: Array<Pick<WarehouseRow, 'id' | 'name'>>;
   products: SalesContextProduct[];
   customers: Array<{ id: string; name: string }>;
   paymentMethods: Array<{ id: string; name: string; kind: string }>;
@@ -475,10 +483,18 @@ function loadSalesContext(db: Db): {
      JOIN branches b ON b.id = w.branch_id
      WHERE w.active = 1 AND b.active = 1 ORDER BY w.created_at, w.id`,
   ).all() as Array<Pick<WarehouseRow, 'id' | 'name'>>;
+  const salesWarehouses = userId ? listUserSalesWarehouses(db, userId) : warehouses;
+  const configuredDefault = db.prepare(
+    "SELECT value FROM settings WHERE key = 'default_warehouse_id'",
+  ).get() as { value: string } | undefined;
+  const defaultWarehouseId = configuredDefault?.value ??
+    (warehouses.length === 1 ? warehouses[0]!.id : null);
   let warehouse: WarehouseRow | null = null;
-  if (warehouses.length > 0) {
+  if (salesWarehouses.length > 0) {
     try {
-      warehouse = resolveDefaultWarehouse(db);
+      warehouse = userId
+        ? resolveUserSalesWarehouse(db, userId, requestedWarehouseId)
+        : resolveDefaultWarehouse(db);
     } catch (error) {
       if (!(error instanceof AuthError) ||
           !['settings.default_warehouse_required', 'settings.default_warehouse_unavailable'].includes(error.errorKey)) {
@@ -507,8 +523,9 @@ function loadSalesContext(db: Db): {
   }
   return {
     warehouse,
-    defaultWarehouseId: warehouse?.id ?? null,
+    defaultWarehouseId,
     warehouses,
+    salesWarehouses,
     products: products.map((product) => ({
       ...product,
       availableQty: product.qty - product.reserved,
@@ -519,10 +536,14 @@ function loadSalesContext(db: Db): {
   };
 }
 
-export function getSalesContext(db: Db): ReturnType<typeof loadSalesContext> {
+export function getSalesContext(
+  db: Db,
+  userId?: string,
+  requestedWarehouseId?: string | null,
+): ReturnType<typeof loadSalesContext> {
   return inTransaction(db, () => {
     expireReservations(db);
-    return loadSalesContext(db);
+    return loadSalesContext(db, userId, requestedWarehouseId);
   });
 }
 
@@ -570,9 +591,9 @@ export function createSale(
       manualDiscounts: normalized.manualDiscounts,
       checkDiscount: normalized.checkDiscount,
     };
+    const warehouse = resolveUserSalesWarehouse(db, userId, normalized.warehouseId);
     const loaded = calculateForCart(db, userId, options);
     const customer = getCustomer(db, options.customerId);
-    const warehouse = resolveDefaultWarehouse(db);
     if (normalized.heldCartId) {
       consumeHeldCartReservations(db, userId, normalized.heldCartId, warehouse.id);
     }

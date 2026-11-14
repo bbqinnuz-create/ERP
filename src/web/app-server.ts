@@ -5,8 +5,13 @@ import { join } from 'node:path';
 import { TLSSocket } from 'node:tls';
 import { fileURLToPath } from 'node:url';
 import type { Db } from '../db/connection';
-import { AuthError, createUserForSession, listUsers, login, logout, setUserPermissions, updateUserForSession, withAuthorizedUser } from '../modules/auth/service';
+import { AuthError, createUserForSession, listUsers, login, logout, setUserAccess, updateUserForSession, withAuthorizedUser } from '../modules/auth/service';
 import { hasPermission, type Permission } from '../modules/auth/permissions';
+import {
+  requirePagePermission,
+  resolveUserSalesWarehouse,
+  type AppPage,
+} from '../modules/auth/access';
 import { createBackup, getBackupStatus } from '../modules/backup/service';
 import { getReport, REPORT_TYPES } from '../modules/reports/service';
 import { createPurchase, getPurchase, listPurchases, reversePurchase } from '../modules/purchases/service';
@@ -282,17 +287,52 @@ async function handleApi(
     return;
   }
   const userMatch = /^\/api\/users\/([^/]+)(?:\/permissions)?$/.exec(path);
+  if (userMatch && path.endsWith('/permissions') && method === 'GET') {
+    const userId = decodeURIComponent(userMatch[1]!);
+    const result = withAuthorizedUser(db, token, 'users_manage', () => {
+      const user = listUsers(db).find((candidate) => candidate.id === userId);
+      if (!user) throw new AuthError(404, 'users.not_found');
+      const warehouses = db.prepare(
+        `SELECT w.id, w.name FROM warehouses w JOIN branches b ON b.id = w.branch_id
+         WHERE w.active = 1 AND b.active = 1 ORDER BY w.created_at, w.id`,
+      ).all();
+      return {
+        permissions: user.permissions,
+        pagePermissions: user.pagePermissions,
+        salesWarehouseIds: user.salesWarehouseIds,
+        warehouses,
+      };
+    }, now());
+    sendJson(res, 200, result);
+    return;
+  }
   if (userMatch && method === 'PATCH') {
     const userId = decodeURIComponent(userMatch[1]!);
     const body = await readJson(req);
     if (path.endsWith('/permissions')) {
-      const permissions = withAuthorizedUser(db, token, 'users_manage', (session) => {
-        if (!body.permissions || typeof body.permissions !== 'object' || Array.isArray(body.permissions)) {
-          throw new AuthError(400, 'validation.invalid_permissions');
+      const result = withAuthorizedUser(db, token, 'users_manage', (session) => {
+        for (const key of ['permissions', 'pagePermissions']) {
+          if (body[key] !== undefined && (!body[key] || typeof body[key] !== 'object' || Array.isArray(body[key]))) {
+            throw new AuthError(400, key === 'permissions' ? 'validation.invalid_permissions' : 'validation.invalid_page_permissions');
+          }
         }
-        return setUserPermissions(db, session.user.id, userId, body.permissions as Record<string, unknown>);
+        if (body.salesWarehouseIds !== undefined && !Array.isArray(body.salesWarehouseIds)) {
+          throw new AuthError(400, 'validation.invalid_warehouses');
+        }
+        setUserAccess(db, session.user.id, userId, {
+          permissions: body.permissions as Record<string, unknown> | undefined,
+          pagePermissions: body.pagePermissions as Record<string, unknown> | undefined,
+          salesWarehouseIds: body.salesWarehouseIds,
+        });
+        const user = listUsers(db).find((candidate) => candidate.id === userId);
+        if (!user) throw new AuthError(404, 'users.not_found');
+        return {
+          permissions: user.permissions,
+          pagePermissions: user.pagePermissions,
+          salesWarehouseIds: user.salesWarehouseIds,
+        };
       }, now());
-      sendJson(res, 200, { permissions });
+      sendJson(res, 200, result);
       return;
     }
     const user = await updateUserForSession(db, token ?? '', userId, {
@@ -487,8 +527,11 @@ async function handleApi(
     if (Object.keys(body).some((key) => key !== 'customerId' && key !== 'warehouseId')) {
       throw new AuthError(400, 'validation.unknown_field');
     }
-    const cart = withAuthorizedUser(db, token, 'reserve_cart', (session) =>
-      reserveActiveCart(db, session.user.id, body.customerId, body.warehouseId), now());
+    const cart = withAuthorizedUser(db, token, 'reserve_cart', (session) => {
+      const warehouse = resolveUserSalesWarehouse(db, session.user.id,
+        typeof body.warehouseId === 'string' ? body.warehouseId : undefined);
+      return reserveActiveCart(db, session.user.id, body.customerId, warehouse.id);
+    }, now());
     sendJson(res, 201, { cart });
     return;
   }
@@ -506,8 +549,11 @@ async function handleApi(
       if (Object.keys(body).some((key) => key !== 'warehouseId' && key !== 'customerId')) {
         throw new AuthError(400, 'validation.unknown_field');
       }
-      const cart = withAuthorizedUser(db, token, 'reserve_cart', (session) =>
-        reserveHeldCart(db, session.user.id, id, body.warehouseId, body.customerId), now());
+      const cart = withAuthorizedUser(db, token, 'reserve_cart', (session) => {
+        const warehouse = resolveUserSalesWarehouse(db, session.user.id,
+          typeof body.warehouseId === 'string' ? body.warehouseId : undefined);
+        return reserveHeldCart(db, session.user.id, id, warehouse.id, body.customerId);
+      }, now());
       sendJson(res, 200, { cart });
       return;
     }
@@ -532,14 +578,22 @@ async function handleApi(
   if (reservationRoute && method === 'PUT') {
     const body = await readJson(req);
     if (Object.keys(body).some((key) => key !== 'qty')) throw new AuthError(400, 'validation.unknown_field');
-    const reservation = withAuthorizedUser(db, token, 'reserve_cart', (session) =>
-      setReservationQuantity(db, session.user.id, decodeURIComponent(reservationRoute[1]!), body.qty), now());
+    const reservation = withAuthorizedUser(db, token, 'reserve_cart', (session) => {
+      const id = decodeURIComponent(reservationRoute[1]!);
+      const warehouse = db.prepare(
+        'SELECT warehouse_id FROM reservations WHERE id = ? AND status = ?',
+      ).get(id, 'active') as { warehouse_id: string } | undefined;
+      if (!warehouse) throw new AuthError(404, 'reservation.not_found');
+      resolveUserSalesWarehouse(db, session.user.id, warehouse.warehouse_id);
+      return setReservationQuantity(db, session.user.id, id, body.qty);
+    }, now());
     sendJson(res, 200, { reservation });
     return;
   }
 
   if (path === '/api/sales/context' && method === 'GET') {
-    const context = withAuthorizedUser(db, token, 'sell', () => getSalesContext(db), now());
+    const context = withAuthorizedUser(db, token, 'sell', (session) =>
+      getSalesContext(db, session.user.id, url.searchParams.get('warehouseId')), now());
     sendJson(res, 200, context);
     return;
   }
@@ -1002,6 +1056,39 @@ const CLIENT_ROUTES = new Set([
   '/products', '/stock', '/warehouses', '/purchases', '/movements', '/debts', '/cash', '/users', '/connection',
 ]);
 
+function pagesForApiRequest(path: string, method: string, url: URL): AppPage[] | null {
+  if (path === '/api/server-info') return ['connection'];
+  if (path.startsWith('/api/users')) return ['users'];
+  if (path.startsWith('/api/sales') || path.startsWith('/api/cart')) return ['sales'];
+  if (path.startsWith('/api/held-carts')) return ['heldCarts'];
+  if (path.startsWith('/api/reservations')) return ['reservations'];
+  if (path.startsWith('/api/print')) return ['print'];
+  if (path.startsWith('/api/returns')) return ['returns'];
+  if (path.startsWith('/api/writeoffs')) return ['writeoffs'];
+  if (path.startsWith('/api/stocktakes')) return ['stocktakes'];
+  if (path.startsWith('/api/reports') || path.startsWith('/api/backups')) return ['reports'];
+  if (path.startsWith('/api/stock/movements')) return ['movements'];
+  if (path.startsWith('/api/stock')) return ['stock'];
+  if (path.startsWith('/api/debts')) return ['debts'];
+  if (path.startsWith('/api/cash')) return ['cash'];
+  if (path.startsWith('/api/purchases')) return ['purchases'];
+  if (path.startsWith('/api/products')) return ['products'];
+  if (path.startsWith('/api/settings')) return ['sales'];
+  if (path.startsWith('/api/product-units')) return ['products'];
+  if (path.startsWith('/api/references/warehouses')) {
+    if (method !== 'GET' || url.searchParams.get('includeInactive') === 'true') return ['warehouses'];
+    return ['warehouses', 'sales', 'products', 'stock', 'purchases', 'movements', 'returns', 'writeoffs', 'stocktakes', 'reports'];
+  }
+  if (path.startsWith('/api/references/products') || path.startsWith('/api/references/categories') ||
+      path.startsWith('/api/references/attributes')) {
+    if (method !== 'GET') return ['products'];
+    return ['products', 'sales', 'purchases', 'stock', 'movements', 'returns', 'writeoffs', 'stocktakes', 'reports'];
+  }
+  if (path.startsWith('/api/references/customers')) return ['sales', 'heldCarts', 'returns', 'debts'];
+  if (path.startsWith('/api/references/payment_methods')) return ['sales', 'returns', 'debts', 'cash'];
+  return null;
+}
+
 function serveStatic(req: IncomingMessage, res: ServerResponse): void {
   const path = new URL(req.url ?? '/', 'http://localhost').pathname;
   const files: Record<string, { file: string; type: string }> = {
@@ -1037,6 +1124,25 @@ export function createWebServer(db: Db, options: ServerOptions = {}): Server {
     }
     const path = req.url?.split('?')[0] ?? '/';
     if (path.startsWith('/api/')) {
+      const pages = pagesForApiRequest(path, req.method ?? 'GET', new URL(req.url ?? '/', 'http://localhost'));
+      if (pages) {
+        try {
+          withAuthorizedUser(db, sessionToken(req), null, (session) => {
+            if (!pages.some((page) => {
+              try {
+                requirePagePermission(db, session.user.id, page);
+                return true;
+              } catch (error) {
+                if (error instanceof AuthError && error.status === 403) return false;
+                throw error;
+              }
+            })) throw new AuthError(403, 'auth.page_permission_denied');
+          }, now());
+        } catch (error) {
+          respondError(res, error);
+          return;
+        }
+      }
       void handleApi(db, req, res, now, server.address(), options.printEnabled ?? false,
         options.backupDirectory ?? process.env.BACKUP_DIR)
         .catch((error: unknown) => respondError(res, error));

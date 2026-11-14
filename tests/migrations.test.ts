@@ -4,7 +4,8 @@ import { tmpdir } from 'node:os';
 import { join, parse } from 'node:path';
 import { openDb } from '../src/db/connection';
 import { migrate, DEFAULT_MIGRATIONS_DIR } from '../src/db/migrate';
-import { makeEnv } from './helpers';
+import { ensureBranch } from '../src/core/setup';
+import { addUser, makeEnv } from './helpers';
 
 const cleanups: (() => void)[] = [];
 afterEach(() => {
@@ -24,6 +25,7 @@ function tempDb() {
 const EXPECTED_TABLES = [
   // справочники и настройки
   'branches', 'warehouses', 'users', 'user_permissions', 'categories', 'attribute_defs', 'products',
+  'user_page_permissions', 'user_sales_warehouses',
   'customers', 'payment_methods', 'price_rules', 'settings', 'counters',
   // ядро: партии, движения, кэш, аллокации FIFO
   'batches', 'stock_movements', 'stock_cache', 'sale_line_batch_allocations',
@@ -46,6 +48,7 @@ describe('миграции', () => {
     expect(result.applied).toContain('001_init.sql');
     expect(result.applied).toContain('002_print_receipts.sql');
     expect(result.applied).toContain('004_optional_held_cart_customer.sql');
+    expect(result.applied).toContain('005_user_page_and_warehouse_access.sql');
 
     const tables = (db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as { name: string }[]).map(
       (r) => r.name,
@@ -67,6 +70,7 @@ describe('миграции', () => {
     expect(second.alreadyApplied).toContain('001_init.sql');
     expect(second.alreadyApplied).toContain('002_print_receipts.sql');
     expect(second.alreadyApplied).toContain('004_optional_held_cart_customer.sql');
+    expect(second.alreadyApplied).toContain('005_user_page_and_warehouse_access.sql');
   });
 
   it('загружает настройки по умолчанию', () => {
@@ -89,6 +93,32 @@ describe('миграции', () => {
     writeFileSync(join(migDir, '002_extra.sql'), 'CREATE TABLE extra_test (id TEXT PRIMARY KEY);');
     const r = migrate(db, migDir);
     expect(r.applied).toEqual(['002_extra.sql']);
+  });
+
+  it('сохраняет прежний доступ кассира и общий склад при миграции прав', () => {
+    const { db, dir } = tempDb();
+    const migDir = join(dir, 'migrations');
+    mkdirSync(migDir);
+    for (const file of readdirSync(DEFAULT_MIGRATIONS_DIR).filter((name) => name !== '005_user_page_and_warehouse_access.sql')) {
+      copyFileSync(join(DEFAULT_MIGRATIONS_DIR, file), join(migDir, file));
+    }
+    migrate(db, migDir);
+    const { warehouseId } = ensureBranch(db, { code: 'A', name: 'Тест' });
+    db.prepare(
+      'INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)',
+    ).run('default_warehouse_id', warehouseId, new Date().toISOString());
+    const cashierId = addUser(db, 'legacy-cashier');
+
+    copyFileSync(
+      join(DEFAULT_MIGRATIONS_DIR, '005_user_page_and_warehouse_access.sql'),
+      join(migDir, '005_user_page_and_warehouse_access.sql'),
+    );
+    migrate(db, migDir);
+
+    expect(db.prepare('SELECT page, value FROM user_page_permissions WHERE user_id = ?')
+      .all(cashierId)).toHaveLength(17);
+    expect(db.prepare('SELECT warehouse_id FROM user_sales_warehouses WHERE user_id = ?').get(cashierId))
+      .toEqual({ warehouse_id: warehouseId });
   });
 
   it('изменённая применённая миграция отклоняется', () => {

@@ -77,6 +77,10 @@
             <button id="save-default-warehouse" type="button" data-i18n="sales.save_default_warehouse"></button>
           </div>
           <p id="sales-warehouse-status" role="status"></p>
+          <label id="sales-warehouse-choice-field" hidden>
+            <span data-i18n="sales.choose_warehouse"></span>
+            <select id="sales-warehouse-choice"></select>
+          </label>
           <label>
             <span data-i18n="sales.search"></span>
             <input id="sales-search" type="search" autocomplete="off">
@@ -488,6 +492,14 @@
             <h3 data-i18n="users.permissions"></h3>
             <p id="permission-user"></p>
             <div id="permission-list" class="permission-grid"></div>
+            <h4 data-i18n="users.pages"></h4>
+            <p data-i18n="users.pages_help"></p>
+            <div id="page-permission-list" class="permission-grid"></div>
+            <fieldset id="sales-warehouse-permission">
+              <legend data-i18n="users.sales_warehouses"></legend>
+              <p data-i18n="users.sales_warehouses_help"></p>
+              <div id="sales-warehouse-permission-list" class="permission-grid"></div>
+            </fieldset>
             <button id="save-permissions" type="button" data-i18n="users.save_permissions"></button>
           </section>
         </section>

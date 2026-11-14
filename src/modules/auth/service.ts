@@ -5,6 +5,15 @@ import { inTransaction } from '../../core/tx';
 import { nowIso } from '../../core/time';
 import { uuidv7 } from '../../core/uuid';
 import { writeAudit } from '../../core/audit';
+import { AuthError } from './errors';
+export { AuthError } from './errors';
+import {
+  getPagePermissionValues,
+  listUserSalesWarehouses,
+  validatePagePermissionValues,
+  validateSalesWarehouseIds,
+  type PagePermissionValues,
+} from './access';
 import {
   getPermissionValues,
   hasPermission,
@@ -37,21 +46,13 @@ export interface AuthUser {
   lang: UserLanguage;
   active: boolean;
   permissions: PermissionValues;
+  pagePermissions: PagePermissionValues;
+  salesWarehouseIds: string[];
 }
 
 export interface SessionInfo {
   id: string;
   user: AuthUser;
-}
-
-export class AuthError extends Error {
-  constructor(
-    readonly status: 400 | 401 | 403 | 404 | 409 | 413,
-    readonly errorKey: string,
-  ) {
-    super(errorKey);
-    this.name = 'AuthError';
-  }
 }
 
 interface UserRow {
@@ -151,7 +152,19 @@ function toAuthUser(db: Db, row: PublicUserRow): AuthUser {
     lang: row.lang,
     active: row.active === 1,
     permissions: getPermissionValues(db, row.id),
+    pagePermissions: getPagePermissionValues(db, row.id),
+    salesWarehouseIds: listUserSalesWarehouses(db, row.id).map((warehouse) => warehouse.id),
   };
+}
+
+function initializePagePermissions(db: Db, userId: string): void {
+  const insert = db.prepare(
+    'INSERT INTO user_page_permissions (user_id, page, value) VALUES (?, ?, 1)',
+  );
+  for (const page of [
+    'sales', 'heldCarts', 'reservations', 'print', 'returns', 'writeoffs', 'stocktakes', 'reports',
+    'products', 'stock', 'warehouses', 'purchases', 'movements', 'debts', 'cash', 'users', 'connection',
+  ]) insert.run(userId, page);
 }
 
 function readSettingInteger(db: Db, key: string): number {
@@ -352,6 +365,7 @@ export async function createUser(db: Db, actorId: string, input: CreateUserInput
       `INSERT INTO users (id, login, password_hash, full_name, role, lang, active, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)`,
     ).run(id, valid.login, passwordHash, valid.fullName, valid.role, valid.lang, now, now);
+    initializePagePermissions(db, id);
     writeAudit(db, {
       userId: actorId,
       action: 'user.create',
@@ -416,6 +430,7 @@ export async function createUserForSession(
       `INSERT INTO users (id, login, password_hash, full_name, role, lang, active, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)`,
     ).run(id, valid.login, passwordHash, valid.fullName, valid.role, valid.lang, now, now);
+    initializePagePermissions(db, id);
     writeAudit(db, {
       userId: session.user.id,
       action: 'user.create',
@@ -529,6 +544,7 @@ export async function bootstrapAdmin(db: Db, input: CreateUserInput): Promise<Au
       `INSERT INTO users (id, login, password_hash, full_name, role, lang, active, created_at, updated_at)
        VALUES (?, ?, ?, ?, 'admin', ?, 1, ?, ?)`,
     ).run(id, valid.login, passwordHash, valid.fullName, valid.lang, now, now);
+    initializePagePermissions(db, id);
     writeAudit(db, {
       action: 'user.bootstrap_admin',
       entity: 'users',
@@ -579,12 +595,34 @@ export function setUserPermissions(
   userId: string,
   values: Record<string, unknown>,
 ): PermissionValues {
+  return setUserAccess(db, actorId, userId, { permissions: values });
+}
+
+export function setUserAccess(
+  db: Db,
+  actorId: string,
+  userId: string,
+  input: {
+    permissions?: Record<string, unknown>;
+    pagePermissions?: Record<string, unknown>;
+    salesWarehouseIds?: unknown;
+  },
+): PermissionValues {
   return inTransaction(db, () => {
     if (!hasPermission(db, actorId, 'users_manage')) throw new AuthError(403, 'auth.permission_denied');
     const user = db.prepare('SELECT role FROM users WHERE id = ?').get(userId) as { role: UserRole } | undefined;
     if (!user) throw new AuthError(404, 'users.not_found');
     if (user.role === 'admin') throw new AuthError(400, 'users.admin_permissions_implicit');
-    if (Object.keys(values).length === 0) throw new AuthError(400, 'validation.empty_update');
+    const values = input.permissions ?? {};
+    const pageValues = input.pagePermissions === undefined
+      ? []
+      : validatePagePermissionValues(input.pagePermissions);
+    const warehouseIds = input.salesWarehouseIds === undefined
+      ? undefined
+      : validateSalesWarehouseIds(db, input.salesWarehouseIds);
+    if (Object.keys(values).length === 0 && pageValues.length === 0 && warehouseIds === undefined) {
+      throw new AuthError(400, 'validation.empty_update');
+    }
     const normalized: [string, number][] = [];
     for (const [permission, value] of Object.entries(values)) {
       if (!isPermissionKey(permission)) throw new AuthError(400, 'validation.unknown_permission');
@@ -600,13 +638,37 @@ export function setUserPermissions(
         throw error;
       }
     }
-    const before = getPermissionValues(db, userId);
+    const beforePermissions = getPermissionValues(db, userId);
+    const before = {
+      ...beforePermissions,
+      permissions: beforePermissions,
+      pagePermissions: getPagePermissionValues(db, userId),
+      salesWarehouseIds: listUserSalesWarehouses(db, userId).map((warehouse) => warehouse.id),
+    };
     const upsert = db.prepare(
       `INSERT INTO user_permissions (user_id, permission, value) VALUES (?, ?, ?)
        ON CONFLICT(user_id, permission) DO UPDATE SET value = excluded.value`,
     );
     for (const [permission, value] of normalized) upsert.run(userId, permission, value);
-    const after = getPermissionValues(db, userId);
+    const pageUpsert = db.prepare(
+      `INSERT INTO user_page_permissions (user_id, page, value) VALUES (?, ?, ?)
+       ON CONFLICT(user_id, page) DO UPDATE SET value = excluded.value`,
+    );
+    for (const [page, value] of pageValues) pageUpsert.run(userId, page, value);
+    if (warehouseIds !== undefined) {
+      db.prepare('DELETE FROM user_sales_warehouses WHERE user_id = ?').run(userId);
+      const warehouseInsert = db.prepare(
+        'INSERT INTO user_sales_warehouses (user_id, warehouse_id) VALUES (?, ?)',
+      );
+      for (const warehouseId of warehouseIds) warehouseInsert.run(userId, warehouseId);
+    }
+    const afterPermissions = getPermissionValues(db, userId);
+    const after = {
+      ...afterPermissions,
+      permissions: afterPermissions,
+      pagePermissions: getPagePermissionValues(db, userId),
+      salesWarehouseIds: listUserSalesWarehouses(db, userId).map((warehouse) => warehouse.id),
+    };
     writeAudit(db, {
       userId: actorId,
       action: 'user.permissions_changed',
@@ -615,6 +677,6 @@ export function setUserPermissions(
       before,
       after,
     });
-    return after;
+    return after.permissions;
   });
 }
