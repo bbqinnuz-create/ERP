@@ -51,6 +51,7 @@
             <a href="/reports" data-page="reports" data-i18n="nav.reports" hidden></a>
             <a href="/products" data-page="products" data-i18n="nav.products"></a>
             <a href="/stock" data-page="stock" data-i18n="nav.stock"></a>
+            <a href="/warehouses" data-page="warehouses" data-i18n="nav.warehouses" hidden></a>
             <a href="/purchases" data-page="purchases" data-i18n="nav.purchases"></a>
             <a href="/movements" data-page="movements" data-i18n="nav.movements"></a>
             <a href="/debts" data-page="debts" data-i18n="nav.debts" hidden></a>
@@ -496,6 +497,20 @@
           <button id="refresh-connection-info" type="button" data-i18n="connection.refresh"></button>
           <p id="connection-warning" role="status" aria-live="polite"></p>
           <div id="connection-addresses"></div>
+        </section>
+        <section id="warehouses-page" class="page" hidden>
+          <h2 data-i18n="warehouses.title"></h2>
+          <form id="warehouse-form" class="form-grid">
+            <label>
+              <span data-i18n="warehouses.name"></span>
+              <input name="name" maxlength="120" required>
+            </label>
+            <button id="warehouse-submit" type="submit" data-i18n="warehouses.create"></button>
+            <button id="warehouse-cancel-edit" class="button-secondary" type="button" data-i18n="common.cancel" hidden></button>
+          </form>
+          <div class="table-wrap">
+            <table><thead id="warehouses-head"></thead><tbody id="warehouses-body"></tbody></table>
+          </div>
         </section>
       </section>
     </main>

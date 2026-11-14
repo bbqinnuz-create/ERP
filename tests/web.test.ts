@@ -76,14 +76,14 @@ describe('HTTP API этапа 2', () => {
     const navigationPages = [...navigationHtml.matchAll(/data-page="([^"]+)"/g)].map((match) => match[1]);
     expect(navigationPages).toEqual([
       'sales', 'heldCarts', 'reservations', 'print', 'returns', 'writeoffs', 'stocktakes', 'reports', 'products',
-      'stock', 'purchases', 'movements', 'debts', 'cash', 'users', 'connection',
+      'stock', 'warehouses', 'purchases', 'movements', 'debts', 'cash', 'users', 'connection',
     ]);
     expect(clientHtml.indexOf('id="logout"')).toBeGreaterThan(clientHtml.indexOf('data-page="connection"'));
     expect((await fetch(`${baseUrl}/app.js`)).status).toBe(200);
     expect((await fetch(`${baseUrl}/app.js`)).status).toBe(200);
     for (const route of [
       '/sell', '/sales', '/held-carts', '/reservations', '/print', '/returns', '/writeoffs', '/stocktakes', '/reports',
-      '/products', '/stock', '/purchases', '/movements', '/debts', '/cash', '/users', '/connection',
+      '/products', '/stock', '/warehouses', '/purchases', '/movements', '/debts', '/cash', '/users', '/connection',
     ]) {
       const page = await fetch(`${baseUrl}${route}`);
       expect(page.status).toBe(200);
@@ -112,6 +112,66 @@ describe('HTTP API этапа 2', () => {
     const usersResponse = await fetch(`${baseUrl}/api/users`, { headers: { Cookie: cookie } });
     const { users } = await usersResponse.json() as { users: Record<string, unknown>[] };
     expect(users[0]).not.toHaveProperty('password_hash');
+  });
+
+  it('serves the warehouse management page and protects warehouse changes by settings permission', async () => {
+    const adminCookie = await loginCookie();
+    const page = await fetch(`${baseUrl}/warehouses`);
+    expect(page.status).toBe(200);
+    expect(await page.text()).toContain('id="warehouses-page"');
+
+    const created = await fetch(`${baseUrl}/api/references/warehouses`, {
+      method: 'POST',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ branch_id: env.branchId, name: 'Дополнительный склад' }),
+    });
+    expect(created.status).toBe(201);
+    const { row: warehouse } = await created.json() as { row: Record<string, unknown> };
+    expect(warehouse).toMatchObject({ name: 'Дополнительный склад', active: 1 });
+
+    const updated = await fetch(`${baseUrl}/api/references/warehouses/${warehouse.id}`, {
+      method: 'PATCH',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Склад для выдачи' }),
+    });
+    expect(updated.status).toBe(200);
+
+    const deactivated = await fetch(`${baseUrl}/api/references/warehouses/${warehouse.id}/active`, {
+      method: 'PATCH',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: false }),
+    });
+    expect(deactivated.status).toBe(204);
+    const listed = await fetch(`${baseUrl}/api/references/warehouses?includeInactive=true`, {
+      headers: { Cookie: adminCookie },
+    });
+    const { rows } = await listed.json() as { rows: Record<string, unknown>[] };
+    expect(rows).toContainEqual(expect.objectContaining({
+      id: warehouse.id,
+      name: 'Склад для выдачи',
+      active: 0,
+    }));
+    const activated = await fetch(`${baseUrl}/api/references/warehouses/${warehouse.id}/active`, {
+      method: 'PATCH',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: true }),
+    });
+    expect(activated.status).toBe(204);
+
+    const cashier = await createUser(env.db, adminId, {
+      login: 'warehouse-denied',
+      password: 'cashier secure password',
+      fullName: 'Warehouse Permission Check',
+      role: 'cashier',
+      lang: 'ru',
+    });
+    const cashierCookie = await loginCookie(cashier.login, 'cashier secure password');
+    const denied = await fetch(`${baseUrl}/api/references/warehouses`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ branch_id: env.branchId, name: 'Недоступный склад' }),
+    });
+    expect(denied.status).toBe(403);
   });
 
   it('позволяет отдельно менять цену с правом price_edit и записывает это в аудит', async () => {

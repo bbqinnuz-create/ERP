@@ -999,7 +999,7 @@ async function handleApi(
 
 const CLIENT_ROUTES = new Set([
   '/sell', '/sales', '/held-carts', '/reservations', '/print', '/returns', '/writeoffs', '/stocktakes', '/reports',
-  '/products', '/stock', '/purchases', '/movements', '/debts', '/cash', '/users', '/connection',
+  '/products', '/stock', '/warehouses', '/purchases', '/movements', '/debts', '/cash', '/users', '/connection',
 ]);
 
 function serveStatic(req: IncomingMessage, res: ServerResponse): void {
