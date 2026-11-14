@@ -21,6 +21,7 @@ const translations = {
     'nav.reservations': 'Резерв',
     'nav.products': 'Товары',
     'nav.stock': 'Остатки',
+    'nav.warehouses': 'Склады',
     'nav.purchases': 'Приходы',
     'nav.movements': 'Движения',
     'nav.debts': 'Долги',
@@ -625,6 +626,18 @@ const translations = {
     'users.inactive': 'Отключён',
     'users.edit_permissions': 'Права',
     'users.choose': 'Выберите пользователя',
+    'warehouses.title': 'Склады',
+    'warehouses.name': 'Название склада',
+    'warehouses.create': 'Создать склад',
+    'warehouses.save': 'Сохранить',
+    'warehouses.columns': 'Название,Статус,Действие',
+    'warehouses.empty': 'Склады не найдены.',
+    'warehouses.edit': 'Изменить',
+    'warehouses.activate': 'Активировать',
+    'warehouses.deactivate': 'Деактивировать',
+    'warehouses.activate_confirm': 'Активировать склад?',
+    'warehouses.deactivate_confirm': 'Отключить склад? Он останется в истории, но не будет доступен для новых операций.',
+    'warehouses.branch_unavailable': 'Не удалось определить филиал для создания склада. Обратитесь к администратору.',
     'permission.sell': 'Продажа',
     'permission.hold_cart': 'Отложенная корзина',
     'permission.reserve_cart': 'Резерв товара',
@@ -716,6 +729,7 @@ const translations = {
     'nav.reservations': 'Rezerv',
     'nav.products': 'Tovarlar',
     'nav.stock': 'Qoldiqlar',
+    'nav.warehouses': 'Omborlar',
     'nav.purchases': 'Kirimlar',
     'nav.movements': 'Harakatlar',
     'nav.debts': 'Qarzlar',
@@ -1320,6 +1334,18 @@ const translations = {
     'users.inactive': 'O‘chirilgan',
     'users.edit_permissions': 'Huquqlar',
     'users.choose': 'Foydalanuvchini tanlang',
+    'warehouses.title': 'Omborlar',
+    'warehouses.name': 'Ombor nomi',
+    'warehouses.create': 'Ombor yaratish',
+    'warehouses.save': 'Saqlash',
+    'warehouses.columns': 'Nomi,Holati,Amal',
+    'warehouses.empty': 'Omborlar topilmadi.',
+    'warehouses.edit': 'O‘zgartirish',
+    'warehouses.activate': 'Faollashtirish',
+    'warehouses.deactivate': 'Faolsizlantirish',
+    'warehouses.activate_confirm': 'Ombor faollashtirilsinmi?',
+    'warehouses.deactivate_confirm': 'Ombor faolsizlantirilsinmi? U tarixda qoladi, ammo yangi amallar uchun ishlatilmaydi.',
+    'warehouses.branch_unavailable': 'Ombor yaratish uchun filial aniqlanmadi. Administratorga murojaat qiling.',
     'permission.sell': 'Sotish',
     'permission.hold_cart': 'Kechiktirilgan savat',
     'permission.reserve_cart': 'Tovarni band qilish',
@@ -1421,6 +1447,7 @@ const state = {
   cashSummary: null,
   report: null,
   reportOptions: null,
+  warehouses: [],
   productImportCsv: null,
   productImportReport: null,
   productImportMode: 'skip',
@@ -1441,6 +1468,7 @@ let healthCheckInFlight = false;
 let salesQuoteTimer = null;
 let toastTimer = null;
 let editingProductId = null;
+let editingWarehouseId = null;
 let saleAttemptId = null;
 let returnAttemptId = null;
 let debtPaymentAttempt = null;
@@ -1464,6 +1492,7 @@ const pagePaths = {
   debts: '/debts',
   cash: '/cash',
   users: '/users',
+  warehouses: '/warehouses',
   connection: '/connection',
 };
 const pageByPath = Object.fromEntries(Object.entries(pagePaths).map(([name, path]) => [path, name]));
@@ -1759,6 +1788,8 @@ async function api(path, options = {}) {
 
 function showLogin(errorKey = '') {
   setNavigationExpanded(false);
+  resetWarehouseForm();
+  state.warehouses = [];
   resetProductImportPreview();
   state.user = null;
   state.salesContext = null;
@@ -1817,6 +1848,7 @@ function showApp(user) {
   $('#navigation [data-page="debts"]').hidden = !canViewDebts;
   $('#navigation [data-page="cash"]').hidden = !canViewCash;
   $('#navigation [data-page="users"]').hidden = user.permissions.users_manage !== 1;
+  $('#navigation [data-page="warehouses"]').hidden = user.permissions.settings !== 1;
   $('#navigation [data-page="connection"]').hidden = user.role !== 'admin';
   $('#product-form').hidden = user.permissions.settings !== 1 || user.permissions.price_edit !== 1;
   $('#product-import-panel').hidden = user.permissions.settings !== 1 || user.permissions.price_edit !== 1;
@@ -1839,6 +1871,7 @@ function showApp(user) {
   ].some((value) => value === 1);
   updateCashOperationTypes();
   $('#user-form').hidden = user.permissions.users_manage !== 1;
+  $('#warehouse-form').hidden = user.permissions.settings !== 1;
   $('#print-profile-form').hidden = user.permissions.settings !== 1;
   $('#print-copy-language').value = user.lang;
   $('#user-edit-form').hidden = true;
@@ -1891,6 +1924,7 @@ function canAccessPage(name) {
     debts: ['debt_payment', 'reports'],
     cash: ['cash_in', 'cash_out', 'expense', 'cash_collection', 'reports'],
     users: 'users_manage',
+    warehouses: 'settings',
     connection: 'admin',
   };
   const required = permissionMap[name];
@@ -1921,6 +1955,7 @@ function showPage(name, updateHistory = true) {
   const pageTitle = document.querySelector(`#${name}-page h2`)?.textContent;
   document.title = pageTitle ? `${pageTitle} · ${t('app.title')}` : t('app.title');
   if (name === 'users' && state.user?.permissions.users_manage === 1) void loadUsers();
+  if (name === 'warehouses' && state.user?.permissions.settings === 1) void loadWarehouses();
   if (name === 'sales' && state.user?.permissions.sell === 1) void loadSalesPage();
   if (name === 'heldCarts' &&
       (state.user?.permissions.hold_cart === 1 || state.user?.permissions.reserve_cart === 1)) {
@@ -4223,6 +4258,74 @@ async function loadUsers() {
   }
 }
 
+function resetWarehouseForm() {
+  const form = $('#warehouse-form');
+  if (!form) return;
+  form.reset();
+  editingWarehouseId = null;
+  $('#warehouse-submit').textContent = t('warehouses.create');
+  $('#warehouse-cancel-edit').hidden = true;
+}
+
+async function loadWarehouses() {
+  try {
+    const { rows } = await api('/api/references/warehouses?includeInactive=true');
+    state.warehouses = rows;
+    buildHead('#warehouses-head', 'warehouses.columns');
+    const body = $('#warehouses-body');
+    body.replaceChildren();
+    for (const warehouse of rows) {
+      const row = document.createElement('tr');
+      row.append(
+        cell(warehouse.name),
+        cell(t(warehouse.active ? 'users.active' : 'users.inactive')),
+      );
+      const actions = document.createElement('td');
+      const edit = document.createElement('button');
+      edit.type = 'button';
+      edit.textContent = t('warehouses.edit');
+      edit.addEventListener('click', () => {
+        editingWarehouseId = warehouse.id;
+        $('#warehouse-form').elements.namedItem('name').value = warehouse.name;
+        $('#warehouse-submit').textContent = t('warehouses.save');
+        $('#warehouse-cancel-edit').hidden = false;
+        $('#warehouse-form').elements.namedItem('name').focus();
+      });
+      const toggleActive = document.createElement('button');
+      toggleActive.type = 'button';
+      toggleActive.textContent = t(warehouse.active ? 'warehouses.deactivate' : 'warehouses.activate');
+      toggleActive.addEventListener('click', () => { void setWarehouseActive(warehouse); });
+      actions.append(edit, toggleActive);
+      row.append(actions);
+      body.append(row);
+    }
+    if (rows.length === 0) {
+      const row = document.createElement('tr');
+      const empty = cell(t('warehouses.empty'));
+      empty.colSpan = 3;
+      row.append(empty);
+      body.append(row);
+    }
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function setWarehouseActive(warehouse) {
+  const action = warehouse.active ? 'deactivate' : 'activate';
+  if (!window.confirm(t(`warehouses.${action}_confirm`))) return;
+  try {
+    await api(`/api/references/warehouses/${encodeURIComponent(warehouse.id)}/active`, {
+      method: 'PATCH',
+      body: JSON.stringify({ active: !warehouse.active }),
+    });
+    await loadWarehouses();
+    message('status.saved');
+  } catch (error) {
+    message(error.message);
+  }
+}
+
 async function loadConnectionInfo() {
   try {
     const { addresses, warningKey } = await api('/api/server-info');
@@ -4733,6 +4836,41 @@ $('#user-form').addEventListener('submit', async (event) => {
     message(error.message);
   }
 });
+
+$('#warehouse-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const formElement = event.currentTarget;
+  const name = new FormData(formElement).get('name');
+  const submit = $('#warehouse-submit');
+  submit.disabled = true;
+  try {
+    if (editingWarehouseId) {
+      await api(`/api/references/warehouses/${encodeURIComponent(editingWarehouseId)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ name }),
+      });
+      resetWarehouseForm();
+      await loadWarehouses();
+      message('status.saved');
+      return;
+    }
+    const branchId = state.warehouses[0]?.branch_id;
+    if (!branchId) throw new Error('warehouses.branch_unavailable');
+    await api('/api/references/warehouses', {
+      method: 'POST',
+      body: JSON.stringify({ branch_id: branchId, name }),
+    });
+    resetWarehouseForm();
+    await loadWarehouses();
+    message('status.created');
+  } catch (error) {
+    message(error.message);
+  } finally {
+    submit.disabled = false;
+  }
+});
+
+$('#warehouse-cancel-edit').addEventListener('click', resetWarehouseForm);
 
 $('#user-edit-form').addEventListener('submit', async (event) => {
   event.preventDefault();
