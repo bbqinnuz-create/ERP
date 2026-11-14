@@ -2,6 +2,10 @@ import type { Db } from '../../db/connection';
 
 export const PERMISSIONS = [
   'sell',
+  'pay_cash',
+  'pay_card',
+  'pay_transfer',
+  'pay_at_counter',
   'hold_cart',
   'reserve_cart',
   'discount_check',
@@ -30,6 +34,12 @@ export type Permission = (typeof PERMISSIONS)[number];
 export type PermissionLimit = (typeof PERMISSION_LIMITS)[number];
 export type PermissionKey = Permission | PermissionLimit;
 export type PermissionValues = Record<PermissionKey, number>;
+
+const SALE_PAYMENT_PERMISSIONS = {
+  cash: 'pay_cash',
+  card: 'pay_card',
+  transfer: 'pay_transfer',
+} as const satisfies Record<string, Permission>;
 
 interface UserRoleRow {
   role: 'admin' | 'cashier';
@@ -69,6 +79,14 @@ export function getPermissionValues(db: Db, userId: string): PermissionValues {
 
 export function hasPermission(db: Db, userId: string, permission: Permission): boolean {
   return getPermissionValues(db, userId)[permission] === 1;
+}
+
+export function canUseSalePaymentMethod(db: Db, userId: string, kind: string): boolean {
+  const user = db.prepare('SELECT role FROM users WHERE id = ?').get(userId) as UserRoleRow | undefined;
+  if (!user) throw new Error(`Unknown user: ${userId}`);
+  if (user.role === 'admin') return true;
+  const permission = SALE_PAYMENT_PERMISSIONS[kind as keyof typeof SALE_PAYMENT_PERMISSIONS];
+  return permission !== undefined && hasPermission(db, userId, permission);
 }
 
 export function isPermissionKey(value: string): value is PermissionKey {

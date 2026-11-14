@@ -20,8 +20,16 @@ export interface HeldCart {
   reservations: Array<{ id: string; productId: string; warehouseId: string; qty: number; expiresAt: string | null }>;
 }
 
-function assertPermission(db: Db, userId: string, permission: 'hold_cart' | 'reserve_cart'): void {
-  if (!hasPermission(db, userId, permission)) throw new AuthError(403, 'auth.permission_denied');
+function assertPermission(
+  db: Db,
+  userId: string,
+  permission: 'hold_cart' | 'reserve_cart',
+  allowCounterPayment = false,
+): void {
+  if (!hasPermission(db, userId, permission) &&
+      !(allowCounterPayment && hasPermission(db, userId, 'pay_at_counter'))) {
+    throw new AuthError(403, 'auth.permission_denied');
+  }
 }
 
 function assertOwner(db: Db, userId: string, cartId: string): { user_id: string; status: string } {
@@ -115,10 +123,15 @@ function normalizeOptionalCustomerId(value: unknown): string | null {
   return value;
 }
 
-export function holdActiveCart(db: Db, userId: string, customerIdInput?: unknown): HeldCart {
+function holdActiveCartInternal(
+  db: Db,
+  userId: string,
+  customerIdInput: unknown,
+  allowCounterPayment = false,
+): HeldCart {
   const customerId = normalizeOptionalCustomerId(customerIdInput);
   return inTransaction(db, () => {
-    assertPermission(db, userId, 'hold_cart');
+    assertPermission(db, userId, 'hold_cart', allowCounterPayment);
     if (customerId && !db.prepare('SELECT id FROM customers WHERE id = ? AND active = 1').get(customerId)) {
       throw new AuthError(400, 'validation.invalid_customer');
     }
@@ -155,6 +168,10 @@ export function holdActiveCart(db: Db, userId: string, customerIdInput?: unknown
   });
 }
 
+export function holdActiveCart(db: Db, userId: string, customerIdInput?: unknown): HeldCart {
+  return holdActiveCartInternal(db, userId, customerIdInput);
+}
+
 export function listHeldCarts(db: Db, userId: string, isAdmin: boolean): HeldCart[] {
   expireReservations(db);
   const rows = db.prepare(
@@ -175,10 +192,16 @@ export function loadHeldCartForSale(db: Db, userId: string, cartId: string): {
   cart: HeldCart;
   customerId: string | null;
 } {
-  assertPermission(db, userId, 'hold_cart');
   const held = assertOwner(db, userId, cartId);
   if (held.status !== 'open') throw new AuthError(409, 'cart.held_not_open');
   expireReservations(db);
+  const hasActiveReservation = Boolean(db.prepare(
+    "SELECT 1 FROM reservations WHERE cart_id = ? AND status = 'active' LIMIT 1",
+  ).get(cartId));
+  if (!hasPermission(db, userId, 'hold_cart') &&
+      !(hasActiveReservation && hasPermission(db, userId, 'pay_at_counter'))) {
+    throw new AuthError(403, 'auth.permission_denied');
+  }
   const cart = readHeldCart(db, cartId);
   return { cart, customerId: cart.customerId };
 }
@@ -225,19 +248,20 @@ export function consumeHeldCartReservations(db: Db, userId: string, cartId: stri
   });
 }
 
-export function reserveHeldCart(
+function reserveHeldCartInternal(
   db: Db,
   userId: string,
   cartId: string,
   warehouseId: unknown,
   customerIdInput?: unknown,
+  allowCounterPayment = false,
 ): HeldCart {
   let selectedWarehouseId: string | null = typeof warehouseId === 'string' && warehouseId ? warehouseId : null;
   const requestedCustomerId = customerIdInput === undefined
     ? undefined
     : normalizeOptionalCustomerId(customerIdInput);
   return inTransaction(db, () => {
-    assertPermission(db, userId, 'reserve_cart');
+    assertPermission(db, userId, 'reserve_cart', allowCounterPayment);
     if (!selectedWarehouseId) {
       const setting = db.prepare("SELECT value FROM settings WHERE key = 'default_warehouse_id'").get() as
         { value: string } | undefined;
@@ -314,6 +338,26 @@ export function reserveHeldCart(
   });
 }
 
+export function reserveHeldCart(
+  db: Db,
+  userId: string,
+  cartId: string,
+  warehouseId: unknown,
+  customerIdInput?: unknown,
+): HeldCart {
+  return reserveHeldCartInternal(db, userId, cartId, warehouseId, customerIdInput);
+}
+
+export function reserveHeldCartForCounter(
+  db: Db,
+  userId: string,
+  cartId: string,
+  warehouseId: unknown,
+  customerIdInput?: unknown,
+): HeldCart {
+  return reserveHeldCartInternal(db, userId, cartId, warehouseId, customerIdInput, true);
+}
+
 export function reserveActiveCart(
   db: Db,
   userId: string,
@@ -324,8 +368,23 @@ export function reserveActiveCart(
     throw new AuthError(400, 'validation.invalid_customer');
   }
   return inTransaction(db, () => {
-    const held = holdActiveCart(db, userId, customerId);
-    return reserveHeldCart(db, userId, held.id, warehouseId);
+    const held = holdActiveCartInternal(db, userId, customerId);
+    return reserveHeldCartInternal(db, userId, held.id, warehouseId);
+  });
+}
+
+export function reserveActiveCartForCounter(
+  db: Db,
+  userId: string,
+  customerId: unknown,
+  warehouseId: unknown,
+): HeldCart {
+  if (normalizeOptionalCustomerId(customerId) === null) {
+    throw new AuthError(400, 'validation.invalid_customer');
+  }
+  return inTransaction(db, () => {
+    const held = holdActiveCartInternal(db, userId, customerId, true);
+    return reserveHeldCartInternal(db, userId, held.id, warehouseId, undefined, true);
   });
 }
 

@@ -70,6 +70,7 @@ describe('HTTP API этапа 2', () => {
     expect(clientHtml).toContain('data-i18n="sales.product_price"');
     expect(clientHtml).toContain('<dialog id="sales-payment-dialog"');
     expect(clientHtml).toContain('id="sales-confirm-payment" type="submit"');
+    expect(clientHtml).toContain('id="sales-pay-at-counter"');
     expect(clientHtml).toContain('id="sales-submit" type="button"');
     expect(clientHtml).not.toContain('<h3 data-i18n="sales.payments"></h3>');
     const navigationHtml = clientHtml.match(/<nav id="navigation">([\s\S]*?)<\/nav>/)?.[1] ?? '';
@@ -398,7 +399,7 @@ describe('HTTP API этапа 2', () => {
       role: 'cashier',
       lang: 'ru',
     });
-    setUserPermissions(env.db, adminId, cashier.id, { sell: 1 });
+    setUserPermissions(env.db, adminId, cashier.id, { sell: 1, pay_cash: 1 });
     const otherWarehouse = saveReference(env.db, adminId, 'warehouses', {
       branch_id: env.branchId,
       name: 'Разрешённый склад',
@@ -446,11 +447,13 @@ describe('HTTP API этапа 2', () => {
       warehouse: { id: string };
       salesWarehouses: Array<{ id: string }>;
       products: Array<{ id: string; qty: number; availableQty: number }>;
+      paymentMethods: Array<{ kind: string }>;
     };
     expect(context.warehouse.id).toBe(otherWarehouse.id);
     expect(context.salesWarehouses.map((warehouse) => warehouse.id)).toEqual([otherWarehouse.id]);
     expect(context.products.find((product) => product.id === productId))
       .toMatchObject({ qty: 2_000, availableQty: 2_000 });
+    expect(context.paymentMethods.map((method) => method.kind)).toEqual(['cash']);
 
     addCartLine(env.db, cashier.id, { productId, qty: '1' });
     const cashMethodId = (env.db.prepare("SELECT id FROM payment_methods WHERE kind = 'cash'").get() as { id: string }).id;
@@ -466,6 +469,22 @@ describe('HTTP API этапа 2', () => {
     });
     expect(forbiddenSale.status).toBe(403);
     expect(await forbiddenSale.json()).toMatchObject({ errorKey: 'auth.warehouse_permission_denied' });
+
+    const cardMethodId = (env.db.prepare("SELECT id FROM payment_methods WHERE kind = 'card'").get() as { id: string }).id;
+    const forbiddenPayment = await fetch(`${baseUrl}/api/sales`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        warehouseId: otherWarehouse.id,
+        idempotencyKey: 'forbidden-sales-payment-method',
+        payments: [{ methodId: cardMethodId, amount: 1_500_000 }],
+        receiptLang: 'ru',
+      }),
+    });
+    expect(forbiddenPayment.status).toBe(403);
+    expect(await forbiddenPayment.json()).toMatchObject({
+      errorKey: 'auth.payment_method_permission_denied',
+    });
 
     const allowedSale = await fetch(`${baseUrl}/api/sales`, {
       method: 'POST',
@@ -488,6 +507,103 @@ describe('HTTP API этапа 2', () => {
     );
     expect(deniedWarehouse.status).toBe(403);
     expect(await deniedWarehouse.json()).toMatchObject({ errorKey: 'auth.warehouse_permission_denied' });
+  });
+
+  it('reserves an active cart for counter payment without creating a sale, then checks payment rights at checkout', async () => {
+    const cashier = await createUser(env.db, adminId, {
+      login: 'counter-payment-cashier',
+      password: 'cashier secure password',
+      fullName: 'Counter Payment Cashier',
+      role: 'cashier',
+      lang: 'ru',
+    });
+    const adminCookie = await loginCookie();
+    const accessResponse = await fetch(`${baseUrl}/api/users/${encodeURIComponent(cashier.id)}/permissions`, {
+      method: 'PATCH',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        permissions: { sell: 1, pay_at_counter: 1 },
+        pagePermissions: { sales: 1, heldCarts: 1 },
+      }),
+    });
+    expect(accessResponse.status).toBe(200);
+    expect(await accessResponse.json()).toMatchObject({
+      permissions: { sell: 1, pay_at_counter: 1, pay_cash: 0, pay_card: 0, pay_transfer: 0 },
+    });
+
+    const productId = addProduct(env.db, 'COUNTER-PAYMENT', 'шт', 20_000);
+    createPurchase(env.db, adminId, {
+      warehouseId: env.warehouseId,
+      date: '2026-11-14',
+      lines: [{ productId, qty: '2', unitCost: 1_000_000 }],
+    });
+    const customer = addCustomer(env.db, 'Оплата у кассы');
+    addCartLine(env.db, cashier.id, { productId, qty: '1' });
+    const cashierCookie = await loginCookie(cashier.login, 'cashier secure password');
+
+    const contextResponse = await fetch(`${baseUrl}/api/sales/context`, { headers: { Cookie: cashierCookie } });
+    expect(contextResponse.status).toBe(200);
+    expect((await contextResponse.json()).paymentMethods).toEqual([]);
+
+    const cashMethodId = (env.db.prepare(
+      "SELECT id FROM payment_methods WHERE kind = 'cash'",
+    ).get() as { id: string }).id;
+    const deniedSale = await fetch(`${baseUrl}/api/sales`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        warehouseId: env.warehouseId,
+        idempotencyKey: 'counter-cash-denied',
+        payments: [{ methodId: cashMethodId, amount: 2_000_000 }],
+      }),
+    });
+    expect(deniedSale.status).toBe(403);
+    expect(await deniedSale.json()).toMatchObject({
+      errorKey: 'auth.payment_method_permission_denied',
+    });
+
+    const reserveResponse = await fetch(`${baseUrl}/api/sales/pay-at-counter`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerId: customer,
+        warehouseId: env.warehouseId,
+      }),
+    });
+    expect(reserveResponse.status).toBe(201);
+    const { cart } = await reserveResponse.json() as {
+      cart: { id: string; customerId: string; reservations: Array<{ qty: number; status?: string }> };
+    };
+    expect(cart).toMatchObject({
+      customerId: customer,
+      reservations: [{ qty: 1_000 }],
+    });
+    expect((env.db.prepare('SELECT COUNT(*) AS count FROM sales').get() as { count: number }).count).toBe(0);
+    expect((env.db.prepare('SELECT COUNT(*) AS count FROM payments').get() as { count: number }).count).toBe(0);
+    expect((env.db.prepare('SELECT COUNT(*) AS count FROM debt_ledger').get() as { count: number }).count).toBe(0);
+
+    const enableCash = await fetch(`${baseUrl}/api/users/${encodeURIComponent(cashier.id)}/permissions`, {
+      method: 'PATCH',
+      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ permissions: { pay_cash: 1 } }),
+    });
+    expect(enableCash.status).toBe(200);
+
+    const checkout = await fetch(`${baseUrl}/api/sales`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        warehouseId: env.warehouseId,
+        heldCartId: cart.id,
+        idempotencyKey: 'counter-cash-paid',
+        payments: [{ methodId: cashMethodId, amount: 2_000_000 }],
+      }),
+    });
+    expect(checkout.status).toBe(201);
+    expect((env.db.prepare('SELECT status FROM reservations WHERE cart_id = ?').get(cart.id) as { status: string }))
+      .toEqual({ status: 'consumed' });
+    expect((env.db.prepare('SELECT COUNT(*) AS count FROM sales').get() as { count: number }).count).toBe(1);
+    expect((env.db.prepare('SELECT COUNT(*) AS count FROM payments').get() as { count: number }).count).toBe(1);
   });
 
   it('проверяет права на сервере и позволяет администратору вести справочник', async () => {

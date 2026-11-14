@@ -49,6 +49,7 @@ describe('миграции', () => {
     expect(result.applied).toContain('002_print_receipts.sql');
     expect(result.applied).toContain('004_optional_held_cart_customer.sql');
     expect(result.applied).toContain('005_user_page_and_warehouse_access.sql');
+    expect(result.applied).toContain('006_sale_payment_permissions.sql');
 
     const tables = (db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as { name: string }[]).map(
       (r) => r.name,
@@ -71,6 +72,7 @@ describe('миграции', () => {
     expect(second.alreadyApplied).toContain('002_print_receipts.sql');
     expect(second.alreadyApplied).toContain('004_optional_held_cart_customer.sql');
     expect(second.alreadyApplied).toContain('005_user_page_and_warehouse_access.sql');
+    expect(second.alreadyApplied).toContain('006_sale_payment_permissions.sql');
   });
 
   it('загружает настройки по умолчанию', () => {
@@ -99,7 +101,8 @@ describe('миграции', () => {
     const { db, dir } = tempDb();
     const migDir = join(dir, 'migrations');
     mkdirSync(migDir);
-    for (const file of readdirSync(DEFAULT_MIGRATIONS_DIR).filter((name) => name !== '005_user_page_and_warehouse_access.sql')) {
+    for (const file of readdirSync(DEFAULT_MIGRATIONS_DIR)
+      .filter((name) => !['005_user_page_and_warehouse_access.sql', '006_sale_payment_permissions.sql'].includes(name))) {
       copyFileSync(join(DEFAULT_MIGRATIONS_DIR, file), join(migDir, file));
     }
     migrate(db, migDir);
@@ -119,6 +122,20 @@ describe('миграции', () => {
       .all(cashierId)).toHaveLength(17);
     expect(db.prepare('SELECT warehouse_id FROM user_sales_warehouses WHERE user_id = ?').get(cashierId))
       .toEqual({ warehouse_id: warehouseId });
+
+    copyFileSync(
+      join(DEFAULT_MIGRATIONS_DIR, '006_sale_payment_permissions.sql'),
+      join(migDir, '006_sale_payment_permissions.sql'),
+    );
+    migrate(db, migDir);
+    expect(db.prepare(
+      'SELECT permission, value FROM user_permissions WHERE user_id = ? AND permission LIKE \'pay_%\' ORDER BY permission',
+    ).all(cashierId)).toEqual([
+      { permission: 'pay_at_counter', value: 0 },
+      { permission: 'pay_card', value: 1 },
+      { permission: 'pay_cash', value: 1 },
+      { permission: 'pay_transfer', value: 1 },
+    ]);
   });
 
   it('изменённая применённая миграция отклоняется', () => {

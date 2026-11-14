@@ -4,7 +4,7 @@ import { nextDocNumber } from '../../core/counters';
 import { nowIso } from '../../core/time';
 import { inTransaction } from '../../core/tx';
 import { uuidv7 } from '../../core/uuid';
-import { getPermissionValues, hasPermission } from '../auth/permissions';
+import { canUseSalePaymentMethod, getPermissionValues, hasPermission } from '../auth/permissions';
 import { listUserSalesWarehouses, resolveUserSalesWarehouse } from '../auth/access';
 import { AuthError } from '../auth/service';
 import { captureSalePrintSnapshot } from '../print/service';
@@ -531,7 +531,9 @@ function loadSalesContext(db: Db, userId?: string, requestedWarehouseId?: string
       availableQty: product.qty - product.reserved,
     })),
     customers,
-    paymentMethods,
+    paymentMethods: userId
+      ? paymentMethods.filter((method) => canUseSalePaymentMethod(db, userId, method.kind))
+      : paymentMethods,
     rounding: rounding.value,
   };
 }
@@ -616,6 +618,9 @@ export function createSale(
     for (const payment of normalized.payments) {
       const method = methodById.get(payment.methodId);
       if (!method) throw new AuthError(400, 'validation.invalid_payment_method');
+      if (!canUseSalePaymentMethod(db, userId, method.kind)) {
+        throw new AuthError(403, 'auth.payment_method_permission_denied');
+      }
       if (payment.tendered !== null && method.kind !== 'cash') {
         throw new AuthError(400, 'validation.invalid_payments');
       }

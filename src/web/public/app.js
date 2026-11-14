@@ -260,6 +260,7 @@ const translations = {
     'sales.payment_amount': 'Оплачиваемая сумма в сумах',
     'sales.tendered': 'Получено наличными в сумах',
     'sales.confirm_payment': 'Подтвердить оплату',
+    'sales.pay_at_counter': 'Оплата у кассы — зарезервировать товар',
     'sales.select_payment_method': 'Выберите способ оплаты',
     'sales.total': 'Итого',
     'sales.paid': 'Оплата',
@@ -280,6 +281,7 @@ const translations = {
     'held.sell': 'Продать',
     'held.already_reserved': 'Уже зарезервирована',
     'held.reserve_success': 'Товары зарезервированы.',
+    'held.counter_payment_reserved': 'Корзина зарезервирована для оплаты у кассы. Продажа ещё не оформлена.',
     'held.reserve_deficit': 'Резерв превышает фактический остаток. Уменьшите его количество.',
     'reservations.title': 'Зарезервированные товары',
     'reservations.columns': 'Клиент,Товар,Количество,Склад,Корзина,Создан,Истекает',
@@ -647,6 +649,11 @@ const translations = {
     'warehouses.deactivate_confirm': 'Отключить склад? Он останется в истории, но не будет доступен для новых операций.',
     'warehouses.branch_unavailable': 'Не удалось определить филиал для создания склада. Обратитесь к администратору.',
     'permission.sell': 'Продажа',
+    'permission.pay_cash': 'Наличные',
+    'permission.pay_card': 'Карта',
+    'permission.pay_transfer': 'Перевод',
+    'permission.pay_at_counter': 'Оплата у кассы',
+    'users.sale_payment_permissions': 'Способы оплаты при продаже',
     'permission.hold_cart': 'Отложенная корзина',
     'permission.reserve_cart': 'Резерв товара',
     'permission.discount_check': 'Скидка на чек',
@@ -697,6 +704,7 @@ const translations = {
     'auth.session_expired': 'Сессия завершена. Войдите снова.',
     'auth.session_replaced': 'Выполнен вход на другом устройстве.',
     'auth.permission_denied': 'Недостаточно прав.',
+    'auth.payment_method_permission_denied': 'Пользователю запрещён этот способ оплаты.',
     'users.not_found': 'Пользователь не найден.',
     'users.login_taken': 'Такой логин уже зарегистрирован.',
     'users.last_admin': 'Нельзя отключить или понизить последнего администратора.',
@@ -999,6 +1007,7 @@ const translations = {
     'sales.payment_amount': 'So‘mda to‘lanadigan summa',
     'sales.tendered': 'Naqd olingan summa (so‘m)',
     'sales.confirm_payment': 'To‘lovni tasdiqlash',
+    'sales.pay_at_counter': 'Kassada to‘lash — tovarni rezerv qilish',
     'sales.select_payment_method': 'To‘lov usulini tanlang',
     'sales.total': 'Jami',
     'sales.paid': 'To‘lov',
@@ -1019,6 +1028,7 @@ const translations = {
     'held.sell': 'Sotish',
     'held.already_reserved': 'Allaqachon rezerv qilingan',
     'held.reserve_success': 'Tovarlar rezerv qilindi.',
+    'held.counter_payment_reserved': 'Savat kassada to‘lash uchun rezerv qilindi. Savdo hali rasmiylashtirilmadi.',
     'held.reserve_deficit': 'Rezerv haqiqiy qoldiqdan katta. Uning miqdorini kamaytiring.',
     'reservations.title': 'Rezerv qilingan tovarlar',
     'reservations.columns': 'Mijoz,Tovar,Miqdor,Ombor,Savat,Yaratilgan,Muddati',
@@ -1386,6 +1396,11 @@ const translations = {
     'warehouses.deactivate_confirm': 'Ombor faolsizlantirilsinmi? U tarixda qoladi, ammo yangi amallar uchun ishlatilmaydi.',
     'warehouses.branch_unavailable': 'Ombor yaratish uchun filial aniqlanmadi. Administratorga murojaat qiling.',
     'permission.sell': 'Sotish',
+    'permission.pay_cash': 'Naqd pul',
+    'permission.pay_card': 'Karta',
+    'permission.pay_transfer': 'O‘tkazma',
+    'permission.pay_at_counter': 'Kassada to‘lash',
+    'users.sale_payment_permissions': 'Savdoda to‘lov usullari',
     'permission.hold_cart': 'Kechiktirilgan savat',
     'permission.reserve_cart': 'Tovarni band qilish',
     'permission.discount_check': 'Chekka chegirma',
@@ -1436,6 +1451,7 @@ const translations = {
     'auth.session_expired': 'Seans tugadi. Qayta kiring.',
     'auth.session_replaced': 'Boshqa qurilmadan kirildi.',
     'auth.permission_denied': 'Huquqlar yetarli emas.',
+    'auth.payment_method_permission_denied': 'Foydalanuvchiga bu to‘lov usuli taqiqlangan.',
     'users.not_found': 'Foydalanuvchi topilmadi.',
     'users.login_taken': 'Bu login allaqachon ro‘yxatdan o‘tgan.',
     'users.last_admin': 'Oxirgi administratorni o‘chirib yoki rolini pasaytirib bo‘lmaydi.',
@@ -1485,6 +1501,7 @@ const permissionKeys = [
   'view_cost', 'reports', 'cash_in', 'cash_out', 'expense', 'cash_collection', 'users_manage', 'settings',
   'discount_check_limit_bp', 'discount_manual_limit_bp',
 ];
+const paymentPermissionKeys = ['pay_cash', 'pay_card', 'pay_transfer', 'pay_at_counter'];
 const pagePermissionKeys = [
   'sales', 'heldCarts', 'reservations', 'print', 'returns', 'writeoffs', 'stocktakes', 'reports',
   'products', 'stock', 'warehouses', 'purchases', 'movements', 'debts', 'cash', 'users', 'connection',
@@ -1574,6 +1591,7 @@ const t = (key) => {
 };
 const successMessages = new Set([
   'status.created', 'status.saved', 'status.logged_out', 'held.created', 'held.reserved', 'held.reserve_success',
+  'held.counter_payment_reserved',
   'returns.created', 'writeoff.created', 'backup.created',
   'debts.payment_success', 'debts.forgive_success', 'cash.operation_created',
   'cash.operation_reversed', 'print.profile_saved', 'connection.copy_done', 'status.server_updated',
@@ -1684,7 +1702,9 @@ function renderHeldCartsPage() {
     card.append(customerLabel);
     const actions = document.createElement('div');
     actions.className = 'held-cart-actions';
-    if (state.user?.permissions.sell === 1 && state.user.permissions.hold_cart === 1) {
+    if (state.user?.permissions.sell === 1 &&
+        (state.user.permissions.hold_cart === 1 ||
+          (state.user.permissions.pay_at_counter === 1 && cart.reservations.length > 0))) {
       const sell = document.createElement('button');
       sell.type = 'button';
       sell.dataset.heldSell = cart.id;
@@ -1916,6 +1936,8 @@ function showApp(user) {
   $('#sales-hold-cart').hidden = user.permissions.hold_cart !== 1;
   $('#sales-reserve-cart').hidden =
     user.permissions.reserve_cart !== 1 || user.permissions.hold_cart !== 1;
+  $('#sales-pay-at-counter').hidden =
+    user.permissions.pay_at_counter !== 1 || !canAccessPage('heldCarts');
   $('#writeoff-form').hidden = user.permissions.write_off !== 1;
   $('#stocktake-start-form').hidden = user.permissions.stocktake !== 1;
   $('#debt-payment-form').hidden = user.permissions.debt_payment !== 1;
@@ -1973,7 +1995,7 @@ function canAccessPage(name) {
   if (state.user.pagePermissions?.[name] !== 1) return false;
   const permissionMap = {
     sales: 'sell',
-    heldCarts: ['hold_cart', 'reserve_cart'],
+    heldCarts: ['hold_cart', 'reserve_cart', 'pay_at_counter'],
     reservations: 'reserve_cart',
     print: ['sell', 'return'],
     returns: 'return',
@@ -2024,7 +2046,8 @@ function showPage(name, updateHistory = true) {
   if (name === 'warehouses' && state.user?.permissions.settings === 1) void loadWarehouses();
   if (name === 'sales' && state.user?.permissions.sell === 1) void loadSalesPage();
   if (name === 'heldCarts' &&
-      (state.user?.permissions.hold_cart === 1 || state.user?.permissions.reserve_cart === 1)) {
+      (state.user?.permissions.hold_cart === 1 || state.user?.permissions.reserve_cart === 1 ||
+        state.user?.permissions.pay_at_counter === 1)) {
     void loadHeldCartsPage();
   }
   if (name === 'reservations' && state.user?.permissions.reserve_cart === 1) {
@@ -2307,6 +2330,36 @@ async function reserveSalesCart() {
     showPage('reservations');
   } catch (error) {
     message(error.message);
+  }
+}
+
+async function reserveForCounterPayment() {
+  const button = $('#sales-pay-at-counter');
+  button.disabled = true;
+  try {
+    const customerId = $('#sales-customer').value;
+    if (!customerId) throw new Error('held.customer_required');
+    const warehouseId = state.salesContext?.warehouse?.id;
+    if (!warehouseId) throw new Error('settings.default_warehouse_required');
+    await api('/api/sales/pay-at-counter', {
+      method: 'POST',
+      body: JSON.stringify({
+        customerId,
+        warehouseId,
+        ...(state.salesHeldCartId ? { heldCartId: state.salesHeldCartId } : {}),
+      }),
+    });
+    $('#sales-payment-dialog').close();
+    state.salesHeldCartId = '';
+    state.salesManualDiscounts = {};
+    $('#sales-check-discount-value').value = '';
+    $('#sales-customer').value = '';
+    message('held.counter_payment_reserved');
+    showPage('heldCarts');
+  } catch (error) {
+    message(error.message);
+  } finally {
+    button.disabled = false;
   }
 }
 
@@ -3731,6 +3784,9 @@ function renderSalesCart() {
   buildHead('#sales-cart-head', 'sales.cart_columns');
   body.replaceChildren();
   const cart = state.salesCart;
+  const heldCart = state.heldCarts.find((item) => item.id === state.salesHeldCartId);
+  $('#sales-pay-at-counter').disabled =
+    !cart || cart.lines.length === 0 || Boolean(heldCart?.reservations.length);
   if (!cart || cart.lines.length === 0) {
     const row = document.createElement('tr');
     const empty = cell(t('cart.empty'));
@@ -3867,7 +3923,8 @@ async function loadSalesPage() {
       api(`${contextUrl.pathname}${contextUrl.search}`),
       api('/api/cart'),
       canAccessPage('heldCarts') &&
-        (state.user?.permissions.hold_cart === 1 || state.user?.permissions.reserve_cart === 1)
+        (state.user?.permissions.hold_cart === 1 || state.user?.permissions.reserve_cart === 1 ||
+          state.user?.permissions.pay_at_counter === 1)
         ? api('/api/held-carts')
         : Promise.resolve({ carts: [] }),
     ]);
@@ -3896,6 +3953,8 @@ async function loadSalesPage() {
     $('#sales-customer').disabled = Boolean(heldCart?.customerId);
     $('#sales-hold-cart').disabled = Boolean(heldCart);
     $('#sales-reserve-cart').disabled = Boolean(heldCart?.reservations.length);
+    $('#sales-pay-at-counter').disabled =
+      state.salesCart.lines.length === 0 || Boolean(heldCart?.reservations.length);
     if (heldCart) {
       $('#sales-customer').value = heldCart.customerId ?? '';
       $('#sales-customer').dataset.selectedCustomer = heldCart.customerId ?? '';
@@ -4610,6 +4669,25 @@ async function editPermissions(user) {
 
     const list = $('#permission-list');
     list.replaceChildren();
+    const paymentField = document.createElement('fieldset');
+    paymentField.id = 'sale-payment-permissions';
+    const paymentLegend = document.createElement('legend');
+    paymentLegend.textContent = t('users.sale_payment_permissions');
+    const paymentList = document.createElement('div');
+    paymentList.className = 'permission-grid';
+    for (const key of paymentPermissionKeys) {
+      const label = document.createElement('label');
+      label.className = 'permission-item';
+      const name = document.createElement('span');
+      name.textContent = t(`permission.${key}`);
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.dataset.permission = key;
+      input.checked = access.permissions[key] === 1;
+      label.append(input, name);
+      paymentList.append(label);
+    }
+    paymentField.append(paymentLegend, paymentList);
     for (const key of permissionKeys) {
       const label = document.createElement('label');
       label.className = 'permission-item';
@@ -4629,7 +4707,13 @@ async function editPermissions(user) {
       }
       label.append(input, name);
       list.append(label);
+      if (key === 'sell') list.append(paymentField);
     }
+    const sellPermission = list.querySelector('[data-permission="sell"]');
+    paymentField.hidden = !sellPermission?.checked;
+    sellPermission?.addEventListener('change', () => {
+      paymentField.hidden = !sellPermission.checked;
+    });
     message('');
   } catch (error) {
     editor.hidden = true;
@@ -4760,6 +4844,7 @@ $('#sales-customer').addEventListener('change', (event) => {
 });
 $('#sales-hold-cart').addEventListener('click', () => { void createHeldCart(); });
 $('#sales-reserve-cart').addEventListener('click', () => { void reserveSalesCart(); });
+$('#sales-pay-at-counter').addEventListener('click', () => { void reserveForCounterPayment(); });
 $('#held-carts-list').addEventListener('change', (event) => {
   const select = event.target.closest('[data-held-customer]');
   if (!select) return;
