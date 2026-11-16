@@ -143,14 +143,12 @@ describe('справочники этапа 2', () => {
     const updated = updateSettings(env.db, adminId, {
       receipt_lang_default: 'uz',
       reserve_days: 5,
-      counter_reservation_hours: 5,
     });
     expect(updated.receipt_lang_default).toBe('uz');
     expect(updated.reserve_days).toBe('5');
-    expect(updated.counter_reservation_hours).toBe('5');
     expect(() => updateSettings(env.db, adminId, { session_absolute_hours: '24' }))
       .toThrowError(new AuthError(400, 'settings.invalid_key_or_value'));
-    expect(() => updateSettings(env.db, adminId, { counter_reservation_hours: '6' }))
+    expect(() => updateSettings(env.db, adminId, { counter_reservation_hours: '2' }))
       .toThrowError(new AuthError(400, 'settings.invalid_key_or_value'));
   });
 

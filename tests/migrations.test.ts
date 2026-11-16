@@ -50,6 +50,8 @@ describe('миграции', () => {
     expect(result.applied).toContain('004_optional_held_cart_customer.sql');
     expect(result.applied).toContain('005_user_page_and_warehouse_access.sql');
     expect(result.applied).toContain('006_sale_payment_permissions.sql');
+    expect(result.applied).toContain('008_remove_counter_payment.sql');
+    expect(result.applied).toContain('009_immutable_sales.sql');
 
     const tables = (db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as { name: string }[]).map(
       (r) => r.name,
@@ -61,6 +63,15 @@ describe('миграции', () => {
     const heldCartCustomer = (db.pragma('table_info(held_carts)') as Array<{ name: string; notnull: number }>)
       .find((column) => column.name === 'customer_id');
     expect(heldCartCustomer?.notnull).toBe(0);
+    expect(db.prepare('SELECT 1 FROM settings WHERE key = ?').get('counter_reservation_hours')).toBeUndefined();
+    expect(db.prepare('SELECT 1 FROM user_permissions WHERE permission = ?').get('pay_at_counter')).toBeUndefined();
+    const saleTriggers = db.prepare(
+      "SELECT name FROM sqlite_master WHERE type = 'trigger' AND name LIKE 'trg_sales_no_%' ORDER BY name",
+    ).all() as Array<{ name: string }>;
+    expect(saleTriggers.map((trigger) => trigger.name)).toEqual([
+      'trg_sales_no_delete',
+      'trg_sales_no_update',
+    ]);
   });
 
   it('повторный запуск ничего не меняет', () => {
@@ -73,6 +84,8 @@ describe('миграции', () => {
     expect(second.alreadyApplied).toContain('004_optional_held_cart_customer.sql');
     expect(second.alreadyApplied).toContain('005_user_page_and_warehouse_access.sql');
     expect(second.alreadyApplied).toContain('006_sale_payment_permissions.sql');
+    expect(second.alreadyApplied).toContain('008_remove_counter_payment.sql');
+    expect(second.alreadyApplied).toContain('009_immutable_sales.sql');
   });
 
   it('загружает настройки по умолчанию', () => {
@@ -102,7 +115,12 @@ describe('миграции', () => {
     const migDir = join(dir, 'migrations');
     mkdirSync(migDir);
     for (const file of readdirSync(DEFAULT_MIGRATIONS_DIR)
-      .filter((name) => !['005_user_page_and_warehouse_access.sql', '006_sale_payment_permissions.sql'].includes(name))) {
+      .filter((name) => ![
+        '005_user_page_and_warehouse_access.sql',
+        '006_sale_payment_permissions.sql',
+        '008_remove_counter_payment.sql',
+        '009_immutable_sales.sql',
+      ].includes(name))) {
       copyFileSync(join(DEFAULT_MIGRATIONS_DIR, file), join(migDir, file));
     }
     migrate(db, migDir);
@@ -136,6 +154,15 @@ describe('миграции', () => {
       { permission: 'pay_cash', value: 1 },
       { permission: 'pay_transfer', value: 1 },
     ]);
+
+    for (const file of ['008_remove_counter_payment.sql', '009_immutable_sales.sql']) {
+      copyFileSync(join(DEFAULT_MIGRATIONS_DIR, file), join(migDir, file));
+    }
+    migrate(db, migDir);
+    expect(db.prepare('SELECT 1 FROM user_permissions WHERE user_id = ? AND permission = ?')
+      .get(cashierId, 'pay_at_counter')).toBeUndefined();
+    expect(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'counter_orders'")
+      .get()).toEqual({ name: 'counter_orders' });
   });
 
   it('изменённая применённая миграция отклоняется', () => {

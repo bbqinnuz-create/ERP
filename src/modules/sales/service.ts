@@ -5,16 +5,14 @@ import { nowIso } from '../../core/time';
 import { inTransaction } from '../../core/tx';
 import { uuidv7 } from '../../core/uuid';
 import { canUseSalePaymentMethod, getPermissionValues, hasPermission } from '../auth/permissions';
-import { getPagePermissionValues, listUserSalesWarehouses, resolveUserSalesWarehouse } from '../auth/access';
+import { listUserSalesWarehouses, resolveUserSalesWarehouse } from '../auth/access';
 import { AuthError } from '../auth/service';
-import { captureCounterOrderPrintSnapshot, captureSalePrintSnapshot } from '../print/service';
+import { captureSalePrintSnapshot } from '../print/service';
 import { getActiveCart, type Cart } from '../carts/service';
 import {
   consumeHeldCartReservations,
   expireReservations,
   loadHeldCartForSale,
-  reserveActiveCartForCounter,
-  reserveHeldCartForCounter,
 } from '../carts/held';
 import { consumeFifo, type FifoAllocation } from '../fifo/service';
 import {
@@ -22,7 +20,6 @@ import {
   calculateCart,
   PriceCalculationError,
   type CalculatedCart,
-  type CalculatedPriceLine,
   type DiscountInput,
   type ManualLineDiscount,
   type PriceCart,
@@ -66,7 +63,6 @@ interface NormalizedPayment {
 
 interface CheckoutInput extends NormalizedSaleOptions {
   idempotencyKey: string;
-  counterOrderId: string | null;
   warehouseId: string | null;
   payments: NormalizedPayment[];
   receiptLang: 'ru' | 'uz';
@@ -221,7 +217,7 @@ function normalizeCheckoutInput(input: unknown, defaultLanguage: 'ru' | 'uz'): C
   const row = input as Record<string, unknown>;
   const allowed = [
     'idempotencyKey', 'customerId', 'heldCartId', 'manualDiscounts', 'checkDiscount', 'payments', 'receiptLang',
-    'warehouseId', 'counterOrderId',
+    'warehouseId',
   ];
   const options = normalizeOptions(row, allowed);
   if (typeof row.idempotencyKey !== 'string' || row.idempotencyKey.trim().length === 0 ||
@@ -233,15 +229,9 @@ function normalizeCheckoutInput(input: unknown, defaultLanguage: 'ru' | 'uz'): C
   const warehouseId = row.warehouseId === undefined || row.warehouseId === null
     ? null
     : normalizeId(row.warehouseId, 'warehouse');
-  const counterOrderId = normalizeId(row.counterOrderId, 'counter_order', true);
-  if (counterOrderId && Object.keys(row).some((key) =>
-    !['idempotencyKey', 'counterOrderId', 'payments', 'receiptLang'].includes(key))) {
-    throw new AuthError(400, 'validation.unknown_field');
-  }
   return {
     ...options,
     idempotencyKey: row.idempotencyKey.trim(),
-    counterOrderId,
     warehouseId,
     payments: normalizePayments(row.payments),
     receiptLang,
@@ -490,7 +480,6 @@ function loadSalesContext(db: Db, userId?: string, requestedWarehouseId?: string
   products: SalesContextProduct[];
   customers: Array<{ id: string; name: string }>;
   paymentMethods: Array<{ id: string; name: string; kind: string }>;
-  counterReservationHours: number;
   rounding: 'sum' | 'tiyin';
 } {
   const warehouses = db.prepare(
@@ -536,21 +525,9 @@ function loadSalesContext(db: Db, userId?: string, requestedWarehouseId?: string
   if (!rounding || (rounding.value !== 'sum' && rounding.value !== 'tiyin')) {
     throw new Error('Invalid rounding setting.');
   }
-  const reservationSetting = db.prepare(
-    "SELECT value FROM settings WHERE key = 'counter_reservation_hours'",
-  ).get() as { value: string } | undefined;
-  const counterReservationHours = Number(reservationSetting?.value ?? '2');
-  if (!Number.isSafeInteger(counterReservationHours) ||
-      counterReservationHours < 1 || counterReservationHours > 5) {
-    throw new Error('Invalid counter_reservation_hours setting.');
-  }
   const allowedPaymentMethods = userId
     ? paymentMethods.filter((method) => canUseSalePaymentMethod(db, userId, method.kind))
     : paymentMethods;
-  if (userId && hasPermission(db, userId, 'pay_at_counter') &&
-      getPagePermissionValues(db, userId).heldCarts === 1) {
-    allowedPaymentMethods.push({ id: 'counter', name: 'counter', kind: 'counter' });
-  }
   return {
     warehouse,
     defaultWarehouseId,
@@ -562,7 +539,6 @@ function loadSalesContext(db: Db, userId?: string, requestedWarehouseId?: string
     })),
     customers,
     paymentMethods: allowedPaymentMethods,
-    counterReservationHours,
     rounding: rounding.value,
   };
 }
@@ -575,302 +551,6 @@ export function getSalesContext(
   return inTransaction(db, () => {
     expireReservations(db);
     return loadSalesContext(db, userId, requestedWarehouseId);
-  });
-}
-
-interface CounterOrderRow {
-  id: string;
-  number: string;
-  branch_id: string;
-  warehouse_id: string;
-  user_id: string;
-  customer_id: string | null;
-  customer_name: string | null;
-  held_cart_id: string;
-  subtotal: number;
-  discount_total: number;
-  total: number;
-  quote_json: string;
-  lang: 'ru' | 'uz';
-  status: 'pending' | 'paid' | 'expired' | 'cancelled';
-  sale_id: string | null;
-  paid_by: string | null;
-  created_at: string;
-  expires_at: string;
-  paid_at: string | null;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function readCounterQuote(value: string): {
-  calculated: CalculatedCart;
-  rules: PriceRule[];
-  checkDiscount: DiscountInput | null;
-} {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(value);
-  } catch (error) {
-    throw new Error('Stored counter order quote is invalid.', { cause: error });
-  }
-  if (!isRecord(parsed) || !isRecord(parsed.calculated) || !Array.isArray(parsed.calculated.lines) ||
-      !Array.isArray(parsed.rules)) {
-    throw new Error('Stored counter order quote is invalid.');
-  }
-  const calculated = parsed.calculated;
-  const rawLines = calculated.lines as unknown[];
-  const rawRules = parsed.rules as unknown[];
-  const integer = (entry: unknown): entry is number => Number.isSafeInteger(entry) && (entry as number) >= 0;
-  if (!integer(calculated.subtotal) || !integer(calculated.discountTotal) || !integer(calculated.total)) {
-    throw new Error('Stored counter order totals are invalid.');
-  }
-  const seen = new Set<string>();
-  const lines: CalculatedCart['lines'] = rawLines.map((value) => {
-    if (!isRecord(value) || typeof value.productId !== 'string' || seen.has(value.productId) ||
-        typeof value.categoryId !== 'string' && value.categoryId !== null ||
-        !integer(value.qty) || value.qty === 0 || !integer(value.basePrice) || !integer(value.unitPrice) ||
-        !integer(value.baseTotal) || !integer(value.subtotal) || !integer(value.ruleDiscount) ||
-        !integer(value.manualDiscount) || !integer(value.checkDiscount) || !integer(value.lineDiscount) ||
-        !integer(value.lineTotal) || !Array.isArray(value.appliedDiscounts)) {
-      throw new Error('Stored counter order line is invalid.');
-    }
-    seen.add(value.productId);
-    const appliedDiscounts: CalculatedPriceLine['appliedDiscounts'] = value.appliedDiscounts.map((entry) => {
-      if (!isRecord(entry) || !['qty', 'promo', 'customer', 'manual', 'check'].includes(String(entry.kind)) ||
-          !integer(entry.amount) ||
-          (entry.ruleId !== undefined && typeof entry.ruleId !== 'string') ||
-          (entry.percentBp !== undefined && (!integer(entry.percentBp) || entry.percentBp > 10_000))) {
-        throw new Error('Stored counter order discount is invalid.');
-      }
-      return {
-        kind: entry.kind as CalculatedPriceLine['appliedDiscounts'][number]['kind'],
-        amount: entry.amount,
-        ...(typeof entry.ruleId === 'string' ? { ruleId: entry.ruleId } : {}),
-        ...(typeof entry.percentBp === 'number' ? { percentBp: entry.percentBp } : {}),
-      };
-    });
-    return {
-      productId: value.productId,
-      categoryId: value.categoryId,
-      qty: value.qty,
-      basePrice: value.basePrice,
-      unitPrice: value.unitPrice,
-      baseTotal: value.baseTotal,
-      subtotal: value.subtotal,
-      ruleDiscount: value.ruleDiscount,
-      manualDiscount: value.manualDiscount,
-      checkDiscount: value.checkDiscount,
-      lineDiscount: value.lineDiscount,
-      lineTotal: value.lineTotal,
-      appliedDiscounts,
-    };
-  });
-  const lineTotal = assertSafeSum(lines.map((line) => line.lineTotal), 'validation.invalid_total');
-  if (lines.length === 0 || lineTotal !== calculated.total) {
-    throw new Error('Stored counter order quote does not balance.');
-  }
-  const rules = rawRules.filter((rule): rule is PriceRule =>
-    isRecord(rule) && typeof rule.id === 'string');
-  let checkDiscount: DiscountInput | null = null;
-  if (parsed.checkDiscount !== null && parsed.checkDiscount !== undefined) {
-    try {
-      checkDiscount = normalizeDiscount(parsed.checkDiscount);
-    } catch (error) {
-      throw new Error('Stored counter order discount input is invalid.', { cause: error });
-    }
-  }
-  return {
-    calculated: {
-      lines,
-      subtotal: calculated.subtotal,
-      discountTotal: calculated.discountTotal,
-      total: calculated.total,
-    },
-    rules,
-    checkDiscount,
-  };
-}
-
-function counterOrderResult(db: Db, order: CounterOrderRow) {
-  const lines = db.prepare(
-    `SELECT hcl.product_id AS productId, p.sku, p.name_ru AS name, p.unit, hcl.qty
-     FROM held_cart_lines hcl
-     JOIN products p ON p.id = hcl.product_id
-     WHERE hcl.cart_id = ? ORDER BY hcl.rowid`,
-  ).all(order.held_cart_id) as Array<{
-    productId: string; sku: string; name: string; unit: string; qty: number;
-  }>;
-  return {
-    id: order.id,
-    number: order.number,
-    customerId: order.customer_id,
-    customerName: order.customer_name,
-    total: order.total,
-    createdAt: order.created_at,
-    expiresAt: order.expires_at,
-    status: order.status,
-    lines,
-  };
-}
-
-export function listCounterOrders(db: Db, userId: string): Array<ReturnType<typeof counterOrderResult>> {
-  return inTransaction(db, () => {
-    expireReservations(db);
-    const rows = db.prepare(
-      `SELECT * FROM counter_orders
-       WHERE status = 'pending' AND expires_at > ?
-       ORDER BY created_at, number`,
-    ).all(nowIso()) as CounterOrderRow[];
-    return rows.filter((order) => {
-      try {
-        resolveUserSalesWarehouse(db, userId, order.warehouse_id);
-        return true;
-      } catch (error) {
-        if (error instanceof AuthError && error.status === 403) return false;
-        throw error;
-      }
-    }).map((order) => counterOrderResult(db, order));
-  });
-}
-
-export function listCounterPaymentMethods(
-  db: Db,
-  userId: string,
-  lang: 'ru' | 'uz',
-): Array<{ id: string; name: string; kind: string }> {
-  const nameColumn = lang === 'uz' ? 'COALESCE(name_uz, name_ru)' : 'name_ru';
-  return (db.prepare(
-    `SELECT id, ${nameColumn} AS name, kind FROM payment_methods
-     WHERE active = 1 ORDER BY rowid`,
-  ).all() as Array<{ id: string; name: string; kind: string }>)
-    .filter((method) => canUseSalePaymentMethod(db, userId, method.kind));
-}
-
-export function createCounterOrder(
-  db: Db,
-  userId: string,
-  lang: 'ru' | 'uz',
-  input: unknown,
-): { order: ReturnType<typeof counterOrderResult>; replayed: boolean } {
-  if (!isRecord(input) || Object.keys(input).some((key) =>
-    !['idempotencyKey', 'customerId', 'heldCartId', 'manualDiscounts', 'checkDiscount',
-      'receiptLang', 'warehouseId'].includes(key))) {
-    throw new AuthError(400, 'validation.unknown_field');
-  }
-  const normalized = normalizeCheckoutInput({ ...input, payments: [] }, lang);
-
-  return inTransaction(db, () => {
-    if (!hasPermission(db, userId, 'pay_at_counter') || !hasPermission(db, userId, 'sell')) {
-      throw new AuthError(403, 'auth.permission_denied');
-    }
-    const replay = db.prepare('SELECT * FROM counter_orders WHERE idempotency_key = ?')
-      .get(normalized.idempotencyKey) as CounterOrderRow | undefined;
-    if (replay) {
-      if (replay.user_id !== userId) throw new AuthError(409, 'sale.idempotency_conflict');
-      return { order: counterOrderResult(db, replay), replayed: true };
-    }
-
-    const options: NormalizedSaleOptions = {
-      customerId: normalized.customerId,
-      heldCartId: normalized.heldCartId,
-      manualDiscounts: normalized.manualDiscounts,
-      checkDiscount: normalized.checkDiscount,
-    };
-    const warehouse = resolveUserSalesWarehouse(db, userId, normalized.warehouseId);
-    const loaded = calculateForCart(db, userId, options);
-    const customer = getCustomer(db, options.customerId);
-    const held = normalized.heldCartId
-      ? reserveHeldCartForCounter(db, userId, normalized.heldCartId, warehouse.id, customer?.id)
-      : reserveActiveCartForCounter(db, userId, customer?.id ?? null, warehouse.id);
-    const expiresAt = held.reservations[0]?.expiresAt;
-    if (!expiresAt || held.reservations.some((reservation) => reservation.expiresAt !== expiresAt)) {
-      throw new Error('Counter order reservation has no consistent expiration time.');
-    }
-    const branch = db.prepare('SELECT code FROM branches WHERE id = ? AND active = 1')
-      .get(warehouse.branch_id) as { code: string } | undefined;
-    if (!branch) throw new AuthError(409, 'sales.no_active_warehouse');
-
-    const orderId = uuidv7();
-    const createdAt = nowIso();
-    const number = nextDocNumber(db, warehouse.branch_id, 'sale');
-    db.prepare(
-      `INSERT INTO counter_orders
-       (id, number, branch_id, warehouse_id, user_id, customer_id, customer_name, held_cart_id,
-        subtotal, discount_total, total, quote_json, lang, idempotency_key, created_at, expires_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).run(
-      orderId,
-      number,
-      warehouse.branch_id,
-      warehouse.id,
-      userId,
-      customer?.id ?? null,
-      customer?.name ?? null,
-      held.id,
-      loaded.calculated.subtotal,
-      loaded.calculated.discountTotal,
-      loaded.calculated.total,
-      JSON.stringify({
-        calculated: loaded.calculated,
-        rules: loaded.rules,
-        checkDiscount: options.checkDiscount,
-      }),
-      normalized.receiptLang,
-      normalized.idempotencyKey,
-      createdAt,
-      expiresAt,
-    );
-    addSyncOutbox(db, 'counter_orders', orderId, createdAt);
-    writeAudit(db, {
-      userId,
-      action: 'counter_order.create',
-      entity: 'counter_orders',
-      entityId: orderId,
-      after: {
-        number,
-        heldCartId: held.id,
-        customerId: customer?.id ?? null,
-        total: loaded.calculated.total,
-        expiresAt,
-      },
-    });
-    const snapshot = captureCounterOrderPrintSnapshot(db, orderId);
-    db.prepare(
-      `INSERT INTO print_jobs
-       (id, doc_type, doc_id, kind, status, attempts, created_at, updated_at, lang, snapshot_json)
-       VALUES (?, 'counter_order', ?, 'original', 'pending', 0, ?, ?, ?, ?)`,
-    ).run(uuidv7(), orderId, createdAt, createdAt, normalized.receiptLang, snapshot);
-    const order = db.prepare('SELECT * FROM counter_orders WHERE id = ?').get(orderId) as CounterOrderRow;
-    return { order: counterOrderResult(db, order), replayed: false };
-  });
-}
-
-export function payCounterOrder(
-  db: Db,
-  userId: string,
-  lang: 'ru' | 'uz',
-  orderId: string,
-  input: unknown,
-): SaleResult {
-  if (!isRecord(input) || Object.keys(input).some((key) =>
-    !['methodId', 'idempotencyKey', 'tendered'].includes(key)) ||
-    typeof input.methodId !== 'string' || typeof input.idempotencyKey !== 'string') {
-    throw new AuthError(400, 'validation.invalid_object');
-  }
-  const order = db.prepare('SELECT total FROM counter_orders WHERE id = ?').get(orderId) as
-    { total: number } | undefined;
-  if (!order) throw new AuthError(404, 'counter_order.not_found');
-  return createSale(db, userId, lang, {
-    counterOrderId: orderId,
-    idempotencyKey: input.idempotencyKey,
-    receiptLang: lang,
-    payments: [{
-      methodId: input.methodId,
-      amount: order.total,
-      ...(input.tendered === undefined ? {} : { tendered: input.tendered }),
-    }],
   });
 }
 
@@ -912,93 +592,31 @@ export function createSale(
       return { receipt: saleReceipt(db, existing.result_id), replayed: true };
     }
 
-    let counterOrder: CounterOrderRow | null = null;
-    let frozenQuote: ReturnType<typeof readCounterQuote> | null = null;
-    if (normalized.counterOrderId) {
-      if (!hasPermission(db, userId, 'sell')) throw new AuthError(403, 'auth.permission_denied');
-      expireReservations(db);
-      counterOrder = db.prepare('SELECT * FROM counter_orders WHERE id = ?')
-        .get(normalized.counterOrderId) as CounterOrderRow | undefined ?? null;
-      if (!counterOrder) throw new AuthError(404, 'counter_order.not_found');
-      if (counterOrder.status !== 'pending' || counterOrder.expires_at <= nowIso()) {
-        throw new AuthError(409, 'counter_order.not_pending');
-      }
-      frozenQuote = readCounterQuote(counterOrder.quote_json);
-    }
-
-    let options: NormalizedSaleOptions;
+    let options: NormalizedSaleOptions = {
+      customerId: normalized.customerId,
+      heldCartId: normalized.heldCartId,
+      manualDiscounts: normalized.manualDiscounts,
+      checkDiscount: normalized.checkDiscount,
+    };
     let warehouse: WarehouseRow;
     let loaded: LoadedPriceData;
     let customer: { id: string; name: string } | null;
     let cartId: string;
-    if (counterOrder && frozenQuote) {
-      options = {
-        customerId: counterOrder.customer_id,
-        heldCartId: counterOrder.held_cart_id,
-        manualDiscounts: [],
-        checkDiscount: frozenQuote.checkDiscount,
-      };
-      warehouse = resolveUserSalesWarehouse(db, userId, counterOrder.warehouse_id);
-      const cartRow = db.prepare(
-        'SELECT id, created_at FROM held_carts WHERE id = ? AND status = ?',
-      ).get(counterOrder.held_cart_id, 'open') as { id: string; created_at: string } | undefined;
-      if (!cartRow) throw new AuthError(409, 'counter_order.not_pending');
-      const cartLines = db.prepare(
-        `SELECT hcl.id, hcl.product_id AS productId, p.sku, p.name_ru AS name, p.unit,
-                p.base_price AS basePrice, hcl.qty, p.active
-         FROM held_cart_lines hcl JOIN products p ON p.id = hcl.product_id
-         WHERE hcl.cart_id = ? ORDER BY hcl.rowid`,
-      ).all(counterOrder.held_cart_id) as Array<{
-        id: string; productId: string; sku: string; name: string; unit: string;
-        basePrice: number; qty: number; active: number;
-      }>;
-      if (cartLines.length !== frozenQuote.calculated.lines.length ||
-          cartLines.some((line) => line.active !== 1)) {
-        throw new AuthError(409, 'counter_order.cart_changed');
+    if (normalized.heldCartId) {
+      const held = loadHeldCartForSale(db, userId, normalized.heldCartId);
+      if (held.cart.reservations.length > 0 && normalized.customerId && held.customerId !== normalized.customerId) {
+        throw new AuthError(409, 'cart.held_customer_mismatch');
       }
-      const quoteByProduct = new Map(frozenQuote.calculated.lines.map((line) => [line.productId, line]));
-      if (cartLines.some((line) => quoteByProduct.get(line.productId)?.qty !== line.qty)) {
-        throw new AuthError(409, 'counter_order.cart_changed');
+      if (held.cart.reservations.length > 0 && !options.customerId) {
+        options = { ...options, customerId: held.customerId };
       }
-      const reservations = db.prepare(
-        `SELECT product_id AS productId, warehouse_id AS warehouseId, qty
-         FROM reservations WHERE cart_id = ? AND status = 'active'`,
-      ).all(counterOrder.held_cart_id) as Array<{ productId: string; warehouseId: string; qty: number }>;
-      const reservedByProduct = new Map(reservations.map((reservation) => [reservation.productId, reservation]));
-      if (reservations.length !== cartLines.length || cartLines.some((line) => {
-        const reservation = reservedByProduct.get(line.productId);
-        return !reservation || reservation.qty !== line.qty || reservation.warehouseId !== warehouse.id;
-      })) {
-        throw new AuthError(409, 'counter_order.reservation_inactive');
-      }
-      loaded = {
-        cart: {
-          id: cartRow.id,
-          updatedAt: cartRow.created_at,
-          lines: cartLines.map(({ active: _active, ...line }) => ({ ...line, active: true })),
-        },
-        rules: frozenQuote.rules,
-        calculated: frozenQuote.calculated,
-      };
-      customer = counterOrder.customer_id
-        ? { id: counterOrder.customer_id, name: counterOrder.customer_name ?? '' }
-        : null;
-      cartId = counterOrder.held_cart_id;
-      consumeHeldCartReservations(db, userId, counterOrder.held_cart_id, warehouse.id, true);
-    } else {
-      options = {
-        customerId: normalized.customerId,
-        heldCartId: normalized.heldCartId,
-        manualDiscounts: normalized.manualDiscounts,
-        checkDiscount: normalized.checkDiscount,
-      };
-      warehouse = resolveUserSalesWarehouse(db, userId, normalized.warehouseId);
-      loaded = calculateForCart(db, userId, options);
-      customer = getCustomer(db, options.customerId);
-      cartId = loaded.cart.id;
-      if (normalized.heldCartId) {
-        consumeHeldCartReservations(db, userId, normalized.heldCartId, warehouse.id);
-      }
+    }
+    warehouse = resolveUserSalesWarehouse(db, userId, normalized.warehouseId);
+    loaded = calculateForCart(db, userId, options);
+    customer = getCustomer(db, options.customerId);
+    cartId = loaded.cart.id;
+    if (normalized.heldCartId) {
+      consumeHeldCartReservations(db, userId, normalized.heldCartId, warehouse.id);
     }
     const branch = db.prepare(
       'SELECT code FROM branches WHERE id = ? AND active = 1',
@@ -1012,9 +630,6 @@ export function createSale(
       ).all(...normalized.payments.map((payment) => payment.methodId)) as
         Array<{ id: string; name_ru: string; kind: 'cash' | 'card' | 'transfer' | 'online' }>
       : [];
-    if (counterOrder && normalized.payments.length !== 1) {
-      throw new AuthError(400, 'counter_order.single_payment_required');
-    }
     if (methods.length !== normalized.payments.length) {
       throw new AuthError(400, 'validation.invalid_payment_method');
     }
@@ -1032,7 +647,6 @@ export function createSale(
     const paidTotal = assertSafeSum(normalized.payments.map((payment) => payment.amount), 'validation.invalid_total');
     if (paidTotal > loaded.calculated.total) throw new AuthError(400, 'sale.overpayment');
     const debtAmount = loaded.calculated.total - paidTotal;
-    if (counterOrder && debtAmount !== 0) throw new AuthError(400, 'counter_order.full_payment_required');
     if (debtAmount > 0) {
       if (!customer) throw new AuthError(400, 'sale.customer_required_for_debt');
       if (!hasPermission(db, userId, 'debt_sale')) throw new AuthError(403, 'auth.permission_denied');
@@ -1040,8 +654,8 @@ export function createSale(
 
     const saleId = uuidv7();
     const createdAt = nowIso();
-    const number = counterOrder?.number ?? nextDocNumber(db, warehouse.branch_id, 'sale');
-    const saleLang = counterOrder?.lang ?? normalized.receiptLang;
+    const number = nextDocNumber(db, warehouse.branch_id, 'sale');
+    const saleLang = normalized.receiptLang;
     const allocationsByProduct = new Map<string, FifoAllocation[]>();
     for (const line of loaded.calculated.lines) {
       const allocations = consumeFifo(db, {
@@ -1233,28 +847,7 @@ export function createSale(
       ).run(debtId, customer.id, saleId, debtAmount, userId, createdAt);
     }
 
-    if (counterOrder) {
-      const heldUpdate = db.prepare(
-        `UPDATE held_carts SET status = 'closed', sale_id = ?, closed_at = ?
-         WHERE id = ? AND status = 'open'`,
-      ).run(saleId, createdAt, counterOrder.held_cart_id);
-      if (heldUpdate.changes !== 1) throw new AuthError(409, 'cart.held_not_open');
-      const orderUpdate = db.prepare(
-        `UPDATE counter_orders
-         SET status = 'paid', sale_id = ?, paid_by = ?, paid_at = ?
-         WHERE id = ? AND status = 'pending' AND expires_at > ?`,
-      ).run(saleId, userId, createdAt, counterOrder.id, createdAt);
-      if (orderUpdate.changes !== 1) throw new AuthError(409, 'counter_order.not_pending');
-      addSyncOutbox(db, 'counter_orders', counterOrder.id, createdAt);
-      writeAudit(db, {
-        userId,
-        action: 'counter_order.pay',
-        entity: 'counter_orders',
-        entityId: counterOrder.id,
-        before: { status: 'pending' },
-        after: { status: 'paid', saleId, methodId: normalized.payments[0]!.methodId, paidBy: userId },
-      });
-    } else if (normalized.heldCartId) {
+    if (normalized.heldCartId) {
       const heldUpdate = db.prepare(
         `UPDATE held_carts SET status = 'closed', sale_id = ?, closed_at = ?
          WHERE id = ? AND status = 'open'`,

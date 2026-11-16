@@ -5,7 +5,6 @@ export const PERMISSIONS = [
   'pay_cash',
   'pay_card',
   'pay_transfer',
-  'pay_at_counter',
   'hold_cart',
   'reserve_cart',
   'discount_check',
