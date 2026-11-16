@@ -120,6 +120,7 @@ describe('миграции', () => {
         '006_sale_payment_permissions.sql',
         '008_remove_counter_payment.sql',
         '009_immutable_sales.sql',
+        '010_customer_receipt_pages.sql',
       ].includes(name))) {
       copyFileSync(join(DEFAULT_MIGRATIONS_DIR, file), join(migDir, file));
     }
@@ -163,6 +164,16 @@ describe('миграции', () => {
       .get(cashierId, 'pay_at_counter')).toBeUndefined();
     expect(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'counter_orders'")
       .get()).toEqual({ name: 'counter_orders' });
+
+    copyFileSync(
+      join(DEFAULT_MIGRATIONS_DIR, '010_customer_receipt_pages.sql'),
+      join(migDir, '010_customer_receipt_pages.sql'),
+    );
+    migrate(db, migDir);
+    expect(db.prepare('SELECT page, value FROM user_page_permissions WHERE user_id = ?')
+      .all(cashierId)).toHaveLength(19);
+    expect(db.prepare('SELECT value FROM user_page_permissions WHERE user_id = ? AND page = ?')
+      .get(cashierId, 'customers')).toEqual({ value: 1 });
   });
 
   it('изменённая применённая миграция отклоняется', () => {

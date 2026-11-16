@@ -8,6 +8,14 @@ import type { Db } from '../db/connection';
 import { AuthError, createUserForSession, listUsers, login, logout, setUserAccess, updateUserForSession, withAuthorizedUser } from '../modules/auth/service';
 import { hasPermission, type Permission } from '../modules/auth/permissions';
 import {
+  getCustomer,
+  getReceiptDetails,
+  getReceiptSearchOptions,
+  listCustomerSales,
+  listCustomers,
+  searchReceipts,
+} from '../modules/customers/service';
+import {
   requirePagePermission,
   resolveUserSalesWarehouse,
   type AppPage,
@@ -403,6 +411,62 @@ async function handleApi(
       return { users, products, warehouses };
     }, now());
     sendJson(res, 200, options);
+    return;
+  }
+
+  if (path === '/api/clients' && method === 'GET') {
+    const result = withAuthorizedUser(db, token, 'view_customers', () => listCustomers(db, {
+      search: url.searchParams.get('search') ?? undefined,
+      includeInactive: url.searchParams.get('includeInactive') === 'true',
+      page: url.searchParams.get('page') ?? undefined,
+    }), now());
+    sendJson(res, 200, result);
+    return;
+  }
+  const clientSalesRoute = /^\/api\/clients\/([^/]+)\/sales$/.exec(path);
+  if (clientSalesRoute && method === 'GET') {
+    const result = withAuthorizedUser(db, token, 'view_customers', () => listCustomerSales(
+      db,
+      decodeURIComponent(clientSalesRoute[1]!),
+      url.searchParams.get('page') ?? undefined,
+    ), now());
+    sendJson(res, 200, result);
+    return;
+  }
+  const clientRoute = /^\/api\/clients\/([^/]+)$/.exec(path);
+  if (clientRoute && method === 'GET') {
+    const customer = withAuthorizedUser(db, token, 'view_customers', () =>
+      getCustomer(db, decodeURIComponent(clientRoute[1]!)), now());
+    sendJson(res, 200, { customer });
+    return;
+  }
+  if (path === '/api/receipt-search/options' && method === 'GET') {
+    const result = withAuthorizedUser(db, token, 'search_receipts', (session) =>
+      getReceiptSearchOptions(db, session.user.lang), now());
+    sendJson(res, 200, result);
+    return;
+  }
+  if (path === '/api/receipt-search' && method === 'GET') {
+    const result = withAuthorizedUser(db, token, 'search_receipts', () => searchReceipts(db, {
+      search: url.searchParams.get('search') ?? undefined,
+      from: url.searchParams.get('from') ?? undefined,
+      to: url.searchParams.get('to') ?? undefined,
+      userId: url.searchParams.get('userId') ?? undefined,
+      methodId: url.searchParams.get('methodId') ?? undefined,
+      status: url.searchParams.get('status') ?? undefined,
+      minTotal: url.searchParams.get('minTotal') ?? undefined,
+      maxTotal: url.searchParams.get('maxTotal') ?? undefined,
+      returned: url.searchParams.get('returned') ?? undefined,
+      page: url.searchParams.get('page') ?? undefined,
+    }), now());
+    sendJson(res, 200, result);
+    return;
+  }
+  const receiptRoute = /^\/api\/receipt-search\/([^/]+)$/.exec(path);
+  if (receiptRoute && method === 'GET') {
+    const result = withAuthorizedUser(db, token, 'search_receipts', (session) =>
+      getReceiptDetails(db, decodeURIComponent(receiptRoute[1]!), session.user.lang), now());
+    sendJson(res, 200, { receipt: result });
     return;
   }
 
@@ -1061,7 +1125,11 @@ async function handleApi(
       const includeInactive = url.searchParams.get('includeInactive') === 'true';
       const rows = withAuthorizedUser(db, token, includeInactive ? 'settings' : null,
         () => listReferences(db, type, includeInactive), now());
-      sendJson(res, 200, { rows });
+      sendJson(res, 200, {
+        rows: type === 'customers'
+          ? rows.map((row) => ({ id: row.id, name: row.name, active: row.active }))
+          : rows,
+      });
       return;
     }
     if (method === 'POST' && !id) {
@@ -1116,6 +1184,7 @@ async function handleApi(
 const CLIENT_ROUTES = new Set([
   '/sell', '/sales', '/held-carts', '/reservations', '/print', '/returns', '/writeoffs', '/stocktakes', '/reports',
   '/products', '/stock', '/warehouses', '/purchases', '/movements', '/debts', '/cash', '/users', '/connection',
+  '/clients', '/receipt-search',
 ]);
 
 function pagesForApiRequest(path: string, method: string, url: URL): AppPage[] | null {
@@ -1129,6 +1198,8 @@ function pagesForApiRequest(path: string, method: string, url: URL): AppPage[] |
   if (path.startsWith('/api/writeoffs')) return ['writeoffs'];
   if (path.startsWith('/api/stocktakes')) return ['stocktakes'];
   if (path.startsWith('/api/reports') || path.startsWith('/api/backups')) return ['reports'];
+  if (path.startsWith('/api/clients')) return ['customers'];
+  if (path.startsWith('/api/receipt-search')) return ['receiptSearch'];
   if (path.startsWith('/api/stock/movements')) return ['movements'];
   if (path.startsWith('/api/stock')) return ['stock'];
   if (path.startsWith('/api/debts')) return ['debts'];

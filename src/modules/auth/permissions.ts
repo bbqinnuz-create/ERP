@@ -19,6 +19,8 @@ export const PERMISSIONS = [
   'price_edit',
   'view_cost',
   'reports',
+  'view_customers',
+  'search_receipts',
   'cash_in',
   'cash_out',
   'expense',

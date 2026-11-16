@@ -49,6 +49,8 @@
             <a href="/writeoffs" data-page="writeoffs" data-i18n="nav.writeoffs" hidden></a>
             <a href="/stocktakes" data-page="stocktakes" data-i18n="nav.stocktakes" hidden></a>
             <a href="/reports" data-page="reports" data-i18n="nav.reports" hidden></a>
+            <a href="/clients" data-page="customers" data-i18n="nav.customers" hidden></a>
+            <a href="/receipt-search" data-page="receiptSearch" data-i18n="nav.receipt_search" hidden></a>
             <a href="/products" data-page="products" data-i18n="nav.products"></a>
             <a href="/stock" data-page="stock" data-i18n="nav.stock"></a>
             <a href="/warehouses" data-page="warehouses" data-i18n="nav.warehouses" hidden></a>
@@ -274,6 +276,90 @@
             <p id="backup-status" role="status" aria-live="polite"></p>
             <div class="table-wrap">
               <table><thead id="backup-head"></thead><tbody id="backup-body"></tbody></table>
+            </div>
+          </section>
+        </section>
+        <section id="customers-page" class="page" hidden>
+          <h2 data-i18n="customers.title"></h2>
+          <form id="customers-search-form" class="filter-grid">
+            <label><span data-i18n="customers.search"></span><input id="customers-search" type="search" maxlength="120"></label>
+            <label class="permission-item"><input id="customers-include-inactive" type="checkbox"><span data-i18n="customers.include_inactive"></span></label>
+            <button type="submit" data-i18n="customers.search_button"></button>
+          </form>
+          <div class="table-wrap">
+            <table><thead id="customers-head"></thead><tbody id="customers-body"></tbody></table>
+          </div>
+          <div class="pagination-controls">
+            <button id="customers-previous" type="button" data-i18n="movements.previous"></button>
+            <span id="customers-page-status" aria-live="polite"></span>
+            <button id="customers-next" type="button" data-i18n="movements.next"></button>
+          </div>
+          <section id="customer-details" hidden>
+            <h3 id="customer-details-title"></h3>
+            <p id="customer-details-contact"></p>
+            <p id="customer-details-note"></p>
+            <p id="customer-details-discount"></p>
+            <p id="customer-details-balance"></p>
+            <p id="customer-details-status"></p>
+            <h4 data-i18n="customers.receipts"></h4>
+            <div class="table-wrap">
+              <table><thead id="customer-sales-head"></thead><tbody id="customer-sales-body"></tbody></table>
+            </div>
+            <div class="pagination-controls">
+              <button id="customer-sales-previous" type="button" data-i18n="movements.previous"></button>
+              <span id="customer-sales-page-status" aria-live="polite"></span>
+              <button id="customer-sales-next" type="button" data-i18n="movements.next"></button>
+            </div>
+          </section>
+        </section>
+        <section id="receiptSearch-page" class="page" hidden>
+          <h2 data-i18n="receipt_search.title"></h2>
+          <form id="receipt-search-form" class="filter-grid">
+            <label><span data-i18n="receipt_search.query"></span><input id="receipt-search-query" type="search" maxlength="120"></label>
+            <label><span data-i18n="receipt_search.from"></span><input id="receipt-search-from" type="date"></label>
+            <label><span data-i18n="receipt_search.to"></span><input id="receipt-search-to" type="date"></label>
+            <label><span data-i18n="receipt_search.seller"></span><select id="receipt-search-seller"></select></label>
+            <label><span data-i18n="receipt_search.method"></span><select id="receipt-search-method"></select></label>
+            <label><span data-i18n="receipt_search.status"></span>
+              <select id="receipt-search-status">
+                <option value="" data-i18n="receipt_search.any_status"></option>
+                <option value="paid" data-i18n="receipt_search.paid"></option>
+                <option value="debt" data-i18n="receipt_search.debt"></option>
+              </select>
+            </label>
+            <label><span data-i18n="receipt_search.min_total"></span><input id="receipt-search-min" inputmode="decimal"></label>
+            <label><span data-i18n="receipt_search.max_total"></span><input id="receipt-search-max" inputmode="decimal"></label>
+            <label><span data-i18n="receipt_search.returned"></span>
+              <select id="receipt-search-returned">
+                <option value="" data-i18n="receipt_search.any_return"></option>
+                <option value="true" data-i18n="receipt_search.has_return"></option>
+                <option value="false" data-i18n="receipt_search.no_return"></option>
+              </select>
+            </label>
+            <button type="submit" data-i18n="receipt_search.search"></button>
+          </form>
+          <div class="table-wrap">
+            <table><thead id="receipt-search-head"></thead><tbody id="receipt-search-body"></tbody></table>
+          </div>
+          <div class="pagination-controls">
+            <button id="receipt-search-previous" type="button" data-i18n="movements.previous"></button>
+            <span id="receipt-search-page-status" aria-live="polite"></span>
+            <button id="receipt-search-next" type="button" data-i18n="movements.next"></button>
+          </div>
+          <section id="receipt-details" hidden>
+            <h3 id="receipt-details-title"></h3>
+            <p id="receipt-details-summary"></p>
+            <h4 data-i18n="receipt_search.lines"></h4>
+            <div class="table-wrap">
+              <table><thead id="receipt-lines-head"></thead><tbody id="receipt-lines-body"></tbody></table>
+            </div>
+            <h4 data-i18n="receipt_search.payments"></h4>
+            <div class="table-wrap">
+              <table><thead id="receipt-payments-head"></thead><tbody id="receipt-payments-body"></tbody></table>
+            </div>
+            <h4 data-i18n="receipt_search.returns"></h4>
+            <div class="table-wrap">
+              <table><thead id="receipt-returns-head"></thead><tbody id="receipt-returns-body"></tbody></table>
             </div>
           </section>
         </section>
