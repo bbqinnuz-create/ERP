@@ -33,6 +33,66 @@ const translations = {
     'nav.writeoffs': 'Списания',
     'nav.stocktakes': 'Инвентаризация',
     'nav.reports': 'Отчёты и копии',
+    'nav.customers': 'Клиенты',
+    'nav.receipt_search': 'Поиск чеков',
+    'customers.title': 'Клиенты',
+    'customers.search': 'Имя или телефон',
+    'customers.include_inactive': 'Показывать неактивных',
+    'customers.search_button': 'Найти',
+    'customers.receipts': 'Чеки клиента',
+    'customers.contact': 'Телефон: {phone}',
+    'customers.no_phone': 'Телефон не указан',
+    'customers.note': 'Примечание: {note}',
+    'customers.discount': 'Скидка клиента: {discount}%',
+    'customers.status': 'Статус: {status}',
+    'customers.balance': 'Текущий долг: {balance}',
+    'customers.columns': 'Клиент,Телефон,Долг,Статус,Открыть',
+    'customers.sales_columns': 'Номер чека,Дата,Продавец,Сумма,Оплачено,Долг,Возврат,Открыть',
+    'customers.empty': 'Клиенты не найдены.',
+    'customers.sales_empty': 'У клиента пока нет чеков.',
+    'customers.open': 'Открыть карточку',
+    'customers.page': 'Страница {page}',
+    'customers.invalid_search': 'Проверьте поисковый запрос клиента.',
+    'customers.not_found': 'Клиент не найден.',
+    'receipt_search.title': 'Поиск чеков',
+    'receipt_search.query': 'Номер, клиент, телефон или товар',
+    'receipt_search.from': 'Дата с',
+    'receipt_search.to': 'Дата по',
+    'receipt_search.seller': 'Продавец',
+    'receipt_search.method': 'Способ оплаты',
+    'receipt_search.status': 'Оплата',
+    'receipt_search.any_status': 'Любой статус',
+    'receipt_search.paid': 'Оплачен',
+    'receipt_search.debt': 'Есть долг',
+    'receipt_search.min_total': 'Сумма от',
+    'receipt_search.max_total': 'Сумма до',
+    'receipt_search.returned': 'Возвраты',
+    'receipt_search.any_return': 'Любые',
+    'receipt_search.has_return': 'Есть возврат',
+    'receipt_search.no_return': 'Без возврата',
+    'receipt_search.search': 'Найти чеки',
+    'receipt_search.any_seller': 'Любой продавец',
+    'receipt_search.any_method': 'Любой способ',
+    'receipt_search.columns': 'Номер чека,Дата,Клиент,Продавец,Сумма,Оплачено,Долг,Возврат,Открыть',
+    'receipt_search.empty': 'Чеки не найдены.',
+    'receipt_search.open': 'Открыть чек',
+    'receipt_search.page': 'Страница {page}',
+    'receipt_search.summary': 'Клиент: {customer}; телефон: {phone}; продавец: {seller}; сумма: {total}; оплачено: {paid}; долг: {debt}; возвраты: {refunded}',
+    'receipt_search.no_phone': 'не указан',
+    'receipt_search.lines': 'Товары в чеке',
+    'receipt_search.line_columns': 'Артикул,Товар,Количество,Цена,Скидка,Сумма',
+    'receipt_search.line_empty': 'В чеке нет строк.',
+    'receipt_search.payments': 'Оплаты по чеку',
+    'receipt_search.payment_columns': 'Способ,Сумма,Принято,Сдача',
+    'receipt_search.payment_empty': 'Записей об оплате нет.',
+    'receipt_search.returns': 'Возвраты по чеку',
+    'receipt_search.return_columns': 'Номер возврата,Дата,Причина,Сумма,Оформил',
+    'receipt_search.return_empty': 'Возвратов по чеку нет.',
+    'receipt_search.not_found': 'Чек не найден.',
+    'receipt_search.invalid_search': 'Проверьте поисковый запрос.',
+    'receipt_search.invalid_filter': 'Проверьте фильтры поиска чеков.',
+    'receipt_search.invalid_date': 'Укажите корректный период дат.',
+    'receipt_search.invalid_amount': 'Проверьте диапазон суммы.',
     'reports.title': 'Отчёты',
     'reports.type': 'Отчёт',
     'reports.from': 'С даты (Ташкент)',
@@ -641,6 +701,7 @@ const translations = {
     'users.group.debts': 'Долги',
     'users.group.cash': 'Общая касса',
     'users.group.reports': 'Отчёты',
+    'users.group.customers': 'Клиенты и поиск чеков',
     'users.group.users': 'Пользователи и подключение ПК',
     'users.sales_warehouses': 'Склады для продаж',
     'users.sales_warehouses_help': 'Если список пуст, используется общий склад по умолчанию.',
@@ -686,6 +747,8 @@ const translations = {
     'permission.price_edit': 'Изменение цен',
     'permission.view_cost': 'Просмотр себестоимости',
     'permission.reports': 'Отчёты',
+    'permission.view_customers': 'Просмотр клиентских данных',
+    'permission.search_receipts': 'Поиск чеков',
     'permission.cash_in': 'Внесение наличных',
     'permission.cash_out': 'Изъятие наличных',
     'permission.expense': 'Расход',
@@ -700,6 +763,8 @@ const translations = {
     'page.writeoffs': 'Списания',
     'page.stocktakes': 'Инвентаризация',
     'page.reports': 'Отчёты',
+    'page.customers': 'Клиенты',
+    'page.receiptSearch': 'Поиск чеков',
     'page.products': 'Товары',
     'page.stock': 'Остатки',
     'page.warehouses': 'Склады',
@@ -798,6 +863,66 @@ const translations = {
     'nav.writeoffs': 'Hisobdan chiqarish',
     'nav.stocktakes': 'Inventarizatsiya',
     'nav.reports': 'Hisobotlar va nusxalar',
+    'nav.customers': 'Mijozlar',
+    'nav.receipt_search': 'Cheklarni qidirish',
+    'customers.title': 'Mijozlar',
+    'customers.search': 'Ism yoki telefon',
+    'customers.include_inactive': 'Faol bo‘lmaganlarni ko‘rsatish',
+    'customers.search_button': 'Qidirish',
+    'customers.receipts': 'Mijoz cheklari',
+    'customers.contact': 'Telefon: {phone}',
+    'customers.no_phone': 'Telefon kiritilmagan',
+    'customers.note': 'Izoh: {note}',
+    'customers.discount': 'Mijoz chegirmasi: {discount}%',
+    'customers.status': 'Holati: {status}',
+    'customers.balance': 'Joriy qarz: {balance}',
+    'customers.columns': 'Mijoz,Telefon,Qarz,Holat,Ochish',
+    'customers.sales_columns': 'Chek raqami,Sana,Sotuvchi,Summa,To‘langan,Qarz,Qaytarish,Ochish',
+    'customers.empty': 'Mijozlar topilmadi.',
+    'customers.sales_empty': 'Mijozda hali cheklar yo‘q.',
+    'customers.open': 'Kartani ochish',
+    'customers.page': '{page}-sahifa',
+    'customers.invalid_search': 'Mijoz qidiruv so‘rovini tekshiring.',
+    'customers.not_found': 'Mijoz topilmadi.',
+    'receipt_search.title': 'Cheklarni qidirish',
+    'receipt_search.query': 'Raqam, mijoz, telefon yoki tovar',
+    'receipt_search.from': 'Boshlanish sanasi',
+    'receipt_search.to': 'Tugash sanasi',
+    'receipt_search.seller': 'Sotuvchi',
+    'receipt_search.method': 'To‘lov usuli',
+    'receipt_search.status': 'To‘lov',
+    'receipt_search.any_status': 'Har qanday holat',
+    'receipt_search.paid': 'To‘langan',
+    'receipt_search.debt': 'Qarzdorlik bor',
+    'receipt_search.min_total': 'Summa, dan',
+    'receipt_search.max_total': 'Summa, gacha',
+    'receipt_search.returned': 'Qaytarishlar',
+    'receipt_search.any_return': 'Hammasi',
+    'receipt_search.has_return': 'Qaytarish bor',
+    'receipt_search.no_return': 'Qaytarish yo‘q',
+    'receipt_search.search': 'Cheklarni topish',
+    'receipt_search.any_seller': 'Har qanday sotuvchi',
+    'receipt_search.any_method': 'Har qanday usul',
+    'receipt_search.columns': 'Chek raqami,Sana,Mijoz,Sotuvchi,Summa,To‘langan,Qarz,Qaytarish,Ochish',
+    'receipt_search.empty': 'Cheklar topilmadi.',
+    'receipt_search.open': 'Chekni ochish',
+    'receipt_search.page': '{page}-sahifa',
+    'receipt_search.summary': 'Mijoz: {customer}; telefon: {phone}; sotuvchi: {seller}; summa: {total}; to‘langan: {paid}; qarz: {debt}; qaytarilgan: {refunded}',
+    'receipt_search.no_phone': 'ko‘rsatilmagan',
+    'receipt_search.lines': 'Chekdagi tovarlar',
+    'receipt_search.line_columns': 'Artikul,Tovar,Miqdor,Narx,Chegirma,Summa',
+    'receipt_search.line_empty': 'Chekda qatorlar yo‘q.',
+    'receipt_search.payments': 'Chek to‘lovlari',
+    'receipt_search.payment_columns': 'Usul,Summa,Qabul qilindi,Qaytim',
+    'receipt_search.payment_empty': 'To‘lov yozuvlari yo‘q.',
+    'receipt_search.returns': 'Chek qaytarishlari',
+    'receipt_search.return_columns': 'Qaytarish raqami,Sana,Sabab,Summa,Rasmiylashtirdi',
+    'receipt_search.return_empty': 'Chek bo‘yicha qaytarishlar yo‘q.',
+    'receipt_search.not_found': 'Chek topilmadi.',
+    'receipt_search.invalid_search': 'Qidiruv so‘rovini tekshiring.',
+    'receipt_search.invalid_filter': 'Chek qidiruv filtrlarini tekshiring.',
+    'receipt_search.invalid_date': 'To‘g‘ri sana oralig‘ini kiriting.',
+    'receipt_search.invalid_amount': 'Summa oralig‘ini tekshiring.',
     'reports.title': 'Hisobotlar',
     'reports.type': 'Hisobot',
     'reports.from': 'Boshlanish sanasi (Toshkent)',
@@ -1406,6 +1531,7 @@ const translations = {
     'users.group.debts': 'Qarzlar',
     'users.group.cash': 'Umumiy kassa',
     'users.group.reports': 'Hisobotlar',
+    'users.group.customers': 'Mijozlar va chek qidiruvi',
     'users.group.users': 'Foydalanuvchilar va kompyuter ulanishi',
     'users.sales_warehouses': 'Savdo omborlari',
     'users.sales_warehouses_help': 'Ro‘yxat bo‘sh bo‘lsa, umumiy standart ombor ishlatiladi.',
@@ -1451,6 +1577,8 @@ const translations = {
     'permission.price_edit': 'Narxlarni o‘zgartirish',
     'permission.view_cost': 'Tannarxni ko‘rish',
     'permission.reports': 'Hisobotlar',
+    'permission.view_customers': 'Mijoz ma’lumotlarini ko‘rish',
+    'permission.search_receipts': 'Cheklarni qidirish',
     'permission.cash_in': 'Naqd pul kiritish',
     'permission.cash_out': 'Naqd pul olish',
     'permission.expense': 'Xarajat',
@@ -1465,6 +1593,8 @@ const translations = {
     'page.writeoffs': 'Hisobdan chiqarish',
     'page.stocktakes': 'Inventarizatsiya',
     'page.reports': 'Hisobotlar',
+    'page.customers': 'Mijozlar',
+    'page.receiptSearch': 'Cheklarni qidirish',
     'page.products': 'Tovarlar',
     'page.stock': 'Qoldiqlar',
     'page.warehouses': 'Omborlar',
@@ -1558,6 +1688,11 @@ const permissionGroups = [
     permissions: ['cash_in', 'cash_out', 'expense', 'cash_collection'],
   },
   { title: 'users.group.reports', pages: ['reports'], permissions: ['reports'] },
+  {
+    title: 'users.group.customers',
+    pages: ['customers', 'receiptSearch'],
+    permissions: ['view_customers', 'search_receipts'],
+  },
   { title: 'users.group.users', pages: ['users', 'connection'], permissions: ['users_manage'] },
 ];
 
@@ -1572,6 +1707,15 @@ const state = {
   salesManualDiscounts: {},
   heldCarts: [],
   customers: [],
+  customerDirectoryPage: 1,
+  customerDirectoryHasMore: false,
+  selectedDirectoryCustomerId: '',
+  customerSalesPage: 1,
+  customerSalesHasMore: false,
+  receiptSearchPage: 1,
+  receiptSearchHasMore: false,
+  receiptSearchOptions: null,
+  receiptDetailPending: '',
   heldCustomerChoices: {},
   salesHeldCartId: '',
   returnSale: null,
@@ -1623,6 +1767,8 @@ const pagePaths = {
   writeoffs: '/writeoffs',
   stocktakes: '/stocktakes',
   reports: '/reports',
+  customers: '/clients',
+  receiptSearch: '/receipt-search',
   products: '/products',
   stock: '/stock',
   purchases: '/purchases',
@@ -2056,6 +2202,12 @@ function showLogin(errorKey = '') {
   state.salesManualDiscounts = {};
   state.heldCarts = [];
   state.customers = [];
+  state.customerDirectoryPage = 1;
+  state.selectedDirectoryCustomerId = '';
+  state.customerSalesPage = 1;
+  state.receiptSearchPage = 1;
+  state.receiptSearchOptions = null;
+  state.receiptDetailPending = '';
   state.heldCustomerChoices = {};
   state.salesHeldCartId = '';
   state.debtors = [];
@@ -2074,6 +2226,8 @@ function showLogin(errorKey = '') {
   $('#sales-submit').hidden = true;
   $('#permission-editor').hidden = true;
   $('#user-edit-form').hidden = true;
+  $('#customer-details').hidden = true;
+  $('#receipt-details').hidden = true;
   state.salesWarehouseId = '';
   state.salesContext = null;
   message(errorKey);
@@ -2082,6 +2236,7 @@ function showLogin(errorKey = '') {
 function showApp(user) {
   setNavigationExpanded(false);
   state.user = user;
+  state.receiptSearchOptions = null;
   state.lang = user.lang;
   localStorage.setItem('kassa_lang', state.lang);
   localize();
@@ -2173,6 +2328,8 @@ function canAccessPage(name) {
     writeoffs: 'write_off',
     stocktakes: 'stocktake',
     reports: 'reports',
+    customers: 'view_customers',
+    receiptSearch: 'search_receipts',
     debts: ['debt_payment', 'reports'],
     cash: ['cash_in', 'cash_out', 'expense', 'cash_collection', 'reports'],
     users: 'users_manage',
@@ -2241,6 +2398,14 @@ function showPage(name, updateHistory = true) {
     void loadReports();
     if (state.user.role === 'admin') void loadBackupStatus();
   }
+  if (name === 'customers' && state.user?.permissions.view_customers === 1) {
+    state.customerDirectoryPage = 1;
+    void loadCustomers();
+  }
+  if (name === 'receiptSearch' && state.user?.permissions.search_receipts === 1) {
+    state.receiptSearchPage = 1;
+    void loadReceiptSearchOptions().then(() => loadReceiptSearch());
+  }
 }
 
 function cell(value) {
@@ -2257,6 +2422,270 @@ function buildHead(selector, key) {
     row.append(th);
   }
   $(selector).replaceChildren(row);
+}
+
+function updatePagedControls(previousSelector, nextSelector, statusSelector, page, hasMore, pageKey) {
+  $(previousSelector).hidden = page <= 1;
+  $(nextSelector).hidden = !hasMore;
+  $(statusSelector).textContent = t(pageKey).replace('{page}', String(page));
+}
+
+async function loadCustomers() {
+  const params = new URLSearchParams({ page: String(state.customerDirectoryPage) });
+  if ($('#customers-search').value.trim()) params.set('search', $('#customers-search').value.trim());
+  if ($('#customers-include-inactive').checked) params.set('includeInactive', 'true');
+  try {
+    const result = await api(`/api/clients?${params}`);
+    state.customerDirectoryHasMore = result.hasMore;
+    buildHead('#customers-head', 'customers.columns');
+    const body = $('#customers-body');
+    body.replaceChildren();
+    for (const customer of result.rows) {
+      const row = document.createElement('tr');
+      row.append(cell(customer.name), cell(customer.phone || t('customers.no_phone')),
+        cell(formatMoney(customer.balance)), cell(customer.active ? t('users.active') : t('users.inactive')));
+      const action = document.createElement('td');
+      const open = document.createElement('button');
+      open.type = 'button';
+      open.dataset.customerOpen = customer.id;
+      open.textContent = t('customers.open');
+      action.append(open);
+      row.append(action);
+      body.append(row);
+    }
+    if (result.rows.length === 0) {
+      const row = document.createElement('tr');
+      const empty = cell(t('customers.empty'));
+      empty.colSpan = 5;
+      row.append(empty);
+      body.append(row);
+    }
+    updatePagedControls(
+      '#customers-previous', '#customers-next', '#customers-page-status',
+      state.customerDirectoryPage, state.customerDirectoryHasMore, 'customers.page',
+    );
+    if (state.selectedDirectoryCustomerId &&
+        !result.rows.some((customer) => customer.id === state.selectedDirectoryCustomerId)) {
+      $('#customer-details').hidden = true;
+      state.selectedDirectoryCustomerId = '';
+    }
+    message('');
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function openDirectoryCustomer(customerId) {
+  state.selectedDirectoryCustomerId = customerId;
+  state.customerSalesPage = 1;
+  await loadDirectoryCustomerDetails();
+}
+
+async function loadDirectoryCustomerDetails() {
+  if (!state.selectedDirectoryCustomerId) return;
+  try {
+    const [customerResult, salesResult] = await Promise.all([
+      api(`/api/clients/${encodeURIComponent(state.selectedDirectoryCustomerId)}`),
+      api(`/api/clients/${encodeURIComponent(state.selectedDirectoryCustomerId)}/sales?page=${state.customerSalesPage}`),
+    ]);
+    const customer = customerResult.customer;
+    state.customerSalesHasMore = salesResult.hasMore;
+    $('#customer-details').hidden = false;
+    $('#customer-details-title').textContent = customer.name;
+    $('#customer-details-contact').textContent = t('customers.contact')
+      .replace('{phone}', customer.phone || t('customers.no_phone'));
+    $('#customer-details-note').textContent = customer.note
+      ? t('customers.note').replace('{note}', customer.note)
+      : '';
+    const discount = `${Math.trunc(customer.discountBp / 100)}${
+      customer.discountBp % 100 ? `,${String(customer.discountBp % 100).padStart(2, '0').replace(/0+$/, '')}` : ''
+    }`;
+    $('#customer-details-discount').textContent = t('customers.discount').replace('{discount}', discount);
+    $('#customer-details-balance').textContent = t('customers.balance')
+      .replace('{balance}', formatMoney(customer.balance));
+    $('#customer-details-status').textContent = t('customers.status')
+      .replace('{status}', customer.active ? t('users.active') : t('users.inactive'));
+    buildHead('#customer-sales-head', 'customers.sales_columns');
+    const body = $('#customer-sales-body');
+    body.replaceChildren();
+    for (const sale of salesResult.rows) {
+      const row = document.createElement('tr');
+      row.append(cell(sale.number), cell(formatDateTime(sale.createdAt)), cell(sale.seller),
+        cell(formatMoney(sale.total)), cell(formatMoney(sale.paidTotal)), cell(formatMoney(sale.debtAmount)),
+        cell(formatMoney(sale.refunded)));
+      const action = document.createElement('td');
+      if (canAccessPage('receiptSearch')) {
+        const open = document.createElement('button');
+        open.type = 'button';
+        open.dataset.receiptOpen = sale.id;
+        open.textContent = t('receipt_search.open');
+        action.append(open);
+      }
+      row.append(action);
+      body.append(row);
+    }
+    if (salesResult.rows.length === 0) {
+      const row = document.createElement('tr');
+      const empty = cell(t('customers.sales_empty'));
+      empty.colSpan = 8;
+      row.append(empty);
+      body.append(row);
+    }
+    updatePagedControls(
+      '#customer-sales-previous', '#customer-sales-next', '#customer-sales-page-status',
+      state.customerSalesPage, state.customerSalesHasMore, 'customers.page',
+    );
+    message('');
+  } catch (error) {
+    $('#customer-details').hidden = true;
+    message(error.message);
+  }
+}
+
+async function loadReceiptSearchOptions() {
+  if (state.receiptSearchOptions) return;
+  try {
+    state.receiptSearchOptions = await api('/api/receipt-search/options');
+    const users = [makeOption('', t('receipt_search.any_seller')),
+      ...state.receiptSearchOptions.users.map((user) => makeOption(user.id, user.fullName))];
+    const methods = [makeOption('', t('receipt_search.any_method')),
+      ...state.receiptSearchOptions.methods.map((method) => makeOption(method.id, method.name))];
+    $('#receipt-search-seller').replaceChildren(...users);
+    $('#receipt-search-method').replaceChildren(...methods);
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+function receiptSearchParams() {
+  const params = new URLSearchParams({ page: String(state.receiptSearchPage) });
+  for (const [key, selector] of [
+    ['search', '#receipt-search-query'],
+    ['from', '#receipt-search-from'],
+    ['to', '#receipt-search-to'],
+    ['userId', '#receipt-search-seller'],
+    ['methodId', '#receipt-search-method'],
+    ['status', '#receipt-search-status'],
+    ['minTotal', '#receipt-search-min'],
+    ['maxTotal', '#receipt-search-max'],
+    ['returned', '#receipt-search-returned'],
+  ]) {
+    const value = $(selector).value.trim();
+    if (value) params.set(key, value);
+  }
+  return params;
+}
+
+async function loadReceiptSearch() {
+  try {
+    const result = await api(`/api/receipt-search?${receiptSearchParams()}`);
+    state.receiptSearchHasMore = result.hasMore;
+    buildHead('#receipt-search-head', 'receipt_search.columns');
+    const body = $('#receipt-search-body');
+    body.replaceChildren();
+    for (const receipt of result.rows) {
+      const row = document.createElement('tr');
+      row.append(cell(receipt.number), cell(formatDateTime(receipt.createdAt)), cell(receipt.customerName),
+        cell(receipt.seller), cell(formatMoney(receipt.total)), cell(formatMoney(receipt.paidTotal)),
+        cell(formatMoney(receipt.debtAmount)), cell(formatMoney(receipt.refunded)));
+      const action = document.createElement('td');
+      const open = document.createElement('button');
+      open.type = 'button';
+      open.dataset.receiptOpen = receipt.id;
+      open.textContent = t('receipt_search.open');
+      action.append(open);
+      row.append(action);
+      body.append(row);
+    }
+    if (result.rows.length === 0) {
+      const row = document.createElement('tr');
+      const empty = cell(t('receipt_search.empty'));
+      empty.colSpan = 9;
+      row.append(empty);
+      body.append(row);
+    }
+    updatePagedControls(
+      '#receipt-search-previous', '#receipt-search-next', '#receipt-search-page-status',
+      state.receiptSearchPage, state.receiptSearchHasMore, 'receipt_search.page',
+    );
+    $('#receipt-details').hidden = true;
+    if (state.receiptDetailPending) {
+      const saleId = state.receiptDetailPending;
+      state.receiptDetailPending = '';
+      void openReceiptDetails(saleId);
+    }
+    message('');
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+async function openReceiptDetails(saleId) {
+  try {
+    const { receipt } = await api(`/api/receipt-search/${encodeURIComponent(saleId)}`);
+    const sale = receipt.sale;
+    $('#receipt-details').hidden = false;
+    $('#receipt-details-title').textContent = sale.number;
+    $('#receipt-details-summary').textContent = t('receipt_search.summary')
+      .replace('{customer}', sale.customerName || '')
+      .replace('{phone}', sale.customerPhone || t('receipt_search.no_phone'))
+      .replace('{seller}', sale.seller)
+      .replace('{total}', formatMoney(sale.total))
+      .replace('{paid}', formatMoney(sale.paidTotal))
+      .replace('{debt}', formatMoney(sale.debtAmount))
+      .replace('{refunded}', formatMoney(receipt.returns.reduce((sum, item) => sum + item.totalRefund, 0)));
+    buildHead('#receipt-lines-head', 'receipt_search.line_columns');
+    const lineBody = $('#receipt-lines-body');
+    lineBody.replaceChildren();
+    for (const line of receipt.lines) {
+      const row = document.createElement('tr');
+      row.append(cell(line.sku), cell(line.name), cell(formatQuantity(line.qty)),
+        cell(formatMoney(line.unitPrice)), cell(formatMoney(line.lineDiscount)), cell(formatMoney(line.lineTotal)));
+      lineBody.append(row);
+    }
+    if (receipt.lines.length === 0) {
+      const row = document.createElement('tr');
+      const empty = cell(t('receipt_search.line_empty'));
+      empty.colSpan = 6;
+      row.append(empty);
+      lineBody.append(row);
+    }
+    buildHead('#receipt-payments-head', 'receipt_search.payment_columns');
+    const paymentBody = $('#receipt-payments-body');
+    paymentBody.replaceChildren();
+    for (const payment of receipt.payments) {
+      const row = document.createElement('tr');
+      row.append(cell(payment.method), cell(formatMoney(payment.amount)),
+        cell(payment.tendered == null ? '' : formatMoney(payment.tendered)), cell(formatMoney(payment.change)));
+      paymentBody.append(row);
+    }
+    if (receipt.payments.length === 0) {
+      const row = document.createElement('tr');
+      const empty = cell(t('receipt_search.payment_empty'));
+      empty.colSpan = 4;
+      row.append(empty);
+      paymentBody.append(row);
+    }
+    buildHead('#receipt-returns-head', 'receipt_search.return_columns');
+    const returnBody = $('#receipt-returns-body');
+    returnBody.replaceChildren();
+    for (const item of receipt.returns) {
+      const row = document.createElement('tr');
+      row.append(cell(item.number), cell(formatDateTime(item.createdAt)), cell(item.reason),
+        cell(formatMoney(item.totalRefund)), cell(item.seller));
+      returnBody.append(row);
+    }
+    if (receipt.returns.length === 0) {
+      const row = document.createElement('tr');
+      const empty = cell(t('receipt_search.return_empty'));
+      empty.colSpan = 5;
+      row.append(empty);
+      returnBody.append(row);
+    }
+    message('');
+  } catch (error) {
+    message(error.message);
+  }
 }
 
 async function loadProducts() {
@@ -5045,6 +5474,69 @@ $('#reports-form').addEventListener('submit', (event) => {
 $('#report-type').addEventListener('change', updateReportFilterVisibility);
 $('#report-export').addEventListener('click', exportReportCsv);
 $('#backup-create').addEventListener('click', () => { void createBackupNow(); });
+$('#customers-search-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  state.customerDirectoryPage = 1;
+  state.selectedDirectoryCustomerId = '';
+  $('#customer-details').hidden = true;
+  void loadCustomers();
+});
+$('#customers-body').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-customer-open]');
+  if (button) void openDirectoryCustomer(button.dataset.customerOpen);
+});
+$('#customers-previous').addEventListener('click', () => {
+  if (state.customerDirectoryPage > 1) {
+    state.customerDirectoryPage -= 1;
+    void loadCustomers();
+  }
+});
+$('#customers-next').addEventListener('click', () => {
+  if (state.customerDirectoryHasMore) {
+    state.customerDirectoryPage += 1;
+    void loadCustomers();
+  }
+});
+$('#customer-sales-previous').addEventListener('click', () => {
+  if (state.customerSalesPage > 1) {
+    state.customerSalesPage -= 1;
+    void loadDirectoryCustomerDetails();
+  }
+});
+$('#customer-sales-next').addEventListener('click', () => {
+  if (state.customerSalesHasMore) {
+    state.customerSalesPage += 1;
+    void loadDirectoryCustomerDetails();
+  }
+});
+$('#customer-sales-body').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-receipt-open]');
+  if (button) {
+    state.receiptDetailPending = button.dataset.receiptOpen;
+    showPage('receiptSearch');
+  }
+});
+$('#receipt-search-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  state.receiptSearchPage = 1;
+  void loadReceiptSearch();
+});
+$('#receipt-search-previous').addEventListener('click', () => {
+  if (state.receiptSearchPage > 1) {
+    state.receiptSearchPage -= 1;
+    void loadReceiptSearch();
+  }
+});
+$('#receipt-search-next').addEventListener('click', () => {
+  if (state.receiptSearchHasMore) {
+    state.receiptSearchPage += 1;
+    void loadReceiptSearch();
+  }
+});
+$('#receipt-search-body').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-receipt-open]');
+  if (button) void openReceiptDetails(button.dataset.receiptOpen);
+});
 $('#sales-search').addEventListener('input', renderSalesProducts);
 $('#sales-customer').addEventListener('change', (event) => {
   const select = event.currentTarget;

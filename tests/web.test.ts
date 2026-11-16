@@ -80,8 +80,9 @@ describe('HTTP API этапа 2', () => {
     const navigationHtml = clientHtml.match(/<nav id="navigation">([\s\S]*?)<\/nav>/)?.[1] ?? '';
     const navigationPages = [...navigationHtml.matchAll(/data-page="([^"]+)"/g)].map((match) => match[1]);
     expect(navigationPages).toEqual([
-      'sales', 'heldCarts', 'reservations', 'print', 'returns', 'writeoffs', 'stocktakes', 'reports', 'products',
-      'stock', 'warehouses', 'purchases', 'movements', 'debts', 'cash', 'users', 'connection',
+      'sales', 'heldCarts', 'reservations', 'print', 'returns', 'writeoffs', 'stocktakes', 'reports',
+      'customers', 'receiptSearch', 'products', 'stock', 'warehouses', 'purchases', 'movements', 'debts', 'cash',
+      'users', 'connection',
     ]);
     expect(clientHtml.indexOf('id="logout"')).toBeGreaterThan(clientHtml.indexOf('data-page="connection"'));
     const appScriptResponse = await fetch(`${baseUrl}/app.js`);
@@ -113,14 +114,16 @@ describe('HTTP API этапа 2', () => {
     groupedPermissionKeys.push(...[...paymentPermissionSource.matchAll(/'([^']+)'/g)].map((permission) => permission[1]!));
     expect(groupedPageKeys).toEqual([
       'sales', 'heldCarts', 'reservations', 'print', 'products', 'stock', 'warehouses', 'purchases',
-      'movements', 'returns', 'writeoffs', 'stocktakes', 'debts', 'cash', 'reports', 'users', 'connection',
+      'movements', 'returns', 'writeoffs', 'stocktakes', 'debts', 'cash', 'reports', 'customers', 'receiptSearch',
+      'users', 'connection',
     ]);
     expect(new Set(groupedPermissionKeys).size).toBe(groupedPermissionKeys.length);
     expect(groupedPermissionKeys.sort()).toEqual([
       'cash_in', 'cash_out', 'cash_collection', 'debt_payment', 'debt_sale', 'discount_check',
       'discount_check_limit_bp', 'discount_manual', 'discount_manual_limit_bp', 'expense', 'hold_cart',
       'pay_card', 'pay_cash', 'pay_transfer', 'price_edit', 'purchase', 'reports',
-      'reserve_cart', 'return', 'sell', 'sell_below_cost', 'settings', 'stocktake', 'users_manage',
+      'reserve_cart', 'return', 'search_receipts', 'sell', 'sell_below_cost', 'settings', 'stocktake',
+      'users_manage', 'view_customers',
       'view_cost', 'write_off',
     ].sort());
     expect(appScript).toContain("createHeading('users.pages', group)");
@@ -133,7 +136,8 @@ describe('HTTP API этапа 2', () => {
     expect(appScript).not.toContain('counter_orders');
     for (const route of [
       '/sell', '/sales', '/held-carts', '/reservations', '/print', '/returns', '/writeoffs', '/stocktakes', '/reports',
-      '/products', '/stock', '/warehouses', '/purchases', '/movements', '/debts', '/cash', '/users', '/connection',
+      '/clients', '/receipt-search', '/products', '/stock', '/warehouses', '/purchases', '/movements', '/debts',
+      '/cash', '/users', '/connection',
     ]) {
       const page = await fetch(`${baseUrl}${route}`);
       expect(page.status).toBe(200);

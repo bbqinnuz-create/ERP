@@ -10,6 +10,8 @@ export const PAGE_PERMISSIONS = [
   'writeoffs',
   'stocktakes',
   'reports',
+  'customers',
+  'receiptSearch',
   'products',
   'stock',
   'warehouses',
