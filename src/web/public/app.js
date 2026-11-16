@@ -16,6 +16,7 @@ const translations = {
     'login.submit': 'Войти',
     'auth.logout': 'Выйти',
     'nav.pages': 'Страницы',
+    'nav.close': 'Закрыть навигацию',
     'nav.sales': 'Продажа',
     'nav.held_carts': 'Отложенные корзины',
     'nav.reservations': 'Бронь товаров',
@@ -846,6 +847,7 @@ const translations = {
     'login.submit': 'Kirish',
     'auth.logout': 'Chiqish',
     'nav.pages': 'Sahifalar',
+    'nav.close': 'Navigatsiyani yopish',
     'nav.sales': 'Savdo',
     'nav.held_carts': 'Saqlangan savatlar',
     'nav.reservations': 'Tovarlar broni',
@@ -1841,6 +1843,9 @@ function setServerAvailability(available) {
 function localize() {
   document.documentElement.lang = state.lang;
   document.querySelectorAll('[data-i18n]').forEach((node) => { node.textContent = t(node.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-aria-label]').forEach((node) => {
+    node.setAttribute('aria-label', t(node.dataset.i18nAriaLabel));
+  });
   $('#product-import-template').href =
     `/api/products/import/template?lang=${encodeURIComponent(state.lang)}`;
   $('#purchase-import-template').href = '/api/purchases/import/template';
@@ -2234,7 +2239,7 @@ function showLogin(errorKey = '') {
 }
 
 function showApp(user) {
-  setNavigationExpanded(false);
+  setNavigationExpanded(true);
   state.user = user;
   state.receiptSearchOptions = null;
   state.lang = user.lang;
@@ -2346,6 +2351,7 @@ function canAccessPage(name) {
 function setNavigationExpanded(expanded) {
   $('#navigation-toggle').setAttribute('aria-expanded', String(expanded));
   $('#navigation-menu').hidden = !expanded;
+  $('#navigation-backdrop').hidden = !expanded;
   $('#app-view').classList.toggle('navigation-expanded', expanded);
 }
 
@@ -5426,6 +5432,14 @@ $('#navigation').addEventListener('click', (event) => {
       event.shiftKey || event.altKey) return;
   event.preventDefault();
   showPage(link.dataset.page);
+  if (window.matchMedia('(max-width: 640px)').matches) setNavigationExpanded(false);
+});
+$('#navigation-backdrop').addEventListener('click', () => { setNavigationExpanded(false); });
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && window.matchMedia('(max-width: 640px)').matches &&
+      $('#navigation-toggle').getAttribute('aria-expanded') === 'true') {
+    setNavigationExpanded(false);
+  }
 });
 $('#sales-page').addEventListener('click', (event) => {
   const link = event.target.closest('a[data-page]');
