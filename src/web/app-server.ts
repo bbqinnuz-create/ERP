@@ -17,22 +17,23 @@ import { getReport, REPORT_TYPES } from '../modules/reports/service';
 import { createPurchase, getPurchase, listPurchases, reversePurchase } from '../modules/purchases/service';
 import { addCartLine, getActiveCart, removeCartLine, setCartLineQty } from '../modules/carts/service';
 import {
+  addHeldCartLine,
   getHeldCart,
   holdActiveCart,
   listActiveReservations,
   listHeldCarts,
+  loadHeldCartForSale,
   reserveActiveCart,
   releaseHeldCart,
   reserveHeldCart,
+  removeHeldCartLine,
+  setHeldCartLineQuantity,
   setReservationQuantity,
+  updateHeldCartCustomer,
 } from '../modules/carts/held';
 import {
-  createCounterOrder,
   createSale,
   getSalesContext,
-  listCounterPaymentMethods,
-  listCounterOrders,
-  payCounterOrder,
   quoteSale,
 } from '../modules/sales/service';
 import { createReturn, findSalesForReturn, quoteReturn } from '../modules/returns/service';
@@ -513,7 +514,6 @@ async function handleApi(
     const carts = withAuthorizedUser(db, token, null, (session) => {
       if (!hasPermission(db, session.user.id, 'hold_cart') &&
           !hasPermission(db, session.user.id, 'reserve_cart') &&
-          !hasPermission(db, session.user.id, 'pay_at_counter') &&
           !hasPermission(db, session.user.id, 'sell')) {
         throw new AuthError(403, 'auth.permission_denied');
       }
@@ -545,13 +545,53 @@ async function handleApi(
     sendJson(res, 201, { cart });
     return;
   }
+  const heldCartLineRoute = /^\/api\/held-carts\/([^/]+)\/lines(?:\/([^/]+))?$/.exec(path);
+  if (heldCartLineRoute) {
+    const cartId = decodeURIComponent(heldCartLineRoute[1]!);
+    const productId = heldCartLineRoute[2] ? decodeURIComponent(heldCartLineRoute[2]) : null;
+    if (!productId && method === 'POST') {
+      const body = await readJson(req);
+      if (Object.keys(body).some((key) => key !== 'productId' && key !== 'qty')) {
+        throw new AuthError(400, 'validation.unknown_field');
+      }
+      const cart = withAuthorizedUser(db, token, 'hold_cart', (session) =>
+        addHeldCartLine(db, session.user.id, cartId, body.productId, body.qty), now());
+      sendJson(res, 200, { cart });
+      return;
+    }
+    if (productId && method === 'PATCH') {
+      const body = await readJson(req);
+      if (Object.keys(body).some((key) => key !== 'qty')) throw new AuthError(400, 'validation.unknown_field');
+      const cart = withAuthorizedUser(db, token, 'hold_cart', (session) =>
+        setHeldCartLineQuantity(db, session.user.id, cartId, productId, body.qty), now());
+      sendJson(res, 200, { cart });
+      return;
+    }
+    if (productId && method === 'DELETE') {
+      const cart = withAuthorizedUser(db, token, 'hold_cart', (session) =>
+        removeHeldCartLine(db, session.user.id, cartId, productId), now());
+      sendJson(res, 200, { cart });
+      return;
+    }
+  }
+  const heldCartCustomerRoute = /^\/api\/held-carts\/([^/]+)$/.exec(path);
+  if (heldCartCustomerRoute && method === 'PATCH') {
+    const body = await readJson(req);
+    if (Object.keys(body).length !== 1 || !Object.hasOwn(body, 'customerId')) {
+      throw new AuthError(400, 'validation.unknown_field');
+    }
+    const cart = withAuthorizedUser(db, token, 'hold_cart', (session) =>
+      updateHeldCartCustomer(db, session.user.id, decodeURIComponent(heldCartCustomerRoute[1]!), body.customerId), now());
+    sendJson(res, 200, { cart });
+    return;
+  }
   const heldCartRoute = /^\/api\/held-carts\/([^/]+)(?:\/(reserve|release))?$/.exec(path);
   if (heldCartRoute) {
     const id = decodeURIComponent(heldCartRoute[1]!);
     if (!heldCartRoute[2] && method === 'GET') {
       const cart = withAuthorizedUser(db, token, null, (session) => {
         if (!hasPermission(db, session.user.id, 'hold_cart') &&
-            !hasPermission(db, session.user.id, 'pay_at_counter')) {
+            !hasPermission(db, session.user.id, 'reserve_cart')) {
           throw new AuthError(403, 'auth.permission_denied');
         }
         return getHeldCart(db, session.user.id, id);
@@ -612,51 +652,11 @@ async function handleApi(
     sendJson(res, 200, context);
     return;
   }
-  if (path === '/api/sales/pay-at-counter' && method === 'POST') {
-    const body = await readJson(req);
-    if (Object.keys(body).some((key) =>
-      !['customerId', 'warehouseId', 'heldCartId', 'idempotencyKey', 'receiptLang',
-        'manualDiscounts', 'checkDiscount'].includes(key))) {
-      throw new AuthError(400, 'validation.unknown_field');
-    }
-    if (body.warehouseId !== undefined &&
-        (typeof body.warehouseId !== 'string' || body.warehouseId.length > 64)) {
-      throw new AuthError(400, 'validation.invalid_warehouse');
-    }
-    if (body.heldCartId !== undefined &&
-        (typeof body.heldCartId !== 'string' || body.heldCartId.length < 1 || body.heldCartId.length > 64)) {
-      throw new AuthError(400, 'validation.invalid_object');
-    }
-    const result = withAuthorizedUser(db, token, 'sell', (session) => {
-      if (!hasPermission(db, session.user.id, 'pay_at_counter')) {
-        throw new AuthError(403, 'auth.permission_denied');
-      }
-      requirePagePermission(db, session.user.id, 'heldCarts');
-      return createCounterOrder(db, session.user.id, session.user.lang, body);
-    }, now());
-    sendJson(res, result.replayed ? 200 : 201, result);
-    return;
-  }
-  if (path === '/api/counter-orders' && method === 'GET') {
-    const result = withAuthorizedUser(db, token, 'sell', (session) => {
-      requirePagePermission(db, session.user.id, 'heldCarts');
-      return {
-        orders: listCounterOrders(db, session.user.id),
-        paymentMethods: listCounterPaymentMethods(db, session.user.id, session.user.lang),
-      };
-    }, now());
+  const saleHeldCartRoute = /^\/api\/sales\/held-carts\/([^/]+)$/.exec(path);
+  if (saleHeldCartRoute && method === 'GET') {
+    const result = withAuthorizedUser(db, token, 'sell', (session) =>
+      loadHeldCartForSale(db, session.user.id, decodeURIComponent(saleHeldCartRoute[1]!)), now());
     sendJson(res, 200, result);
-    return;
-  }
-  const counterOrderPaymentRoute = /^\/api\/counter-orders\/([^/]+)\/pay$/.exec(path);
-  if (counterOrderPaymentRoute && method === 'POST') {
-    const body = await readJson(req);
-    const result = withAuthorizedUser(db, token, 'sell', (session) => {
-      requirePagePermission(db, session.user.id, 'heldCarts');
-      return payCounterOrder(db, session.user.id, session.user.lang,
-        decodeURIComponent(counterOrderPaymentRoute[1]!), body);
-    }, now());
-    sendJson(res, result.replayed ? 200 : 201, { ...result.receipt, replayed: result.replayed });
     return;
   }
   if (path === '/api/sales/customers' && method === 'POST') {
@@ -665,7 +665,7 @@ async function handleApi(
       throw new AuthError(400, 'validation.unknown_field');
     }
     const row = withAuthorizedUser(db, token, null, (session) => {
-      if (!(['sell', 'hold_cart', 'reserve_cart', 'pay_at_counter'] as const)
+      if (!(['sell', 'hold_cart', 'reserve_cart'] as const)
         .some((permission) => hasPermission(db, session.user.id, permission))) {
         throw new AuthError(403, 'auth.permission_denied');
       }
@@ -1122,7 +1122,6 @@ function pagesForApiRequest(path: string, method: string, url: URL): AppPage[] |
   if (path === '/api/server-info') return ['connection'];
   if (path.startsWith('/api/users')) return ['users'];
   if (path.startsWith('/api/sales') || path.startsWith('/api/cart')) return ['sales'];
-  if (path.startsWith('/api/counter-orders')) return ['sales', 'heldCarts'];
   if (path.startsWith('/api/held-carts')) return ['heldCarts'];
   if (path.startsWith('/api/reservations')) return ['reservations'];
   if (path.startsWith('/api/print')) return ['print'];

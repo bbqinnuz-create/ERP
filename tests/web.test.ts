@@ -65,13 +65,17 @@ describe('HTTP API этапа 2', () => {
     expect(clientHtml).toContain('<div id="navigation-menu" hidden>');
     expect(clientHtml).toContain('id="sales-held-carts-link"');
     expect(clientHtml).toContain('id="sales-reservations-link"');
+    expect(clientHtml).toContain('id="reservations-list" class="held-cart-grid"');
+    expect(clientHtml).toContain('id="held-carts-list" class="held-cart-grid"');
     expect(clientHtml).toContain('data-i18n="sales.product_name"');
     expect(clientHtml).toContain('data-i18n="sales.available_stock"');
     expect(clientHtml).toContain('data-i18n="sales.product_price"');
     expect(clientHtml).toContain('<dialog id="sales-payment-dialog"');
     expect(clientHtml).toContain('id="sales-confirm-payment" type="submit"');
+    expect(clientHtml).not.toContain('counter-orders-list');
+    expect(clientHtml).not.toContain('counter-reservation-hours');
     expect(clientHtml).not.toContain('id="sales-pay-at-counter"');
-    expect(clientHtml).toContain('id="sales-submit" type="button"');
+    expect(clientHtml).toContain('id="sales-submit" type="button" data-i18n="sales.submit" hidden');
     expect(clientHtml).not.toContain('<h3 data-i18n="sales.payments"></h3>');
     const navigationHtml = clientHtml.match(/<nav id="navigation">([\s\S]*?)<\/nav>/)?.[1] ?? '';
     const navigationPages = [...navigationHtml.matchAll(/data-page="([^"]+)"/g)].map((match) => match[1]);
@@ -83,15 +87,50 @@ describe('HTTP API этапа 2', () => {
     const appScriptResponse = await fetch(`${baseUrl}/app.js`);
     expect(appScriptResponse.status).toBe(200);
     const appScript = await appScriptResponse.text();
-    const counterPaymentHandler = appScript.match(
-      /async function reserveForCounterPayment\(\) \{([\s\S]*?)\n\}/,
-    )?.[1];
-    expect(counterPaymentHandler).toContain('await loadSalesPage()');
-    expect(counterPaymentHandler).not.toContain("showPage('heldCarts')");
+    expect(appScript).toContain("'nav.reservations': 'Бронь товаров'");
+    expect(appScript).toContain("'reservations.title': 'Бронь товаров'");
+    expect(appScript).toContain("'nav.reservations': 'Tovarlar broni'");
+    expect(appScript).toContain("state.heldCarts.filter((cart) => cart.reservations.length === 0)");
+    expect(appScript).toContain('`/api/held-carts/${encodeURIComponent(state.salesHeldCartId)}/lines`');
+    expect(appScript).toContain("'reservations.title': 'Tovarlar broni'");
+    expect(appScript).toContain("$('#sales-submit').hidden = context.paymentMethods.length === 0");
+    expect(appScript).toContain('cart.lines.slice(0, 3)');
+    expect(appScript).toContain('data-held-open');
+    expect(appScript).toContain('data-held-cancel');
+    expect(appScript).toContain('data-reservation-cancel');
+    const createHeldHandler = appScript.match(/async function createHeldCart\(\) \{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const reserveSalesHandler = appScript.match(/async function reserveSalesCart\(\) \{([\s\S]*?)\n\}/)?.[1] ?? '';
+    expect(createHeldHandler).toContain('await loadSalesPage()');
+    expect(createHeldHandler).not.toContain("showPage('heldCarts')");
+    expect(reserveSalesHandler).toContain('await loadSalesPage()');
+    expect(reserveSalesHandler).not.toContain("showPage('reservations')");
+    const permissionGroupSource = appScript.match(/const permissionGroups = \[([\s\S]*?)\n\];/)?.[1] ?? '';
+    const groupedPageKeys = [...permissionGroupSource.matchAll(/pages:\s*\[([^\]]*)\]/g)]
+      .flatMap((match) => [...match[1]!.matchAll(/'([^']+)'/g)].map((page) => page[1]));
+    const groupedPermissionKeys = [...permissionGroupSource.matchAll(/permissions:\s*\[([^\]]*)\]/g)]
+      .flatMap((match) => [...match[1]!.matchAll(/'([^']+)'/g)].map((permission) => permission[1]));
+    const paymentPermissionSource = appScript.match(/const paymentPermissionKeys = \[([^\]]*)\]/)?.[1] ?? '';
+    groupedPermissionKeys.push(...[...paymentPermissionSource.matchAll(/'([^']+)'/g)].map((permission) => permission[1]!));
+    expect(groupedPageKeys).toEqual([
+      'sales', 'heldCarts', 'reservations', 'print', 'products', 'stock', 'warehouses', 'purchases',
+      'movements', 'returns', 'writeoffs', 'stocktakes', 'debts', 'cash', 'reports', 'users', 'connection',
+    ]);
+    expect(new Set(groupedPermissionKeys).size).toBe(groupedPermissionKeys.length);
+    expect(groupedPermissionKeys.sort()).toEqual([
+      'cash_in', 'cash_out', 'cash_collection', 'debt_payment', 'debt_sale', 'discount_check',
+      'discount_check_limit_bp', 'discount_manual', 'discount_manual_limit_bp', 'expense', 'hold_cart',
+      'pay_card', 'pay_cash', 'pay_transfer', 'price_edit', 'purchase', 'reports',
+      'reserve_cart', 'return', 'sell', 'sell_below_cost', 'settings', 'stocktake', 'users_manage',
+      'view_cost', 'write_off',
+    ].sort());
+    expect(appScript).toContain("createHeading('users.pages', group)");
+    expect(appScript).toContain("createHeading('users.operations', group)");
     const salePaymentHandler = appScript.match(
       /async function submitSale\(event\) \{([\s\S]*?)\n\}/,
     )?.[1];
     expect(salePaymentHandler).not.toContain("showPage('heldCarts')");
+    expect(appScript).not.toContain('pay_at_counter');
+    expect(appScript).not.toContain('counter_orders');
     for (const route of [
       '/sell', '/sales', '/held-carts', '/reservations', '/print', '/returns', '/writeoffs', '/stocktakes', '/reports',
       '/products', '/stock', '/warehouses', '/purchases', '/movements', '/debts', '/cash', '/users', '/connection',
@@ -401,6 +440,119 @@ describe('HTTP API этапа 2', () => {
     });
   });
 
+  it('возвращает пустой список способов оплаты кассиру без прав и скрывает кнопку оплаты', async () => {
+    const cashier = await createUser(env.db, adminId, {
+      login: 'no-payment-methods',
+      password: 'cashier secure password',
+      fullName: 'No Payment Methods',
+      role: 'cashier',
+      lang: 'ru',
+    });
+    setUserPermissions(env.db, adminId, cashier.id, { sell: 1 });
+    const cookie = await loginCookie(cashier.login, 'cashier secure password');
+
+    const response = await fetch(`${baseUrl}/api/sales/context`, { headers: { Cookie: cookie } });
+    expect(response.status).toBe(200);
+    expect((await response.json()).paymentMethods).toEqual([]);
+    const appScript = await (await fetch(`${baseUrl}/app.js`)).text();
+    expect(appScript).toContain("$('#sales-submit').hidden = context.paymentMethods.length === 0");
+  });
+
+  it('removes the old counter-payment API while keeping regular sale payment methods', async () => {
+    const cashier = await createUser(env.db, adminId, {
+      login: 'no-counter-payment',
+      password: 'cashier secure password',
+      fullName: 'No Counter Payment',
+      role: 'cashier',
+      lang: 'ru',
+    });
+    setUserPermissions(env.db, adminId, cashier.id, { sell: 1, pay_cash: 1 });
+    const cashierCookie = await loginCookie(cashier.login, 'cashier secure password');
+    const disabledCreate = await fetch(`${baseUrl}/api/sales/pay-at-counter`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    expect(disabledCreate.status).toBe(404);
+    expect((await fetch(`${baseUrl}/api/counter-orders`, {
+      headers: { Cookie: cashierCookie },
+    })).status).toBe(404);
+
+    const context = await fetch(`${baseUrl}/api/sales/context`, { headers: { Cookie: cashierCookie } });
+    expect(context.status).toBe(200);
+    const paymentMethods = (await context.json()).paymentMethods as Array<{ kind: string }>;
+    expect(paymentMethods.length).toBeGreaterThan(0);
+    expect(paymentMethods.every((method) => method.kind !== 'counter')).toBe(true);
+  });
+
+  it('отменяет отложенную корзину и снимает резерв, не удаляя записи журнала', async () => {
+    const cashier = await createUser(env.db, adminId, {
+      login: 'cart-canceller',
+      password: 'cashier secure password',
+      fullName: 'Cart Canceller',
+      role: 'cashier',
+      lang: 'ru',
+    });
+    setUserPermissions(env.db, adminId, cashier.id, { hold_cart: 1, reserve_cart: 1 });
+    const productId = addProduct(env.db, 'WEB-CART-CANCEL');
+    createPurchase(env.db, adminId, {
+      warehouseId: env.warehouseId,
+      date: '2026-11-14',
+      lines: [{ productId, qty: '5', unitCost: 1_000 }],
+    });
+    const customerId = addCustomer(env.db, 'Резерв для отмены');
+    const cookie = await loginCookie(cashier.login, 'cashier secure password');
+
+    addCartLine(env.db, cashier.id, { productId, qty: '1' });
+    const heldResponse = await fetch(`${baseUrl}/api/held-carts`, {
+      method: 'POST',
+      headers: { Cookie: cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    expect(heldResponse.status).toBe(201);
+    const { cart: held } = await heldResponse.json() as { cart: { id: string } };
+    const cancelHeld = await fetch(`${baseUrl}/api/held-carts/${held.id}/release`, {
+      method: 'POST',
+      headers: { Cookie: cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cancel: true }),
+    });
+    expect(cancelHeld.status).toBe(200);
+    expect((await cancelHeld.json()).cart.status).toBe('cancelled');
+
+    addCartLine(env.db, cashier.id, { productId, qty: '1' });
+    const secondHeldResponse = await fetch(`${baseUrl}/api/held-carts`, {
+      method: 'POST',
+      headers: { Cookie: cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customerId }),
+    });
+    expect(secondHeldResponse.status).toBe(201);
+    const { cart: reservedCart } = await secondHeldResponse.json() as { cart: { id: string } };
+    const reserve = await fetch(`${baseUrl}/api/held-carts/${reservedCart.id}/reserve`, {
+      method: 'POST',
+      headers: { Cookie: cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ warehouseId: env.warehouseId, customerId }),
+    });
+    expect(reserve.status).toBe(200);
+    const { reservations } = await (await fetch(`${baseUrl}/api/reservations`, {
+      headers: { Cookie: cookie },
+    })).json() as { reservations: Array<{ id: string; cartId: string }> };
+    expect(reservations).toHaveLength(1);
+    expect(reservations[0]!.cartId).toBe(reservedCart.id);
+
+    const release = await fetch(`${baseUrl}/api/held-carts/${reservedCart.id}/release`, {
+      method: 'POST',
+      headers: { Cookie: cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    expect(release.status).toBe(200);
+    expect((env.db.prepare('SELECT status FROM reservations WHERE id = ?').get(reservations[0]!.id) as {
+      status: string;
+    }).status).toBe('released');
+    expect((env.db.prepare('SELECT status FROM held_carts WHERE id = ?').get(reservedCart.id) as {
+      status: string;
+    }).status).toBe('open');
+  });
+
   it('ограничивает доступ к страницам и складам продаж серверными правами', async () => {
     const cashier = await createUser(env.db, adminId, {
       login: 'page-access-cashier',
@@ -519,11 +671,11 @@ describe('HTTP API этапа 2', () => {
     expect(await deniedWarehouse.json()).toMatchObject({ errorKey: 'auth.warehouse_permission_denied' });
   });
 
-  it('reserves an active cart for counter payment without creating a sale, then checks payment rights at checkout', async () => {
+  it('edits an ordinary held cart, locks it when reserved, and sells it through the normal checkout', async () => {
     const cashier = await createUser(env.db, adminId, {
-      login: 'counter-payment-cashier',
+      login: 'held-cart-cashier',
       password: 'cashier secure password',
-      fullName: 'Counter Payment Cashier',
+      fullName: 'Held Cart Cashier',
       role: 'cashier',
       lang: 'ru',
     });
@@ -532,114 +684,111 @@ describe('HTTP API этапа 2', () => {
       method: 'PATCH',
       headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        permissions: { sell: 1, pay_at_counter: 1 },
-        pagePermissions: { sales: 1, heldCarts: 1 },
+        permissions: { sell: 1, hold_cart: 1, reserve_cart: 1, pay_cash: 1 },
+        pagePermissions: { sales: 1, heldCarts: 1, reservations: 1 },
+        salesWarehouseIds: [env.warehouseId],
       }),
     });
     expect(accessResponse.status).toBe(200);
     expect(await accessResponse.json()).toMatchObject({
-      permissions: { sell: 1, pay_at_counter: 1, pay_cash: 0, pay_card: 0, pay_transfer: 0 },
+      permissions: { sell: 1, hold_cart: 1, reserve_cart: 1, pay_cash: 1 },
     });
 
-    const productId = addProduct(env.db, 'COUNTER-PAYMENT', 'шт', 20_000);
+    const productId = addProduct(env.db, 'HELD-CHECKOUT', 'шт', 20_000);
+    const extraProductId = addProduct(env.db, 'HELD-EXTRA', 'шт', 10_000);
     createPurchase(env.db, adminId, {
       warehouseId: env.warehouseId,
       date: '2026-11-14',
-      lines: [{ productId, qty: '2', unitCost: 1_000_000 }],
+      lines: [
+        { productId, qty: '3', unitCost: 1_000_000 },
+        { productId: extraProductId, qty: '3', unitCost: 1_000_000 },
+      ],
     });
-    const customer = addCustomer(env.db, 'Оплата у кассы');
+    const customer = addCustomer(env.db, 'Held cart customer');
+    const updatedCustomer = addCustomer(env.db, 'Updated held cart customer');
     addCartLine(env.db, cashier.id, { productId, qty: '1' });
     const cashierCookie = await loginCookie(cashier.login, 'cashier secure password');
 
-    const contextResponse = await fetch(`${baseUrl}/api/sales/context`, { headers: { Cookie: cashierCookie } });
-    expect(contextResponse.status).toBe(200);
-    expect((await contextResponse.json()).paymentMethods).toEqual([
-      { id: 'counter', name: 'counter', kind: 'counter' },
-    ]);
-
-    const cashMethodId = (env.db.prepare(
-      "SELECT id FROM payment_methods WHERE kind = 'cash'",
-    ).get() as { id: string }).id;
-    const deniedSale = await fetch(`${baseUrl}/api/sales`, {
+    const heldResponse = await fetch(`${baseUrl}/api/held-carts`, {
       method: 'POST',
       headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        warehouseId: env.warehouseId,
-        idempotencyKey: 'counter-cash-denied',
-        payments: [{ methodId: cashMethodId, amount: 2_000_000 }],
-      }),
+      body: JSON.stringify({ customerId: customer }),
     });
-    expect(deniedSale.status).toBe(403);
-    expect(await deniedSale.json()).toMatchObject({
-      errorKey: 'auth.payment_method_permission_denied',
-    });
-
-    const reserveResponse = await fetch(`${baseUrl}/api/sales/pay-at-counter`, {
+    expect(heldResponse.status).toBe(201);
+    const { cart: held } = await heldResponse.json() as { cart: { id: string } };
+    const extraAdded = await fetch(`${baseUrl}/api/held-carts/${held.id}/lines`, {
       method: 'POST',
       headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        customerId: customer,
-        warehouseId: env.warehouseId,
-        idempotencyKey: 'counter-order-created',
-      }),
+      body: JSON.stringify({ productId: extraProductId, qty: '1' }),
     });
-    expect(reserveResponse.status).toBe(201);
-    const { order } = await reserveResponse.json() as {
-      order: { id: string; customerId: string; number: string; total: number; expiresAt: string };
-    };
-    expect(order).toMatchObject({
-      customerId: customer,
-      number: 'A-000001',
-      total: 2_000_000,
-    });
-    expect(Date.parse(order.expiresAt)).toBeGreaterThan(Date.now());
-    expect((env.db.prepare('SELECT COUNT(*) AS count FROM sales').get() as { count: number }).count).toBe(0);
-    expect((env.db.prepare('SELECT COUNT(*) AS count FROM payments').get() as { count: number }).count).toBe(0);
-    expect((env.db.prepare('SELECT COUNT(*) AS count FROM debt_ledger').get() as { count: number }).count).toBe(0);
-
-    const collector = await createUser(env.db, adminId, {
-      login: 'counter-collector',
-      password: 'collector secure password',
-      fullName: 'Counter collector',
-      role: 'cashier',
-      lang: 'ru',
-    });
-    const enableCash = await fetch(`${baseUrl}/api/users/${encodeURIComponent(collector.id)}/permissions`, {
+    expect(extraAdded.status).toBe(200);
+    const quantityUpdated = await fetch(`${baseUrl}/api/held-carts/${held.id}/lines/${productId}`, {
       method: 'PATCH',
-      headers: { Cookie: adminCookie, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        permissions: { sell: 1, pay_cash: 1 },
-        pagePermissions: { sales: 1, heldCarts: 1 },
-        salesWarehouseIds: [env.warehouseId],
-      }),
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qty: '2' }),
     });
-    expect(enableCash.status).toBe(200);
-    const collectorCookie = await loginCookie(collector.login, 'collector secure password');
+    expect(quantityUpdated.status).toBe(200);
+    const extraRemoved = await fetch(`${baseUrl}/api/held-carts/${held.id}/lines/${extraProductId}`, {
+      method: 'DELETE',
+      headers: { Cookie: cashierCookie },
+    });
+    expect(extraRemoved.status).toBe(200);
+    const customerUpdated = await fetch(`${baseUrl}/api/held-carts/${held.id}`, {
+      method: 'PATCH',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customerId: updatedCustomer }),
+    });
+    expect(customerUpdated.status).toBe(200);
 
-    const checkout = await fetch(`${baseUrl}/api/counter-orders/${encodeURIComponent(order.id)}/pay`, {
+    const reserved = await fetch(`${baseUrl}/api/held-carts/${held.id}/reserve`, {
       method: 'POST',
-      headers: { Cookie: collectorCookie, 'Content-Type': 'application/json' },
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ warehouseId: env.warehouseId }),
+    });
+    expect(reserved.status).toBe(200);
+    expect((await reserved.json()).cart).toMatchObject({
+      customerId: updatedCustomer,
+      lines: [{ productId, qty: 2000 }],
+    });
+
+    const lockedLine = await fetch(`${baseUrl}/api/held-carts/${held.id}/lines/${productId}`, {
+      method: 'PATCH',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qty: '1' }),
+    });
+    expect(lockedLine.status).toBe(409);
+    expect(await lockedLine.json()).toMatchObject({ errorKey: 'cart.held_reserved' });
+    const lockedCustomer = await fetch(`${baseUrl}/api/held-carts/${held.id}`, {
+      method: 'PATCH',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customerId: customer }),
+    });
+    expect(lockedCustomer.status).toBe(409);
+
+    const cashMethodId = (env.db.prepare("SELECT id FROM payment_methods WHERE kind = 'cash'").get() as
+      { id: string }).id;
+    const checkout = await fetch(`${baseUrl}/api/sales`, {
+      method: 'POST',
+      headers: { Cookie: cashierCookie, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        methodId: cashMethodId,
-        idempotencyKey: 'counter-cash-paid',
+        heldCartId: held.id,
+        customerId: updatedCustomer,
+        warehouseId: env.warehouseId,
+        idempotencyKey: 'held-cart-checkout',
+        payments: [{ methodId: cashMethodId, amount: 4_000_000 }],
       }),
     });
     const checkoutResult = await checkout.json();
     expect(checkout.status, JSON.stringify(checkoutResult)).toBe(201);
-    const heldCartId = (env.db.prepare('SELECT held_cart_id FROM counter_orders WHERE id = ?').get(order.id) as
-      { held_cart_id: string }).held_cart_id;
-    expect((env.db.prepare('SELECT status FROM counter_orders WHERE id = ?').get(order.id) as { status: string }))
-      .toEqual({ status: 'paid' });
-    expect((env.db.prepare('SELECT status FROM reservations WHERE cart_id = ?').get(heldCartId) as { status: string }))
+    expect(checkoutResult.sale).toMatchObject({ customerName: 'Updated held cart customer', total: 4_000_000 });
+    expect((env.db.prepare('SELECT status FROM held_carts WHERE id = ?').get(held.id) as { status: string }))
+      .toEqual({ status: 'closed' });
+    expect((env.db.prepare('SELECT status FROM reservations WHERE cart_id = ?').get(held.id) as { status: string }))
       .toEqual({ status: 'consumed' });
-    expect((env.db.prepare(
-      'SELECT s.number, s.user_id FROM sales s JOIN counter_orders co ON co.sale_id = s.id WHERE co.id = ?',
-    ).get(order.id) as { number: string; user_id: string }))
-      .toEqual({ number: order.number, user_id: collector.id });
-    expect((env.db.prepare('SELECT user_id FROM counter_orders WHERE id = ?').get(order.id) as { user_id: string }).user_id)
-      .toBe(cashier.id);
-    expect((env.db.prepare('SELECT COUNT(*) AS count FROM sales').get() as { count: number }).count).toBe(1);
-    expect((env.db.prepare('SELECT COUNT(*) AS count FROM payments').get() as { count: number }).count).toBe(1);
+    expect((env.db.prepare('SELECT user_id, method_id, amount FROM payments WHERE sale_id = ?')
+      .get(checkoutResult.sale.id) as { user_id: string; method_id: string; amount: number }))
+      .toEqual({ user_id: cashier.id, method_id: cashMethodId, amount: 4_000_000 });
+    expect((env.db.prepare('SELECT COUNT(*) AS count FROM counter_orders').get() as { count: number }).count).toBe(0);
   });
 
   it('проверяет права на сервере и позволяет администратору вести справочник', async () => {

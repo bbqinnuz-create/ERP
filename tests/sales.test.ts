@@ -5,10 +5,18 @@ import { uuidv7 } from '../src/core/uuid';
 import { addCartLine, getActiveCart } from '../src/modules/carts/service';
 import { hasPermission } from '../src/modules/auth/permissions';
 import { inTransaction } from '../src/core/tx';
-import { expireReservations } from '../src/modules/carts/held';
+import {
+  addHeldCartLine,
+  expireReservations,
+  holdActiveCart,
+  removeHeldCartLine,
+  reserveHeldCart,
+  setHeldCartLineQuantity,
+  updateHeldCartCustomer,
+} from '../src/modules/carts/held';
 import { createPurchase } from '../src/modules/purchases/service';
 import { saveReference } from '../src/modules/references/service';
-import { createCounterOrder, createSale, payCounterOrder, quoteSale } from '../src/modules/sales/service';
+import { createSale, quoteSale } from '../src/modules/sales/service';
 import { addCustomer, addProduct, addUser, makeEnv } from './helpers';
 
 function seedStock(
@@ -27,98 +35,118 @@ function seedStock(
 }
 
 describe('sales and persistent carts', () => {
-  it('creates a price-locked counter order and lets another cashier pay it exactly once', () => {
+  it('allows held carts to be edited until reserved, then sells the unchanged reservation normally', () => {
     const env = makeEnv();
     try {
       const { db, warehouseId } = env;
-      const creatorId = addUser(db, 'counter-order-creator', 'admin');
-      const collectorId = addUser(db, 'counter-order-collector', 'admin');
-      const productId = addProduct(db, 'COUNTER-ORDER-1', 'шт', 20_000);
-      seedStock(db, creatorId, warehouseId, productId, 1_000_000);
-      const customerId = addCustomer(db, 'Counter order customer');
-      addCartLine(db, creatorId, { productId, qty: '1' });
-      const input = {
-        idempotencyKey: 'counter-order-once',
-        customerId,
-        warehouseId,
-        receiptLang: 'ru',
-      };
+      const ownerId = addUser(db, 'held-cart-owner', 'admin');
+      const productId = addProduct(db, 'HELD-CART-1', 'шт', 20_000);
+      const extraProductId = addProduct(db, 'HELD-CART-2', 'шт', 10_000);
+      seedStock(db, ownerId, warehouseId, productId, 1_000_000);
+      seedStock(db, ownerId, warehouseId, extraProductId, 1_000_000);
+      const customerId = addCustomer(db, 'Held cart customer');
+      const otherCustomerId = addCustomer(db, 'Other customer');
+      addCartLine(db, ownerId, { productId, qty: '1' });
+      const held = holdActiveCart(db, ownerId, customerId);
+      addHeldCartLine(db, ownerId, held.id, extraProductId, '1');
+      setHeldCartLineQuantity(db, ownerId, held.id, productId, '2');
+      removeHeldCartLine(db, ownerId, held.id, extraProductId);
+      const reserved = reserveHeldCart(db, ownerId, held.id, warehouseId, customerId);
+      expect(reserved.lines).toHaveLength(1);
+      expect(reserved.lines[0]).toMatchObject({ productId, qty: 2000 });
+      expect(() => setHeldCartLineQuantity(db, ownerId, held.id, productId, '1'))
+        .toThrowError(expect.objectContaining({ errorKey: 'cart.held_reserved' }));
+      expect(() => addHeldCartLine(db, ownerId, held.id, extraProductId, '1'))
+        .toThrowError(expect.objectContaining({ errorKey: 'cart.held_reserved' }));
+      expect(() => removeHeldCartLine(db, ownerId, held.id, productId))
+        .toThrowError(expect.objectContaining({ errorKey: 'cart.held_reserved' }));
+      expect(() => updateHeldCartCustomer(db, ownerId, held.id, otherCustomerId))
+        .toThrowError(expect.objectContaining({ errorKey: 'cart.held_reserved' }));
 
-      const created = createCounterOrder(db, creatorId, 'ru', input);
-      expect(created.replayed).toBe(false);
-      expect(created.order).toMatchObject({
-        number: 'A-000001',
-        customerId,
-        total: 2_000_000,
-        status: 'pending',
-      });
-      expect(createCounterOrder(db, creatorId, 'ru', input).replayed).toBe(true);
-      expect((db.prepare('SELECT COUNT(*) AS count FROM sales').get() as { count: number }).count).toBe(0);
-      expect((db.prepare('SELECT COUNT(*) AS count FROM payments').get() as { count: number }).count).toBe(0);
-      expect((db.prepare('SELECT COUNT(*) AS count FROM debt_ledger').get() as { count: number }).count).toBe(0);
-      expect((db.prepare(
-        "SELECT snapshot_json FROM print_jobs WHERE doc_type = 'counter_order' AND doc_id = ?",
-      ).get(created.order.id) as { snapshot_json: string }).snapshot_json).toMatch('"reservationHours":2');
-
-      db.prepare('UPDATE products SET base_price = ? WHERE id = ?').run(3_000_000, productId);
       const cashMethodId = (db.prepare("SELECT id FROM payment_methods WHERE kind = 'cash'").get() as
         { id: string }).id;
-      const payment = payCounterOrder(db, collectorId, 'ru', created.order.id, {
-        methodId: cashMethodId,
-        idempotencyKey: 'counter-order-payment-once',
+      const sale = createSale(db, ownerId, 'ru', {
+        idempotencyKey: 'held-cart-sale',
+        customerId,
+        heldCartId: held.id,
+        warehouseId,
+        payments: [{ methodId: cashMethodId, amount: 4_000_000 }],
       });
-      expect(payment.receipt.sale).toMatchObject({
-        number: created.order.number,
-        total: 2_000_000,
-      });
-      expect(payment.replayed).toBe(false);
-      expect(payCounterOrder(db, collectorId, 'ru', created.order.id, {
-        methodId: cashMethodId,
-        idempotencyKey: 'counter-order-payment-once',
-      }).replayed).toBe(true);
-      expect((db.prepare('SELECT status, sale_id FROM counter_orders WHERE id = ?').get(created.order.id) as
-        { status: string; sale_id: string })).toMatchObject({ status: 'paid' });
-      expect((db.prepare(
-        'SELECT user_id FROM sales WHERE id = (SELECT sale_id FROM counter_orders WHERE id = ?)',
-      ).get(created.order.id) as { user_id: string }).user_id).toBe(collectorId);
-      expect((db.prepare('SELECT status FROM reservations WHERE cart_id = ?').get(
-        (db.prepare('SELECT held_cart_id FROM counter_orders WHERE id = ?').get(created.order.id) as
-          { held_cart_id: string }).held_cart_id,
-      ) as { status: string }).status).toBe('consumed');
-      expect((db.prepare('SELECT COUNT(*) AS count FROM sales').get() as { count: number }).count).toBe(1);
-      expect((db.prepare('SELECT COUNT(*) AS count FROM payments').get() as { count: number }).count).toBe(1);
+      expect(sale.receipt.sale.total).toBe(4_000_000);
+      expect(sale.receipt.sale.paidTotal).toBe(4_000_000);
+      expect(sale.receipt.payments).toHaveLength(1);
+      expect((db.prepare('SELECT status, sale_id FROM held_carts WHERE id = ?').get(held.id) as
+        { status: string; sale_id: string })).toMatchObject({ status: 'closed', sale_id: sale.receipt.sale.id });
+      expect((db.prepare('SELECT status FROM reservations WHERE cart_id = ?').get(held.id) as
+        { status: string }).status).toBe('consumed');
+      expect(() => db.prepare('UPDATE sales SET customer_name = ? WHERE id = ?')
+        .run('Changed', sale.receipt.sale.id)).toThrow();
+      expect(() => db.prepare('DELETE FROM sales WHERE id = ?').run(sale.receipt.sale.id)).toThrow();
+      const saleLine = db.prepare('SELECT id FROM sale_lines WHERE sale_id = ?')
+        .get(sale.receipt.sale.id) as { id: string };
+      expect(() => db.prepare('UPDATE sale_lines SET qty = ? WHERE id = ?').run(1, saleLine.id)).toThrow();
+      expect(() => db.prepare('DELETE FROM sale_lines WHERE id = ?').run(saleLine.id)).toThrow();
+      const discountId = uuidv7();
+      db.prepare(
+        `INSERT INTO sale_discounts (id, sale_id, kind, amount, user_id)
+         VALUES (?, ?, 'manual', 0, ?)`,
+      ).run(discountId, sale.receipt.sale.id, ownerId);
+      expect(() => db.prepare('DELETE FROM sale_discounts WHERE id = ?').run(discountId)).toThrow();
+      const paidAt = new Date().toISOString();
+      db.prepare(
+        `INSERT INTO counter_orders
+         (id, number, branch_id, warehouse_id, user_id, customer_id, customer_name, held_cart_id,
+          subtotal, discount_total, total, quote_json, lang, idempotency_key, status, sale_id, paid_by,
+          created_at, expires_at, paid_at)
+         VALUES (?, 'A-HISTORIC-1', ?, ?, ?, ?, 'Held cart customer', ?, 4_000_000, 0, 4_000_000,
+                 '{}', 'ru', 'historic-paid-order', 'paid', ?, ?, ?, ?, ?)`,
+      ).run(
+        uuidv7(), env.branchId, warehouseId, ownerId, customerId, held.id, sale.receipt.sale.id,
+        ownerId, paidAt, paidAt, paidAt,
+      );
+      const historicalOrderId = (db.prepare(
+        "SELECT id FROM counter_orders WHERE idempotency_key = 'historic-paid-order'",
+      ).get() as { id: string }).id;
+      expect(() => db.prepare('UPDATE counter_orders SET status = ? WHERE id = ?')
+        .run('cancelled', historicalOrderId)).toThrow();
+      expect(() => db.prepare('DELETE FROM counter_orders WHERE id = ?').run(historicalOrderId)).toThrow();
     } finally {
       env.cleanup();
     }
   });
 
-  it('expires unpaid counter orders and releases their stock reservation', () => {
+  it('expires legacy unpaid counter orders but preserves their history and releases the reservation', () => {
     const env = makeEnv();
     try {
       const { db, warehouseId } = env;
-      const ownerId = addUser(db, 'counter-order-expiry', 'admin');
-      const productId = addProduct(db, 'COUNTER-ORDER-EXPIRY', 'шт', 20_000);
+      const ownerId = addUser(db, 'legacy-counter-order', 'admin');
+      const productId = addProduct(db, 'LEGACY-COUNTER-ORDER', 'шт', 20_000);
       seedStock(db, ownerId, warehouseId, productId, 1_000_000);
+      const customerId = addCustomer(db, 'Legacy customer');
       addCartLine(db, ownerId, { productId, qty: '1' });
-      const { order } = createCounterOrder(db, ownerId, 'ru', {
-        idempotencyKey: 'counter-order-expiry',
-        warehouseId,
-      });
-      const future = new Date(Date.parse(order.expiresAt) + 1).toISOString();
+      const held = holdActiveCart(db, ownerId, customerId);
+      const reserved = reserveHeldCart(db, ownerId, held.id, warehouseId, customerId);
+      const expiresAt = new Date(Date.now() - 1_000).toISOString();
+      db.prepare('UPDATE reservations SET expires_at = ? WHERE cart_id = ?').run(expiresAt, held.id);
+      const orderId = uuidv7();
+      const now = new Date().toISOString();
+      db.prepare(
+        `INSERT INTO counter_orders
+         (id, number, branch_id, warehouse_id, user_id, customer_id, customer_name, held_cart_id,
+          subtotal, discount_total, total, quote_json, lang, idempotency_key, created_at, expires_at)
+         VALUES (?, 'A-LEGACY-1', ?, ?, ?, ?, 'Legacy customer', ?, 2_000_000, 0, 2_000_000,
+                 '{}', 'ru', 'legacy-counter-order-key', ?, ?)`,
+      ).run(orderId, env.branchId, warehouseId, ownerId, customerId, held.id, now, expiresAt);
 
-      inTransaction(db, () => expireReservations(db, future));
+      inTransaction(db, () => expireReservations(db));
 
-      expect((db.prepare('SELECT status FROM counter_orders WHERE id = ?').get(order.id) as
+      expect((db.prepare('SELECT status FROM counter_orders WHERE id = ?').get(orderId) as
         { status: string }).status).toBe('expired');
-      const heldCartId = (db.prepare('SELECT held_cart_id FROM counter_orders WHERE id = ?').get(order.id) as
-        { held_cart_id: string }).held_cart_id;
-      expect((db.prepare('SELECT status FROM reservations WHERE cart_id = ?').get(heldCartId) as
+      expect((db.prepare('SELECT status FROM reservations WHERE cart_id = ?').get(held.id) as
         { status: string }).status).toBe('released');
-      expect(() => payCounterOrder(db, ownerId, 'ru', order.id, {
-        methodId: (db.prepare("SELECT id FROM payment_methods WHERE kind = 'cash'").get() as
-          { id: string }).id,
-        idempotencyKey: 'counter-order-expired-payment',
-      })).toThrowError(expect.objectContaining({ errorKey: 'counter_order.not_pending' }));
+      expect((db.prepare('SELECT COUNT(*) AS count FROM counter_orders WHERE id = ?').get(orderId) as
+        { count: number }).count).toBe(1);
+      expect(reserved.reservations).toHaveLength(1);
     } finally {
       env.cleanup();
     }

@@ -100,7 +100,6 @@ const SETTING_RULES: Record<string, (value: string) => boolean> = {
   price_rules_mode: (value) => value === 'lowest',
   rounding: (value) => value === 'sum' || value === 'tiyin',
   reserve_days: (value) => /^\d+$/.test(value) && Number.isSafeInteger(Number(value)) && Number(value) <= 3650,
-  counter_reservation_hours: (value) => /^[1-5]$/.test(value),
   min_stock_alerts: (value) => value === '0' || value === '1',
   receipt_lang_default: (value) => value === 'ru' || value === 'uz',
   return_without_receipt: (value) => value === '0',

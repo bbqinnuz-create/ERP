@@ -75,18 +75,6 @@
               <select id="sales-default-warehouse"></select>
             </label>
             <button id="save-default-warehouse" type="button" data-i18n="sales.save_default_warehouse"></button>
-            <label>
-              <span data-i18n="sales.counter_reservation_hours"></span>
-              <select id="counter-reservation-hours">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-              </select>
-            </label>
-            <button id="save-counter-reservation-hours" type="button"
-              data-i18n="sales.save_counter_reservation_hours"></button>
           </div>
           <p id="sales-warehouse-status" role="status"></p>
           <label id="sales-warehouse-choice-field" hidden>
@@ -121,7 +109,7 @@
                 <input id="sales-check-discount-value" type="text" inputmode="decimal">
               </label>
             </div>
-            <button id="sales-submit" type="button" data-i18n="sales.submit"></button>
+            <button id="sales-submit" type="button" data-i18n="sales.submit" hidden></button>
             <label>
               <span data-i18n="sales.customer"></span>
               <select id="sales-customer"></select>
@@ -150,16 +138,12 @@
         </section>
         <section id="heldCarts-page" class="page" hidden>
           <h2 data-i18n="held.title"></h2>
-          <h3 data-i18n="counter_orders.title"></h3>
-          <div id="counter-orders-list"></div>
           <h3 data-i18n="held.carts_title"></h3>
-          <div id="held-carts-list"></div>
+          <div id="held-carts-list" class="held-cart-grid"></div>
         </section>
         <section id="reservations-page" class="page" hidden>
           <h2 data-i18n="reservations.title"></h2>
-          <div class="table-wrap">
-            <table><thead id="reservations-head"></thead><tbody id="reservations-body"></tbody></table>
-          </div>
+          <div id="reservations-list" class="held-cart-grid"></div>
         </section>
         <section id="print-page" class="page" hidden>
           <h2 data-i18n="print.title"></h2>
@@ -506,15 +490,8 @@
           <section id="permission-editor" hidden>
             <h3 data-i18n="users.permissions"></h3>
             <p id="permission-user"></p>
-            <div id="permission-list" class="permission-grid"></div>
-            <h4 data-i18n="users.pages"></h4>
             <p data-i18n="users.pages_help"></p>
-            <div id="page-permission-list" class="permission-grid"></div>
-            <fieldset id="sales-warehouse-permission">
-              <legend data-i18n="users.sales_warehouses"></legend>
-              <p data-i18n="users.sales_warehouses_help"></p>
-              <div id="sales-warehouse-permission-list" class="permission-grid"></div>
-            </fieldset>
+            <div id="permission-list" class="permission-groups"></div>
             <button id="save-permissions" type="button" data-i18n="users.save_permissions"></button>
           </section>
         </section>
