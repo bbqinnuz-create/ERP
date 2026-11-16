@@ -12,6 +12,7 @@ import {
 import { addCartLine } from '../src/modules/carts/service';
 import { createPurchase } from '../src/modules/purchases/service';
 import { createSale } from '../src/modules/sales/service';
+import { translateReceipt } from '../src/modules/i18n/receipt';
 import { addProduct, addUser, makeEnv } from './helpers';
 
 const cleanups: (() => void)[] = [];
@@ -195,6 +196,16 @@ describe('print queue and receipts', () => {
       lines: [{ ...textReceipt.lines[0]!, name: 'Ғўза қўшиқ' }],
     }, 'text');
     expect(unsupportedTextGlyphs.includes(Buffer.from([0x1d, 0x76, 0x30, 0x00]))).toBe(true);
+
+    const counterOrderReceipt = renderReceipt({
+      ...textReceipt,
+      documentLabel: 'counter_order',
+      reservationHours: 2,
+      reservationExpiresAt: '2026-11-13T12:00:00.000Z',
+    }, 'text');
+    expect(counterOrderReceipt.includes(Buffer.from([0x1d, 0x76, 0x30, 0x00]))).toBe(true);
+    expect(translateReceipt('ru', 'reservationDuration')).toBe('Срок брони');
+    expect(translateReceipt('uz', 'reservationDuration')).toBe('Band qilish muddati');
   });
 
   it('leaves the committed sale intact after all printer retries fail', async () => {

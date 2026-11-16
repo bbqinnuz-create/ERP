@@ -75,6 +75,18 @@
               <select id="sales-default-warehouse"></select>
             </label>
             <button id="save-default-warehouse" type="button" data-i18n="sales.save_default_warehouse"></button>
+            <label>
+              <span data-i18n="sales.counter_reservation_hours"></span>
+              <select id="counter-reservation-hours">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </label>
+            <button id="save-counter-reservation-hours" type="button"
+              data-i18n="sales.save_counter_reservation_hours"></button>
           </div>
           <p id="sales-warehouse-status" role="status"></p>
           <label id="sales-warehouse-choice-field" hidden>
@@ -127,8 +139,6 @@
               <div class="dialog-actions">
                 <button id="sales-payment-cancel" class="button-secondary" type="button"
                   data-i18n="common.cancel"></button>
-                <button id="sales-pay-at-counter" class="button-secondary" type="button"
-                  data-i18n="sales.pay_at_counter"></button>
                 <button id="sales-confirm-payment" type="submit" data-i18n="sales.confirm_payment"></button>
               </div>
             </form>
@@ -140,6 +150,9 @@
         </section>
         <section id="heldCarts-page" class="page" hidden>
           <h2 data-i18n="held.title"></h2>
+          <h3 data-i18n="counter_orders.title"></h3>
+          <div id="counter-orders-list"></div>
+          <h3 data-i18n="held.carts_title"></h3>
           <div id="held-carts-list"></div>
         </section>
         <section id="reservations-page" class="page" hidden>

@@ -123,11 +123,34 @@ describe('справочники этапа 2', () => {
     expect(customer.discount_bp).toBe(250);
   });
 
+  it('сопоставляет телефоны клиента с кодом страны и без него', () => {
+    const first = saveReference(env.db, adminId, 'customers', {
+      name: 'Покупатель',
+      phone: '930 007 188',
+    });
+    const duplicate = saveReference(env.db, adminId, 'customers', {
+      name: 'Покупатель повторно',
+      phone: '+998 93 000 71 88',
+    });
+
+    expect(duplicate.id).toBe(first.id);
+    expect(duplicate.name).toBe('Покупатель');
+    expect(duplicate.phone).toBe('998930007188');
+    expect((env.db.prepare('SELECT COUNT(*) AS count FROM customers').get() as { count: number }).count).toBe(1);
+  });
+
   it('обновляет настройки по разрешённому списку и запрещает ослаблять правила сессий', () => {
-    const updated = updateSettings(env.db, adminId, { receipt_lang_default: 'uz', reserve_days: 5 });
+    const updated = updateSettings(env.db, adminId, {
+      receipt_lang_default: 'uz',
+      reserve_days: 5,
+      counter_reservation_hours: 5,
+    });
     expect(updated.receipt_lang_default).toBe('uz');
     expect(updated.reserve_days).toBe('5');
+    expect(updated.counter_reservation_hours).toBe('5');
     expect(() => updateSettings(env.db, adminId, { session_absolute_hours: '24' }))
+      .toThrowError(new AuthError(400, 'settings.invalid_key_or_value'));
+    expect(() => updateSettings(env.db, adminId, { counter_reservation_hours: '6' }))
       .toThrowError(new AuthError(400, 'settings.invalid_key_or_value'));
   });
 

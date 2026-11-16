@@ -22,13 +22,19 @@ import {
   listActiveReservations,
   listHeldCarts,
   reserveActiveCart,
-  reserveActiveCartForCounter,
   releaseHeldCart,
   reserveHeldCart,
-  reserveHeldCartForCounter,
   setReservationQuantity,
 } from '../modules/carts/held';
-import { createSale, getSalesContext, quoteSale } from '../modules/sales/service';
+import {
+  createCounterOrder,
+  createSale,
+  getSalesContext,
+  listCounterPaymentMethods,
+  listCounterOrders,
+  payCounterOrder,
+  quoteSale,
+} from '../modules/sales/service';
 import { createReturn, findSalesForReturn, quoteReturn } from '../modules/returns/service';
 import { createWriteOff, listWriteOffs } from '../modules/writeoffs/service';
 import {
@@ -507,7 +513,8 @@ async function handleApi(
     const carts = withAuthorizedUser(db, token, null, (session) => {
       if (!hasPermission(db, session.user.id, 'hold_cart') &&
           !hasPermission(db, session.user.id, 'reserve_cart') &&
-          !hasPermission(db, session.user.id, 'pay_at_counter')) {
+          !hasPermission(db, session.user.id, 'pay_at_counter') &&
+          !hasPermission(db, session.user.id, 'sell')) {
         throw new AuthError(403, 'auth.permission_denied');
       }
       return listHeldCarts(db, session.user.id, session.user.role === 'admin');
@@ -608,7 +615,8 @@ async function handleApi(
   if (path === '/api/sales/pay-at-counter' && method === 'POST') {
     const body = await readJson(req);
     if (Object.keys(body).some((key) =>
-      !['customerId', 'warehouseId', 'heldCartId'].includes(key))) {
+      !['customerId', 'warehouseId', 'heldCartId', 'idempotencyKey', 'receiptLang',
+        'manualDiscounts', 'checkDiscount'].includes(key))) {
       throw new AuthError(400, 'validation.unknown_field');
     }
     if (body.warehouseId !== undefined &&
@@ -619,27 +627,36 @@ async function handleApi(
         (typeof body.heldCartId !== 'string' || body.heldCartId.length < 1 || body.heldCartId.length > 64)) {
       throw new AuthError(400, 'validation.invalid_object');
     }
-    const cart = withAuthorizedUser(db, token, 'sell', (session) => {
+    const result = withAuthorizedUser(db, token, 'sell', (session) => {
       if (!hasPermission(db, session.user.id, 'pay_at_counter')) {
         throw new AuthError(403, 'auth.permission_denied');
       }
       requirePagePermission(db, session.user.id, 'heldCarts');
-      const warehouse = resolveUserSalesWarehouse(
-        db,
-        session.user.id,
-        typeof body.warehouseId === 'string' ? body.warehouseId : undefined,
-      );
-      return typeof body.heldCartId === 'string'
-        ? reserveHeldCartForCounter(
-          db,
-          session.user.id,
-          body.heldCartId,
-          warehouse.id,
-          body.customerId,
-        )
-        : reserveActiveCartForCounter(db, session.user.id, body.customerId, warehouse.id);
+      return createCounterOrder(db, session.user.id, session.user.lang, body);
     }, now());
-    sendJson(res, 201, { cart });
+    sendJson(res, result.replayed ? 200 : 201, result);
+    return;
+  }
+  if (path === '/api/counter-orders' && method === 'GET') {
+    const result = withAuthorizedUser(db, token, 'sell', (session) => {
+      requirePagePermission(db, session.user.id, 'heldCarts');
+      return {
+        orders: listCounterOrders(db, session.user.id),
+        paymentMethods: listCounterPaymentMethods(db, session.user.id, session.user.lang),
+      };
+    }, now());
+    sendJson(res, 200, result);
+    return;
+  }
+  const counterOrderPaymentRoute = /^\/api\/counter-orders\/([^/]+)\/pay$/.exec(path);
+  if (counterOrderPaymentRoute && method === 'POST') {
+    const body = await readJson(req);
+    const result = withAuthorizedUser(db, token, 'sell', (session) => {
+      requirePagePermission(db, session.user.id, 'heldCarts');
+      return payCounterOrder(db, session.user.id, session.user.lang,
+        decodeURIComponent(counterOrderPaymentRoute[1]!), body);
+    }, now());
+    sendJson(res, result.replayed ? 200 : 201, { ...result.receipt, replayed: result.replayed });
     return;
   }
   if (path === '/api/sales/customers' && method === 'POST') {
@@ -1105,6 +1122,7 @@ function pagesForApiRequest(path: string, method: string, url: URL): AppPage[] |
   if (path === '/api/server-info') return ['connection'];
   if (path.startsWith('/api/users')) return ['users'];
   if (path.startsWith('/api/sales') || path.startsWith('/api/cart')) return ['sales'];
+  if (path.startsWith('/api/counter-orders')) return ['sales', 'heldCarts'];
   if (path.startsWith('/api/held-carts')) return ['heldCarts'];
   if (path.startsWith('/api/reservations')) return ['reservations'];
   if (path.startsWith('/api/print')) return ['print'];

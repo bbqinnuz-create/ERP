@@ -233,6 +233,9 @@ const translations = {
     'sales.title': 'Продажа',
     'sales.default_warehouse': 'Общий склад по умолчанию',
     'sales.choose_warehouse': 'Склад для этой продажи',
+    'sales.counter_reservation_hours': 'Срок резерва для оплаты у кассы (часы)',
+    'sales.save_counter_reservation_hours': 'Сохранить срок резерва',
+    'sales.counter_reservation_hours_saved': 'Срок резерва сохранён.',
     'sales.selected_warehouse': 'Склад продажи',
     'sales.save_default_warehouse': 'Сохранить склад',
     'sales.warehouse_unconfigured': 'Настройте общий склад по умолчанию.',
@@ -260,7 +263,9 @@ const translations = {
     'sales.payment_amount': 'Оплачиваемая сумма в сумах',
     'sales.tendered': 'Получено наличными в сумах',
     'sales.confirm_payment': 'Подтвердить оплату',
-    'sales.pay_at_counter': 'Оплата у кассы — зарезервировать товар',
+    'sales.create_counter_order': 'Создать бронь',
+    'sales.pay_at_counter': 'Оплата у кассы',
+    'sales.counter_payment_notice': 'Будет создана бронь; деньги сейчас не принимаются.',
     'sales.select_payment_method': 'Выберите способ оплаты',
     'sales.total': 'Итого',
     'sales.paid': 'Оплата',
@@ -269,6 +274,14 @@ const translations = {
     'sales.receipt': 'Чек создан',
     'sales.receipt_summary': 'Чек {number}; итого {total}; оплачено {paid}; долг {debt}; сдача {change}.',
     'sales.no_payment_method': 'Нет активных способов оплаты.',
+    'counter_order.not_found': 'Бронь не найдена.',
+    'counter_order.not_pending': 'Срок брони истёк или она уже оплачена.',
+    'counter_order.cart_changed': 'Состав товара в брони изменился.',
+    'counter_order.reservation_inactive': 'Резерв истёк или был изменён.',
+    'counter_order.single_payment_required': 'Для оплаты брони выберите один способ оплаты.',
+    'counter_order.full_payment_required': 'Бронь необходимо оплатить полностью.',
+    'customer.phone_already_used': 'Этот номер уже привязан к другому клиенту.',
+    'validation.invalid_phone': 'Введите узбекский номер: 9 цифр или номер с кодом 998.',
     'customers.add': 'Добавить клиента',
     'customers.add_title': 'Новый клиент',
     'customers.name': 'Имя клиента',
@@ -276,12 +289,20 @@ const translations = {
     'customers.note': 'Примечание (необязательно)',
     'customers.save': 'Сохранить клиента',
     'held.title': 'Отложенные корзины',
+    'held.carts_title': 'Обычные отложенные корзины',
     'held.no_carts': 'Отложенных корзин нет.',
     'held.customer_required': 'Для резерва выберите клиента.',
     'held.sell': 'Продать',
     'held.already_reserved': 'Уже зарезервирована',
     'held.reserve_success': 'Товары зарезервированы.',
     'held.counter_payment_reserved': 'Корзина зарезервирована для оплаты у кассы. Продажа ещё не оформлена.',
+    'held.counter_order_created': 'Бронь {number} создана. Оплатить до {expiresAt}.',
+    'counter_orders.title': 'Брони, ожидающие оплаты',
+    'counter_orders.empty': 'Броней, ожидающих оплаты, нет.',
+    'counter_orders.pay_with': 'Принять оплату: {method}',
+    'counter_orders.expires': 'Оплатить до',
+    'counter_orders.total': 'К оплате',
+    'counter_orders.payment_success': 'Бронь оплачена. Чек {number}.',
     'held.reserve_deficit': 'Резерв превышает фактический остаток. Уменьшите его количество.',
     'reservations.title': 'Зарезервированные товары',
     'reservations.columns': 'Клиент,Товар,Количество,Склад,Корзина,Создан,Истекает',
@@ -980,6 +1001,9 @@ const translations = {
     'sales.title': 'Savdo',
     'sales.default_warehouse': 'Umumiy standart ombor',
     'sales.choose_warehouse': 'Ushbu savdo uchun ombor',
+    'sales.counter_reservation_hours': 'Kassada to‘lash uchun rezerv muddati (soat)',
+    'sales.save_counter_reservation_hours': 'Rezerv muddatini saqlash',
+    'sales.counter_reservation_hours_saved': 'Rezerv muddati saqlandi.',
     'sales.selected_warehouse': 'Savdo ombori',
     'sales.save_default_warehouse': 'Omborni saqlash',
     'sales.warehouse_unconfigured': 'Umumiy standart omborni sozlang.',
@@ -1007,7 +1031,9 @@ const translations = {
     'sales.payment_amount': 'So‘mda to‘lanadigan summa',
     'sales.tendered': 'Naqd olingan summa (so‘m)',
     'sales.confirm_payment': 'To‘lovni tasdiqlash',
-    'sales.pay_at_counter': 'Kassada to‘lash — tovarni rezerv qilish',
+    'sales.create_counter_order': 'Bron yaratish',
+    'sales.pay_at_counter': 'Kassada to‘lash',
+    'sales.counter_payment_notice': 'Bron yaratiladi; hozir pul qabul qilinmaydi.',
     'sales.select_payment_method': 'To‘lov usulini tanlang',
     'sales.total': 'Jami',
     'sales.paid': 'To‘lov',
@@ -1016,6 +1042,14 @@ const translations = {
     'sales.receipt': 'Chek yaratildi',
     'sales.receipt_summary': 'Chek {number}; jami {total}; to‘landi {paid}; qarz {debt}; qaytim {change}.',
     'sales.no_payment_method': 'Faol to‘lov usuli yo‘q.',
+    'counter_order.not_found': 'Bron topilmadi.',
+    'counter_order.not_pending': 'Bron muddati tugagan yoki u allaqachon to‘langan.',
+    'counter_order.cart_changed': 'Brondagi tovarlar tarkibi o‘zgargan.',
+    'counter_order.reservation_inactive': 'Rezerv muddati tugagan yoki o‘zgartirilgan.',
+    'counter_order.single_payment_required': 'Bron uchun bitta to‘lov usulini tanlang.',
+    'counter_order.full_payment_required': 'Bron summasi to‘liq to‘lanishi kerak.',
+    'customer.phone_already_used': 'Bu raqam boshqa mijozga biriktirilgan.',
+    'validation.invalid_phone': 'O‘zbekiston raqamini kiriting: 9 ta raqam yoki 998 kodi bilan.',
     'customers.add': 'Mijoz qo‘shish',
     'customers.add_title': 'Yangi mijoz',
     'customers.name': 'Mijoz ismi',
@@ -1023,12 +1057,20 @@ const translations = {
     'customers.note': 'Izoh (ixtiyoriy)',
     'customers.save': 'Mijozni saqlash',
     'held.title': 'Saqlangan savatlar',
+    'held.carts_title': 'Oddiy saqlangan savatlar',
     'held.no_carts': 'Saqlangan savatlar yo‘q.',
     'held.customer_required': 'Rezerv uchun mijozni tanlang.',
     'held.sell': 'Sotish',
     'held.already_reserved': 'Allaqachon rezerv qilingan',
     'held.reserve_success': 'Tovarlar rezerv qilindi.',
     'held.counter_payment_reserved': 'Savat kassada to‘lash uchun rezerv qilindi. Savdo hali rasmiylashtirilmadi.',
+    'held.counter_order_created': '{number} bron yaratildi. {expiresAt} gacha to‘lang.',
+    'counter_orders.title': 'To‘lov kutilayotgan bronlar',
+    'counter_orders.empty': 'To‘lov kutilayotgan bronlar yo‘q.',
+    'counter_orders.pay_with': 'To‘lovni qabul qilish: {method}',
+    'counter_orders.expires': 'To‘lov muddati',
+    'counter_orders.total': 'To‘lash kerak',
+    'counter_orders.payment_success': 'Bron to‘landi. Chek {number}.',
     'held.reserve_deficit': 'Rezerv haqiqiy qoldiqdan katta. Uning miqdorini kamaytiring.',
     'reservations.title': 'Rezerv qilingan tovarlar',
     'reservations.columns': 'Mijoz,Tovar,Miqdor,Ombor,Savat,Yaratilgan,Muddati',
@@ -1517,6 +1559,8 @@ const state = {
   salesQuote: null,
   salesManualDiscounts: {},
   heldCarts: [],
+  counterOrders: [],
+  counterPaymentMethods: [],
   customers: [],
   heldCustomerChoices: {},
   salesHeldCartId: '',
@@ -1554,10 +1598,12 @@ let toastTimer = null;
 let editingProductId = null;
 let editingWarehouseId = null;
 let saleAttemptId = null;
+let counterOrderAttemptId = null;
 let returnAttemptId = null;
 let debtPaymentAttempt = null;
 let cashOperationAttempt = null;
 const cashReversalAttemptIds = new Map();
+const counterPaymentAttemptIds = new Map();
 const ADD_CUSTOMER_VALUE = '__add_customer__';
 let customerSelectionTarget = null;
 const pagePaths = {
@@ -1672,54 +1718,103 @@ function renderSalesCustomers() {
 function renderHeldCartsPage() {
   const container = $('#held-carts-list');
   if (!container) return;
-  if (state.heldCarts.length === 0) {
+  const heldCarts = state.heldCarts.filter((cart) => cart.counterOrder?.status !== 'pending');
+  if (heldCarts.length === 0) {
     const empty = document.createElement('p');
     empty.textContent = t('held.no_carts');
     container.replaceChildren(empty);
+  } else {
+    const cards = heldCarts.map((cart) => {
+      const card = document.createElement('article');
+      card.className = 'held-cart-card';
+      const heading = document.createElement('h3');
+      heading.textContent = `${cart.customerName ?? t('sales.no_customer')} — ${formatDateTime(cart.createdAt)}`;
+      card.append(heading);
+      const lines = document.createElement('ul');
+      for (const line of cart.lines) {
+        const item = document.createElement('li');
+        item.textContent = `${line.sku} — ${line.name}: ${formatQuantity(line.qty)} ${line.unit}`;
+        lines.append(item);
+      }
+      card.append(lines);
+      const customerLabel = document.createElement('label');
+      const customerCaption = document.createElement('span');
+      customerCaption.textContent = t('sales.customer');
+      const customer = document.createElement('select');
+      customer.dataset.heldCustomer = cart.id;
+      setCustomerOptions(customer, state.heldCustomerChoices[cart.id] ?? cart.customerId ?? '', true);
+      state.heldCustomerChoices[cart.id] = customer.value;
+      customerLabel.append(customerCaption, customer);
+      card.append(customerLabel);
+      const actions = document.createElement('div');
+      actions.className = 'held-cart-actions';
+      if (state.user?.permissions.sell === 1 &&
+          (state.user.permissions.hold_cart === 1 ||
+            (state.user.permissions.pay_at_counter === 1 && cart.reservations.length > 0))) {
+        const sell = document.createElement('button');
+        sell.type = 'button';
+        sell.dataset.heldSell = cart.id;
+        sell.textContent = t('held.sell');
+        actions.append(sell);
+      }
+      if (state.user?.permissions.reserve_cart === 1) {
+        const reserve = document.createElement('button');
+        reserve.type = 'button';
+        reserve.dataset.heldReserve = cart.id;
+        reserve.textContent = cart.reservations.length > 0
+          ? t('held.already_reserved')
+          : t('held.reserve');
+        reserve.disabled = cart.reservations.length > 0;
+        actions.append(reserve);
+      }
+      card.append(actions);
+      return card;
+    });
+    container.replaceChildren(...cards);
+  }
+  renderCounterOrdersPage();
+}
+
+function renderCounterOrdersPage() {
+  const container = $('#counter-orders-list');
+  if (!container) return;
+  if (state.counterOrders.length === 0) {
+    const empty = document.createElement('p');
+    empty.textContent = t('counter_orders.empty');
+    container.replaceChildren(empty);
     return;
   }
-  const cards = state.heldCarts.map((cart) => {
+  const cards = state.counterOrders.map((order) => {
     const card = document.createElement('article');
     card.className = 'held-cart-card';
     const heading = document.createElement('h3');
-    heading.textContent = `${cart.customerName ?? t('sales.no_customer')} — ${formatDateTime(cart.createdAt)}`;
+    heading.textContent = `${order.number} — ${order.customerName ?? t('sales.no_customer')}`;
     card.append(heading);
+    const summary = document.createElement('p');
+    summary.textContent = `${t('counter_orders.total')}: ${formatMoney(order.total)}; ` +
+      `${t('counter_orders.expires')}: ${formatDateTime(order.expiresAt)}`;
+    card.append(summary);
     const lines = document.createElement('ul');
-    for (const line of cart.lines) {
+    for (const line of order.lines) {
       const item = document.createElement('li');
       item.textContent = `${line.sku} — ${line.name}: ${formatQuantity(line.qty)} ${line.unit}`;
       lines.append(item);
     }
     card.append(lines);
-    const customerLabel = document.createElement('label');
-    const customerCaption = document.createElement('span');
-    customerCaption.textContent = t('sales.customer');
-    const customer = document.createElement('select');
-    customer.dataset.heldCustomer = cart.id;
-    setCustomerOptions(customer, state.heldCustomerChoices[cart.id] ?? cart.customerId ?? '', true);
-    state.heldCustomerChoices[cart.id] = customer.value;
-    customerLabel.append(customerCaption, customer);
-    card.append(customerLabel);
     const actions = document.createElement('div');
-    actions.className = 'held-cart-actions';
-    if (state.user?.permissions.sell === 1 &&
-        (state.user.permissions.hold_cart === 1 ||
-          (state.user.permissions.pay_at_counter === 1 && cart.reservations.length > 0))) {
-      const sell = document.createElement('button');
-      sell.type = 'button';
-      sell.dataset.heldSell = cart.id;
-      sell.textContent = t('held.sell');
-      actions.append(sell);
+    actions.className = 'held-cart-actions counter-order-payment-methods';
+    for (const method of state.counterPaymentMethods) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.counterOrderPay = order.id;
+      button.dataset.counterPaymentMethod = method.id;
+      button.textContent = t('counter_orders.pay_with').replace('{method}', method.name);
+      actions.append(button);
     }
-    if (state.user?.permissions.reserve_cart === 1) {
-      const reserve = document.createElement('button');
-      reserve.type = 'button';
-      reserve.dataset.heldReserve = cart.id;
-      reserve.textContent = cart.reservations.length > 0
-        ? t('held.already_reserved')
-        : t('held.reserve');
-      reserve.disabled = cart.reservations.length > 0;
-      actions.append(reserve);
+    if (state.counterPaymentMethods.length === 0) {
+      const note = document.createElement('p');
+      note.textContent = t('sales.no_payment_method');
+      actions.append(note);
     }
     card.append(actions);
     return card;
@@ -1803,15 +1898,40 @@ async function saveNewCustomer(event) {
 
 async function loadHeldCartsPage() {
   try {
-    const [{ carts }, { rows: customers }] = await Promise.all([
+    const counterOrdersPromise = state.user?.permissions.sell === 1
+      ? api('/api/counter-orders')
+      : Promise.resolve({ orders: [], paymentMethods: [] });
+    const [{ carts }, { rows: customers }, counterOrders] = await Promise.all([
       api('/api/held-carts'),
       api('/api/references/customers'),
+      counterOrdersPromise,
     ]);
     state.customers = customers.map((customer) => ({ id: customer.id, name: customer.name }));
     state.heldCarts = carts;
+    state.counterOrders = counterOrders.orders;
+    state.counterPaymentMethods = counterOrders.paymentMethods;
     renderHeldCartsPage();
   } catch (error) {
     message(error.message);
+  }
+}
+
+async function payCounterOrder(orderId, methodId, button) {
+  const key = counterPaymentAttemptIds.get(orderId) ?? createRequestId();
+  counterPaymentAttemptIds.set(orderId, key);
+  button.disabled = true;
+  try {
+    const result = await api(`/api/counter-orders/${encodeURIComponent(orderId)}/pay`, {
+      method: 'POST',
+      body: JSON.stringify({ methodId, idempotencyKey: key }),
+    });
+    counterPaymentAttemptIds.delete(orderId);
+    await loadHeldCartsPage();
+    message('counter_orders.payment_success'.replace('{number}', result.sale.number), 'success');
+  } catch (error) {
+    message(error.message);
+  } finally {
+    button.disabled = false;
   }
 }
 
@@ -1884,6 +2004,8 @@ function showLogin(errorKey = '') {
   state.salesQuote = null;
   state.salesManualDiscounts = {};
   state.heldCarts = [];
+  state.counterOrders = [];
+  state.counterPaymentMethods = [];
   state.customers = [];
   state.heldCustomerChoices = {};
   state.salesHeldCartId = '';
@@ -1895,6 +2017,8 @@ function showLogin(errorKey = '') {
   state.report = null;
   state.reportOptions = null;
   saleAttemptId = null;
+  counterOrderAttemptId = null;
+  counterPaymentAttemptIds.clear();
   debtPaymentAttempt = null;
   cashOperationAttempt = null;
   cashReversalAttemptIds.clear();
@@ -1936,8 +2060,6 @@ function showApp(user) {
   $('#sales-hold-cart').hidden = user.permissions.hold_cart !== 1;
   $('#sales-reserve-cart').hidden =
     user.permissions.reserve_cart !== 1 || user.permissions.hold_cart !== 1;
-  $('#sales-pay-at-counter').hidden =
-    user.permissions.pay_at_counter !== 1 || !canAccessPage('heldCarts');
   $('#writeoff-form').hidden = user.permissions.write_off !== 1;
   $('#stocktake-start-form').hidden = user.permissions.stocktake !== 1;
   $('#debt-payment-form').hidden = user.permissions.debt_payment !== 1;
@@ -2333,29 +2455,50 @@ async function reserveSalesCart() {
   }
 }
 
-async function reserveForCounterPayment() {
-  const button = $('#sales-pay-at-counter');
+async function saveCounterReservationHours() {
+  const button = $('#save-counter-reservation-hours');
   button.disabled = true;
   try {
-    const customerId = $('#sales-customer').value;
-    if (!customerId) throw new Error('held.customer_required');
+    const hours = $('#counter-reservation-hours').value;
+    const { settings } = await api('/api/settings', {
+      method: 'PUT',
+      body: JSON.stringify({ counter_reservation_hours: hours }),
+    });
+    state.salesContext.counterReservationHours = Number(settings.counter_reservation_hours);
+    message('sales.counter_reservation_hours_saved', 'success');
+  } catch (error) {
+    message(error.message);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function reserveForCounterPayment() {
+  const button = $('#sales-confirm-payment');
+  try {
     const warehouseId = state.salesContext?.warehouse?.id;
     if (!warehouseId) throw new Error('settings.default_warehouse_required');
-    await api('/api/sales/pay-at-counter', {
+    if (!counterOrderAttemptId) counterOrderAttemptId = createRequestId();
+    const result = await api('/api/sales/pay-at-counter', {
       method: 'POST',
       body: JSON.stringify({
-        customerId,
+        ...salesOptions(),
         warehouseId,
-        ...(state.salesHeldCartId ? { heldCartId: state.salesHeldCartId } : {}),
+        idempotencyKey: counterOrderAttemptId,
+        receiptLang: state.lang,
       }),
     });
+    counterOrderAttemptId = null;
+    saleAttemptId = null;
     $('#sales-payment-dialog').close();
     state.salesHeldCartId = '';
     state.salesManualDiscounts = {};
     $('#sales-check-discount-value').value = '';
     $('#sales-customer').value = '';
-    message('held.counter_payment_reserved');
-    showPage('heldCarts');
+    message('held.counter_order_created'
+      .replace('{number}', result.order.number)
+      .replace('{expiresAt}', formatDateTime(result.order.expiresAt)), 'success');
+    await loadSalesPage();
   } catch (error) {
     message(error.message);
   } finally {
@@ -3686,12 +3829,35 @@ function renderSalesPayments() {
   for (const method of methods) {
     const card = document.createElement('div');
     card.className = 'sales-payment';
-    const methodLabel = document.createElement('label');
-    methodLabel.className = 'sales-payment-method';
-    const methodChoice = document.createElement('input');
-    methodChoice.type = 'checkbox';
+    const methodChoice = document.createElement('button');
+    methodChoice.type = 'button';
+    methodChoice.className = 'sales-payment-toggle';
+    methodChoice.setAttribute('aria-pressed', 'false');
+    if (method.kind === 'counter') {
+      methodChoice.dataset.counterPayment = 'true';
+      methodChoice.textContent = t('sales.pay_at_counter');
+      methodChoice.addEventListener('click', () => {
+        const selected = methodChoice.getAttribute('aria-pressed') !== 'true';
+        methodChoice.setAttribute('aria-pressed', String(selected));
+        methodChoice.classList.toggle('is-selected', selected);
+        if (selected) {
+          document.querySelectorAll('#sales-payments [data-payment-method]').forEach((choice) => {
+            choice.setAttribute('aria-pressed', 'false');
+            choice.classList.remove('is-selected');
+            const fields = choice.closest('.sales-payment')?.querySelector('.sales-payment-fields');
+            if (fields) fields.hidden = true;
+          });
+          document.querySelectorAll('#sales-payments [data-payment-amount], #sales-payments [data-payment-tendered]')
+            .forEach((input) => { input.value = ''; });
+        }
+        renderSalesSummary();
+      });
+      card.append(methodChoice);
+      container.append(card);
+      continue;
+    }
     methodChoice.dataset.paymentMethod = method.id;
-    methodLabel.append(methodChoice, document.createTextNode(method.name));
+    methodChoice.textContent = method.name;
     const fields = document.createElement('div');
     fields.className = 'sales-payment-fields';
     fields.hidden = true;
@@ -3719,11 +3885,19 @@ function renderSalesPayments() {
       tenderedLabel.append(tenderedCaption, tendered);
       fields.append(tenderedLabel);
     }
-    methodChoice.addEventListener('change', () => {
-      fields.hidden = !methodChoice.checked;
+    methodChoice.addEventListener('click', () => {
+      const selected = methodChoice.getAttribute('aria-pressed') !== 'true';
+      methodChoice.setAttribute('aria-pressed', String(selected));
+      methodChoice.classList.toggle('is-selected', selected);
+      fields.hidden = !selected;
+      const counterChoice = $('#sales-payments [data-counter-payment]');
+      if (counterChoice) {
+        counterChoice.setAttribute('aria-pressed', 'false');
+        counterChoice.classList.remove('is-selected');
+      }
       renderSalesSummary();
     });
-    card.append(methodLabel, fields);
+    card.append(methodChoice, fields);
     container.append(card);
   }
 }
@@ -3785,8 +3959,6 @@ function renderSalesCart() {
   body.replaceChildren();
   const cart = state.salesCart;
   const heldCart = state.heldCarts.find((item) => item.id === state.salesHeldCartId);
-  $('#sales-pay-at-counter').disabled =
-    !cart || cart.lines.length === 0 || Boolean(heldCart?.reservations.length);
   if (!cart || cart.lines.length === 0) {
     const row = document.createElement('tr');
     const empty = cell(t('cart.empty'));
@@ -3866,6 +4038,10 @@ function renderSalesQuoteValues() {
 }
 
 function renderSalesSummary() {
+  const counterSelected =
+    $('#sales-payments [data-counter-payment]')?.getAttribute('aria-pressed') === 'true';
+  $('#sales-confirm-payment').textContent =
+    t(counterSelected ? 'sales.create_counter_order' : 'sales.confirm_payment');
   const quote = state.salesQuote;
   if (!quote) {
     $('#sales-summary').textContent = '';
@@ -3873,9 +4049,14 @@ function renderSalesSummary() {
   }
   let paid = 0n;
   try {
+    if (counterSelected) {
+      $('#sales-summary').textContent =
+        `${t('sales.total')}: ${formatMoney(quote.total)}; ${t('sales.counter_payment_notice')}`;
+      return;
+    }
     document.querySelectorAll('#sales-payments [data-payment-amount]').forEach((input) => {
       const methodChoice = input.closest('.sales-payment')?.querySelector('[data-payment-method]');
-      if (!methodChoice?.checked) return;
+      if (methodChoice?.getAttribute('aria-pressed') !== 'true') return;
       if (input.value.trim()) paid += BigInt(moneyTextToTiyin(input.value));
     });
     if (paid > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('validation.invalid_payment_amount');
@@ -3939,6 +4120,7 @@ async function loadSalesPage() {
         cart.lines.some((line) => line.productId === id)),
     );
     $('#sales-warehouse-config').hidden = state.user?.permissions.settings !== 1;
+    $('#counter-reservation-hours').value = String(context.counterReservationHours);
     $('#sales-check-discount').hidden = state.user?.permissions.discount_check !== 1;
     $('#sales-warehouse-status').textContent = context.warehouse
       ? `${t('sales.selected_warehouse')}: ${context.warehouse.name}`
@@ -3953,8 +4135,6 @@ async function loadSalesPage() {
     $('#sales-customer').disabled = Boolean(heldCart?.customerId);
     $('#sales-hold-cart').disabled = Boolean(heldCart);
     $('#sales-reserve-cart').disabled = Boolean(heldCart?.reservations.length);
-    $('#sales-pay-at-counter').disabled =
-      state.salesCart.lines.length === 0 || Boolean(heldCart?.reservations.length);
     if (heldCart) {
       $('#sales-customer').value = heldCart.customerId ?? '';
       $('#sales-customer').dataset.selectedCustomer = heldCart.customerId ?? '';
@@ -4038,7 +4218,7 @@ function collectSalePayments() {
   const payments = [];
   document.querySelectorAll('#sales-payments [data-payment-amount]').forEach((input) => {
     const methodChoice = input.closest('.sales-payment')?.querySelector('[data-payment-method]');
-    if (!methodChoice?.checked) return;
+    if (methodChoice?.getAttribute('aria-pressed') !== 'true') return;
     const rawAmount = input.value.trim();
     if (!rawAmount) return;
     const amount = moneyTextToTiyin(rawAmount);
@@ -4062,6 +4242,10 @@ async function submitSale(event) {
   button.disabled = true;
   try {
     if (!state.salesContext?.warehouse) throw new Error('settings.default_warehouse_required');
+    if ($('#sales-payments [data-counter-payment]')?.getAttribute('aria-pressed') === 'true') {
+      await reserveForCounterPayment();
+      return;
+    }
     const options = salesOptions();
     const payments = collectSalePayments();
     if (!saleAttemptId) saleAttemptId = createRequestId();
@@ -4821,6 +5005,7 @@ $('#refresh-connection-info').addEventListener('click', () => { void loadConnect
 $('#print-refresh').addEventListener('click', () => { void loadPrintJobs(); });
 $('#print-profile-form').addEventListener('submit', (event) => { void savePrintProfile(event); });
 $('#save-default-warehouse').addEventListener('click', () => { void saveSalesDefaultWarehouse(); });
+$('#save-counter-reservation-hours').addEventListener('click', () => { void saveCounterReservationHours(); });
 $('#sales-warehouse-choice').addEventListener('change', (event) => {
   state.salesWarehouseId = event.currentTarget.value;
   void loadSalesPage();
@@ -4844,7 +5029,6 @@ $('#sales-customer').addEventListener('change', (event) => {
 });
 $('#sales-hold-cart').addEventListener('click', () => { void createHeldCart(); });
 $('#sales-reserve-cart').addEventListener('click', () => { void reserveSalesCart(); });
-$('#sales-pay-at-counter').addEventListener('click', () => { void reserveForCounterPayment(); });
 $('#held-carts-list').addEventListener('change', (event) => {
   const select = event.target.closest('[data-held-customer]');
   if (!select) return;
@@ -4863,6 +5047,12 @@ $('#held-carts-list').addEventListener('click', (event) => {
   }
   const reserve = event.target.closest('[data-held-reserve]');
   if (reserve) void reserveHeldCartFromPage(reserve.dataset.heldReserve);
+});
+$('#counter-orders-list').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-counter-order-pay]');
+  if (button) {
+    void payCounterOrder(button.dataset.counterOrderPay, button.dataset.counterPaymentMethod, button);
+  }
 });
 $('#customer-form').addEventListener('submit', (event) => { void saveNewCustomer(event); });
 $('#customer-cancel').addEventListener('click', () => {
