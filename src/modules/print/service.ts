@@ -56,6 +56,9 @@ export function listPrintJobs(db: Db, userId: string, isAdmin: boolean): PrintJo
        UNION ALL
        SELECT r.id, r.number, r.user_id, u.full_name AS cashier, 'return' AS doc_type
        FROM returns r JOIN users u ON u.id = r.user_id
+       UNION ALL
+       SELECT co.id, co.number, co.user_id, u.full_name AS cashier, 'counter_order' AS doc_type
+       FROM counter_orders co JOIN users u ON u.id = co.user_id
      ) documents ON documents.id = pj.doc_id AND documents.doc_type = pj.doc_type
      WHERE 1 = 1 ${filter}
      ORDER BY pj.created_at DESC, pj.id DESC
@@ -110,6 +113,8 @@ export function createCopyJob(
         SELECT id, user_id, 'sale' AS doc_type FROM sales
         UNION ALL
         SELECT id, user_id, 'return' AS doc_type FROM returns
+        UNION ALL
+        SELECT id, user_id, 'counter_order' AS doc_type FROM counter_orders
       ) documents ON documents.id = pj.doc_id AND documents.doc_type = pj.doc_type
       WHERE pj.id = ?`,
     ).get(sourceJobId) as {
@@ -122,7 +127,7 @@ export function createCopyJob(
     } | undefined;
     if (!source) throw new AuthError(404, 'print.job_not_found');
     if (!isAdmin && source.user_id !== userId) throw new AuthError(403, 'auth.permission_denied');
-    if (!hasPermission(db, userId, source.doc_type === 'sale' ? 'sell' : 'return')) {
+    if (!hasPermission(db, userId, source.doc_type === 'return' ? 'return' : 'sell')) {
       throw new AuthError(403, 'auth.permission_denied');
     }
     if (source.status === 'printing') throw new AuthError(409, 'print.job_in_progress');
@@ -173,6 +178,85 @@ export function captureSalePrintSnapshot(db: Db, saleId: string): string {
      WHERE p.sale_id = ? ORDER BY p.rowid`,
   ).all(saleId) as ReceiptSnapshot['payments'];
   const snapshot: ReceiptSnapshot = { ...sale, lines, payments };
+  return JSON.stringify(snapshot);
+}
+
+export function captureCounterOrderPrintSnapshot(db: Db, orderId: string): string {
+  const order = db.prepare(
+    `SELECT co.id, co.number, co.created_at AS createdAt, co.expires_at AS expiresAt,
+            co.subtotal, co.discount_total AS discountTotal, co.total, co.quote_json AS quoteJson,
+            COALESCE(co.customer_name, c.name, co.number) AS customer,
+            u.full_name AS cashier, b.name AS storeName, b.address, b.phone
+     FROM counter_orders co
+     JOIN users u ON u.id = co.user_id
+     JOIN branches b ON b.id = co.branch_id
+     LEFT JOIN customers c ON c.id = co.customer_id
+     WHERE co.id = ?`,
+  ).get(orderId) as {
+    id: string; number: string; createdAt: string; expiresAt: string;
+    subtotal: number; discountTotal: number; total: number; quoteJson: string;
+    customer: string; cashier: string; storeName: string; address: string | null; phone: string | null;
+  } | undefined;
+  if (!order) throw new Error(`Print source counter order was not found: ${orderId}`);
+  let quote: unknown;
+  try {
+    quote = JSON.parse(order.quoteJson);
+  } catch (error) {
+    throw new Error('Stored counter order quote is invalid.', { cause: error });
+  }
+  if (!quote || typeof quote !== 'object' || Array.isArray(quote) ||
+      !('calculated' in quote) || !quote.calculated || typeof quote.calculated !== 'object' ||
+      !('lines' in quote.calculated) || !Array.isArray(quote.calculated.lines)) {
+    throw new Error('Stored counter order quote is invalid.');
+  }
+  const quoteLines = quote.calculated.lines as Array<Record<string, unknown>>;
+  const products = db.prepare(
+    `SELECT hcl.product_id AS productId, p.name_ru AS nameRu, p.name_uz AS nameUz, p.unit, hcl.qty
+     FROM held_cart_lines hcl
+     JOIN counter_orders co ON co.held_cart_id = hcl.cart_id
+     JOIN products p ON p.id = hcl.product_id
+     WHERE co.id = ? ORDER BY hcl.rowid`,
+  ).all(orderId) as Array<{
+    productId: string; nameRu: string; nameUz: string | null; unit: string; qty: number;
+  }>;
+  const quoteByProduct = new Map(quoteLines.map((line) => [line.productId, line]));
+  const lines = products.map((product) => {
+    const line = quoteByProduct.get(product.productId);
+    if (!line || line.qty !== product.qty || !Number.isSafeInteger(line.unitPrice) ||
+        !Number.isSafeInteger(line.lineDiscount) || !Number.isSafeInteger(line.lineTotal)) {
+      throw new Error('Stored counter order lines are invalid.');
+    }
+    return {
+      nameRu: product.nameRu,
+      nameUz: product.nameUz,
+      qty: product.qty,
+      unit: product.unit,
+      unitPrice: line.unitPrice as number,
+      lineDiscount: line.lineDiscount as number,
+      lineTotal: line.lineTotal as number,
+    };
+  });
+  if (lines.length !== quoteLines.length) throw new Error('Stored counter order lines do not balance.');
+  const durationMs = Date.parse(order.expiresAt) - Date.parse(order.createdAt);
+  const snapshot: ReceiptSnapshot = {
+    number: order.number,
+    documentLabel: 'counter_order',
+    reservationHours: Math.round(durationMs / 3_600_000),
+    reservationExpiresAt: order.expiresAt,
+    createdAt: order.createdAt,
+    cashier: order.cashier,
+    customer: order.customer,
+    storeName: order.storeName,
+    address: order.address,
+    phone: order.phone,
+    subtotal: order.subtotal,
+    discountTotal: order.discountTotal,
+    total: order.total,
+    paidTotal: 0,
+    debtAmount: 0,
+    lines,
+    payments: [],
+  };
   return JSON.stringify(snapshot);
 }
 
@@ -245,7 +329,11 @@ function isReceiptSnapshot(parsed: unknown): parsed is ReceiptSnapshot {
     candidate === null || typeof candidate === 'string';
   if (!record(parsed)) return false;
   return typeof parsed.number === 'string' &&
-      (parsed.documentLabel === undefined || parsed.documentLabel === null || parsed.documentLabel === 'return') &&
+      (parsed.documentLabel === undefined || parsed.documentLabel === null ||
+        parsed.documentLabel === 'return' || parsed.documentLabel === 'counter_order') &&
+      (parsed.reservationHours === undefined || parsed.reservationHours === null || integer(parsed.reservationHours)) &&
+      (parsed.reservationExpiresAt === undefined || parsed.reservationExpiresAt === null ||
+        typeof parsed.reservationExpiresAt === 'string') &&
       typeof parsed.createdAt === 'string' &&
       typeof parsed.cashier === 'string' &&
       typeof parsed.customer === 'string' &&
@@ -277,13 +365,16 @@ function parseSnapshot(value: string): ReceiptSnapshot {
 }
 
 function getReceiptData(db: Db, job: PrintJobRow): ReceiptData {
-  if (job.doc_type !== 'sale' && job.doc_type !== 'return') {
+  if (job.doc_type !== 'sale' && job.doc_type !== 'return' && job.doc_type !== 'counter_order') {
     throw new Error(`Unsupported print document type: ${job.doc_type}`);
   }
   const footer = db.prepare('SELECT value FROM settings WHERE key = ?')
     .get(job.lang === 'uz' ? 'receipt_footer_uz' : 'receipt_footer_ru') as { value: string } | undefined;
-  const snapshot = parseSnapshot(job.snapshot_json ??
-    (job.doc_type === 'sale' ? captureSalePrintSnapshot(db, job.doc_id) : captureReturnPrintSnapshot(db, job.doc_id)));
+  const snapshot = parseSnapshot(job.snapshot_json ?? (job.doc_type === 'sale'
+    ? captureSalePrintSnapshot(db, job.doc_id)
+    : job.doc_type === 'return'
+      ? captureReturnPrintSnapshot(db, job.doc_id)
+      : captureCounterOrderPrintSnapshot(db, job.doc_id)));
   return receiptDataFromSnapshot(snapshot, job.lang, footer?.value ?? '', job.kind === 'copy');
 }
 

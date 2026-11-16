@@ -100,6 +100,7 @@ const SETTING_RULES: Record<string, (value: string) => boolean> = {
   price_rules_mode: (value) => value === 'lowest',
   rounding: (value) => value === 'sum' || value === 'tiyin',
   reserve_days: (value) => /^\d+$/.test(value) && Number.isSafeInteger(Number(value)) && Number(value) <= 3650,
+  counter_reservation_hours: (value) => /^[1-5]$/.test(value),
   min_stock_alerts: (value) => value === '0' || value === '1',
   receipt_lang_default: (value) => value === 'ru' || value === 'uz',
   return_without_receipt: (value) => value === '0',
@@ -125,6 +126,15 @@ function text(value: unknown, key: string, required: boolean, max = 200): string
   return trimmed;
 }
 
+function canonicalUzPhone(value: string): string | null {
+  if (!/^[+\d()\s-]+$/.test(value)) return null;
+  const digits = value.replace(/\D/g, '');
+  if (/^\d{9}$/.test(digits)) return `998${digits}`;
+  if (/^998\d{9}$/.test(digits)) return digits;
+  if (/^0\d{9}$/.test(digits)) return `998${digits.slice(1)}`;
+  return null;
+}
+
 function nullableId(value: unknown, key: string): string | null {
   if (value === null || value === '') return null;
   if (typeof value !== 'string' || value.length > 64) throw new AuthError(400, `validation.invalid_${key}`);
@@ -142,7 +152,14 @@ function normalizeValue(type: ReferenceType, key: string, value: unknown, requir
   if (['name_ru', 'name_uz', 'sku', 'unit', 'name', 'key', 'phone', 'note'].includes(key)) {
     const max = key === 'note' ? 1000 : key === 'unit' ? 32 :
       key === 'name_ru' || key === 'name_uz' || key === 'name' ? 120 : 200;
-    return text(value, key, required, max);
+    const normalized = text(value, key, required, max);
+    if (type === 'customers' && key === 'phone' && normalized !== null) {
+      if (normalized.length === 0) return null;
+      const phone = canonicalUzPhone(normalized);
+      if (!phone) throw new AuthError(400, 'validation.invalid_phone');
+      return phone;
+    }
+    return normalized;
   }
   if (key === 'parent_id' || key === 'category_id' || key === 'branch_id') return nullableId(value, key);
   if (key === 'base_price' || key === 'discount_bp') return safeInteger(value, key, 0, key === 'discount_bp' ? 10_000 : Number.MAX_SAFE_INTEGER);
@@ -313,6 +330,17 @@ function saveReferenceInternal(
     const values = normalize(type, input, before, allowExtendedProductFields);
     const now = nowIso();
     if (type === 'products') values.unit = registerProductUnit(db, actorId, String(values.unit));
+    if (type === 'customers' && values.phone) {
+      const existingCustomers = db.prepare('SELECT id, phone FROM customers WHERE phone IS NOT NULL')
+        .all() as Array<{ id: string; phone: string }>;
+      const duplicate = existingCustomers.find((customer) =>
+        customer.id !== id && canonicalUzPhone(customer.phone) === values.phone);
+      if (duplicate) {
+        if (before) throw new AuthError(409, 'customer.phone_already_used');
+        const row = db.prepare('SELECT * FROM customers WHERE id = ?').get(duplicate.id) as Record<string, unknown>;
+        return publicReference(type, row);
+      }
+    }
     if (before) {
       const assignments = spec.fields.map((field) => `${field} = ?`);
       const params = spec.fields.map((field) => values[field]);

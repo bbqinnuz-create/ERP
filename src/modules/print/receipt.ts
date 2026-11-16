@@ -24,7 +24,9 @@ export interface ReceiptPayment {
 
 export interface ReceiptData {
   number: string;
-  documentLabel?: string | null;
+  documentLabel?: 'return' | 'counter_order' | null;
+  reservationHours?: number | null;
+  reservationExpiresAt?: string | null;
   createdAt: string;
   cashier: string;
   customer: string;
@@ -45,7 +47,9 @@ export interface ReceiptData {
 
 export interface ReceiptSnapshot {
   number: string;
-  documentLabel?: string | null;
+  documentLabel?: 'return' | 'counter_order' | null;
+  reservationHours?: number | null;
+  reservationExpiresAt?: string | null;
   createdAt: string;
   cashier: string;
   customer: string;
@@ -84,6 +88,8 @@ export function receiptDataFromSnapshot(
   return {
     number: snapshot.number,
     documentLabel: snapshot.documentLabel ?? null,
+    reservationHours: snapshot.reservationHours ?? null,
+    reservationExpiresAt: snapshot.reservationExpiresAt ?? null,
     createdAt: snapshot.createdAt,
     cashier: snapshot.cashier,
     customer: snapshot.customer,
@@ -144,7 +150,8 @@ function formatReceiptLines(receipt: ReceiptData): string[] {
   const label = (key: ReceiptMessageKey) => translateReceipt(receipt.lang, key);
   const lines: string[] = [];
   if (receipt.copy) lines.push(label('copy'), '');
-  if (receipt.documentLabel) lines.push(label('return'));
+  if (receipt.documentLabel === 'return') lines.push(label('return'));
+  if (receipt.documentLabel === 'counter_order') lines.push(label('counterOrder'));
   lines.push(receipt.storeName);
   if (receipt.address) lines.push(receipt.address);
   if (receipt.phone) lines.push(receipt.phone);
@@ -155,6 +162,15 @@ function formatReceiptLines(receipt: ReceiptData): string[] {
   }).format(new Date(receipt.createdAt)));
   lines.push(`${label('cashier')}: ${receipt.cashier}`);
   lines.push(`${label('customer')}: ${receipt.customer}`);
+  if (receipt.reservationHours !== null && receipt.reservationHours !== undefined) {
+    lines.push(`${label('reservationDuration')}: ${receipt.reservationHours} ${label('hours')}`);
+    if (receipt.reservationExpiresAt) {
+      lines.push(`${label('reservationExpires')}: ${new Intl.DateTimeFormat(
+        receipt.lang === 'ru' ? 'ru-RU' : 'uz-UZ',
+        { timeZone: 'Asia/Tashkent', dateStyle: 'short', timeStyle: 'short' },
+      ).format(new Date(receipt.reservationExpiresAt))}`);
+    }
+  }
   lines.push('-'.repeat(42));
   for (const line of receipt.lines) {
     lines.push(line.name);
