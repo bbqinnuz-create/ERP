@@ -58,9 +58,12 @@ describe('HTTP API этапа 2', () => {
     expect(clientResponse.status).toBe(200);
     const clientHtml = await clientResponse.text();
     expect(clientHtml).toContain('id="navigation-toggle" type="button" aria-expanded="false" aria-controls="navigation-menu"');
-    const sessionBarHtml = clientHtml.match(/<div class="session-bar">([\s\S]*?)<\/div>/)?.[1] ?? '';
-    expect(sessionBarHtml.indexOf('id="navigation-toggle"')).toBeGreaterThanOrEqual(0);
-    expect(sessionBarHtml.indexOf('id="navigation-toggle"')).toBeLessThan(sessionBarHtml.indexOf('id="current-user"'));
+    expect(clientHtml.match(/<header class="app-header">([\s\S]*?)<\/header>/)?.[1])
+      .toContain('id="current-user"');
+    expect(clientHtml.match(/<div class="session-bar">([\s\S]*?)<\/div>/)?.[1])
+      .toContain('id="navigation-toggle"');
+    expect(clientHtml).toContain('id="navigation-backdrop"');
+    expect(clientHtml).toContain('data-i18n-aria-label="nav.close"');
     expect(clientHtml.match(/<nav id="navigation">([\s\S]*?)<\/nav>/)?.[1]).not.toContain('id="navigation-toggle"');
     expect(clientHtml).toContain('<div id="navigation-menu" hidden>');
     expect(clientHtml).toContain('id="sales-held-carts-link"');
@@ -91,6 +94,10 @@ describe('HTTP API этапа 2', () => {
     expect(appScript).toContain("'nav.reservations': 'Бронь товаров'");
     expect(appScript).toContain("'reservations.title': 'Бронь товаров'");
     expect(appScript).toContain("'nav.reservations': 'Tovarlar broni'");
+    expect(appScript).toContain("'nav.close': 'Navigatsiyani yopish'");
+    expect(appScript).toContain("$('#navigation-backdrop').addEventListener('click', () => { setNavigationExpanded(false); });");
+    expect(appScript).toContain("if (event.key === 'Escape' && window.matchMedia('(max-width: 640px)').matches");
+    expect(appScript).toContain("if (window.matchMedia('(max-width: 640px)').matches) setNavigationExpanded(false);");
     expect(appScript).toContain("state.heldCarts.filter((cart) => cart.reservations.length === 0)");
     expect(appScript).toContain('`/api/held-carts/${encodeURIComponent(state.salesHeldCartId)}/lines`');
     expect(appScript).toContain("'reservations.title': 'Tovarlar broni'");

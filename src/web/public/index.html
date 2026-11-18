@@ -8,19 +8,22 @@
     <script src="/app.js" defer></script>
   </head>
   <body>
-    <header>
+    <header class="app-header">
       <h1 data-i18n="app.title"></h1>
-      <label class="language-picker">
-        <span data-i18n="language.label"></span>
-        <select id="language">
-          <option value="ru">RU</option>
-          <option value="uz">UZ</option>
-        </select>
-      </label>
-      <span id="server-indicator" class="server-indicator" data-state="checking" role="status" aria-live="polite">
-        <span class="server-indicator-dot" aria-hidden="true"></span>
-        <span id="server-indicator-label" data-i18n="server.checking"></span>
-      </span>
+      <div class="header-actions">
+        <label class="language-picker">
+          <span data-i18n="language.label"></span>
+          <select id="language">
+            <option value="ru">RU</option>
+            <option value="uz">UZ</option>
+          </select>
+        </label>
+        <span id="server-indicator" class="server-indicator" data-state="checking" role="status" aria-live="polite">
+          <span class="server-indicator-dot" aria-hidden="true"></span>
+          <span id="server-indicator-label" data-i18n="server.checking"></span>
+        </span>
+        <span id="current-user"></span>
+      </div>
     </header>
     <main>
       <p id="message" role="status" aria-live="polite"></p>
@@ -37,7 +40,6 @@
           <button id="navigation-toggle" type="button" aria-expanded="false" aria-controls="navigation-menu">
             <span id="navigation-toggle-label" data-i18n="nav.pages"></span>
           </button>
-          <span id="current-user"></span>
         </div>
         <nav id="navigation">
           <div id="navigation-menu" hidden>
@@ -63,6 +65,8 @@
             <button id="logout" class="navigation-logout" type="button" data-i18n="auth.logout"></button>
           </div>
         </nav>
+        <button id="navigation-backdrop" class="navigation-backdrop" type="button"
+          data-i18n-aria-label="nav.close" hidden></button>
         <section id="sales-page" class="page" hidden>
           <h2 data-i18n="sales.title"></h2>
           <div class="sales-page-links">
