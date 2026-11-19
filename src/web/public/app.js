@@ -227,6 +227,28 @@ const translations = {
     'connection.copy': 'Копировать',
     'connection.copy_done': 'Адрес скопирован.',
     'connection.copy_manual': 'Адрес выделен — скопируйте его вручную.',
+    'ip.title': 'Доступ компьютеров по IP',
+    'ip.main_pc_only': 'Подтверждать и изменять доступ можно только с главного компьютера.',
+    'ip.address': 'IP-адрес',
+    'ip.mode': 'Доступ аккаунтов',
+    'ip.any': 'Любой аккаунт',
+    'ip.selected': 'Только выбранные аккаунты',
+    'ip.accounts': 'Разрешённые аккаунты',
+    'ip.add': 'Добавить компьютер',
+    'ip.pending_title': 'Ожидают разрешения',
+    'ip.rules_title': 'Разрешённые компьютеры',
+    'ip.no_pending': 'Нет ожидающих подключений.',
+    'ip.no_rules': 'Нет разрешённых компьютеров.',
+    'ip.allow': 'Разрешить',
+    'ip.deny_action': 'Отклонить',
+    'ip.remove': 'Убрать запись',
+    'ip.update': 'Сохранить',
+    'ip.revoke': 'Отозвать доступ',
+    'ip.first_seen': 'Первый запрос: {date}',
+    'ip.any_accounts': 'Все аккаунты',
+    'ip.selected_accounts': 'Выбранные аккаунты: {accounts}',
+    'ip.status_pending': 'Ожидание',
+    'ip.status_denied': 'Отклонён',
     'products.title': 'Товары',
     'products.sku': 'Артикул',
     'products.name': 'Название',
@@ -397,7 +419,7 @@ const translations = {
     'cash.history': 'Журнал наличных',
     'cash.columns': 'Дата и время,Документ,Тип,Сумма,Пользователь,Категория,Причина,Подтверждающие данные,Действие',
     'cash.no_rows': 'Операций за выбранный период нет.',
-    'cash.reverse': 'Сторнировать',
+    'cash.reverse': 'Отменить',
     'cash.reverse_reason': 'Укажите причину встречной операции:',
     'cash.reverse_confirm': 'Создать встречную операцию?',
     'cash.entry.sale': 'Оплата продажи наличными',
@@ -558,7 +580,7 @@ const translations = {
     'purchases.detail_columns_no_cost': 'Артикул,Товар,Единица,Количество',
     'purchases.status_posted': 'Проведён',
     'purchases.status_reversed': 'Сторнирован',
-    'purchases.reverse': 'Сторнировать',
+    'purchases.reverse': 'Отменить',
     'purchases.reverse_confirm': 'Сторнировать весь приход? Это действие нельзя отменить.',
     'purchases.no_warehouse': 'Нет активного склада',
     'purchases.no_product': 'Нет активного товара',
@@ -755,6 +777,7 @@ const translations = {
     'permission.expense': 'Расход',
     'permission.cash_collection': 'Инкассация',
     'permission.users_manage': 'Управление пользователями',
+    'permission.ip_manage': 'Управление доступом компьютеров',
     'permission.settings': 'Настройки и справочники',
     'page.sales': 'Продажа',
     'page.heldCarts': 'Отложенные корзины',
@@ -816,6 +839,19 @@ const translations = {
     'database.invalid_reference': 'Связанная запись не найдена.',
     'database.invalid_value': 'Недопустимое значение.',
     'http.local_network_only': 'Доступ разрешён только из локальной сети.',
+    'ip.pending': 'Подключение ожидает разрешения администратора.',
+    'ip.denied': 'Доступ с этого компьютера запрещён.',
+    'ip.account_not_allowed': 'Этому аккаунту запрещён вход с данного компьютера.',
+    'ip.invalid_address': 'Укажите корректный IP-адрес.',
+    'ip.loopback_forbidden': 'Адрес главного компьютера нельзя добавить в список.',
+    'ip.invalid_mode': 'Выберите допустимый режим доступа.',
+    'ip.invalid_accounts': 'Проверьте список разрешённых аккаунтов.',
+    'ip.accounts_required': 'Выберите хотя бы один аккаунт.',
+    'ip.rule_not_found': 'Правило IP не найдено.',
+    'ip.rule_exists': 'Этот IP уже добавлен.',
+    'ip.entry_not_found': 'Запись IP не найдена.',
+    'ip.main_computer_required': 'Управлять списком можно только с главного компьютера.',
+    'ip.request_limit': 'Достигнут предел записей IP. Удалите лишние записи.',
     'http.not_found': 'Страница или запись не найдена.',
     'http.body_too_large': 'Запрос слишком большой.',
     'http.json_required': 'Ожидался JSON-запрос.',
@@ -1058,6 +1094,28 @@ const translations = {
     'connection.copy': 'Nusxalash',
     'connection.copy_done': 'Manzil nusxalandi.',
     'connection.copy_manual': 'Manzil belgilandi — uni qo‘lda nusxalang.',
+    'ip.title': 'Kompyuterlarga IP orqali kirish',
+    'ip.main_pc_only': 'Ruxsatni faqat asosiy kompyuterdan berish va o‘zgartirish mumkin.',
+    'ip.address': 'IP manzil',
+    'ip.mode': 'Foydalanuvchilar uchun ruxsat',
+    'ip.any': 'Barcha akkauntlar',
+    'ip.selected': 'Faqat tanlangan akkauntlar',
+    'ip.accounts': 'Ruxsat berilgan akkauntlar',
+    'ip.add': 'Kompyuter qo‘shish',
+    'ip.pending_title': 'Ruxsat kutilmoqda',
+    'ip.rules_title': 'Ruxsat berilgan kompyuterlar',
+    'ip.no_pending': 'Ruxsat kutayotgan ulanishlar yo‘q.',
+    'ip.no_rules': 'Ruxsat berilgan kompyuterlar yo‘q.',
+    'ip.allow': 'Ruxsat berish',
+    'ip.deny_action': 'Rad etish',
+    'ip.remove': 'Yozuvni olib tashlash',
+    'ip.update': 'Saqlash',
+    'ip.revoke': 'Ruxsatni bekor qilish',
+    'ip.first_seen': 'Birinchi so‘rov: {date}',
+    'ip.any_accounts': 'Barcha akkauntlar',
+    'ip.selected_accounts': 'Tanlangan akkauntlar: {accounts}',
+    'ip.status_pending': 'Kutilmoqda',
+    'ip.status_denied': 'Rad etilgan',
     'products.title': 'Tovarlar',
     'products.sku': 'Artikul',
     'products.name': 'Nomi',
@@ -1228,7 +1286,7 @@ const translations = {
     'cash.history': 'Naqd pul jurnali',
     'cash.columns': 'Sana va vaqt,Hujjat,Turi,Summa,Foydalanuvchi,Toifa,Sabab,Tasdiqlovchi ma’lumot,Amal',
     'cash.no_rows': 'Tanlangan davrda amallar yo‘q.',
-    'cash.reverse': 'Qarama-qarshi yozuv',
+    'cash.reverse': 'Bekor qilish',
     'cash.reverse_reason': 'Qarama-qarshi amal sababini kiriting:',
     'cash.reverse_confirm': 'Qarama-qarshi amal yaratilsinmi?',
     'cash.entry.sale': 'Savdo uchun naqd to‘lov',
@@ -1586,6 +1644,7 @@ const translations = {
     'permission.expense': 'Xarajat',
     'permission.cash_collection': 'Inkassatsiya',
     'permission.users_manage': 'Foydalanuvchilarni boshqarish',
+    'permission.ip_manage': 'Kompyuterlarga kirishni boshqarish',
     'permission.settings': 'Sozlamalar va ma’lumotnomalar',
     'page.sales': 'Savdo',
     'page.heldCarts': 'Saqlangan savatchalar',
@@ -1647,6 +1706,19 @@ const translations = {
     'database.invalid_reference': 'Bog‘langan yozuv topilmadi.',
     'database.invalid_value': 'Qiymat noto‘g‘ri.',
     'http.local_network_only': 'Faqat mahalliy tarmoqdan foydalanish mumkin.',
+    'ip.pending': 'Ulanish administrator ruxsatini kutmoqda.',
+    'ip.denied': 'Bu kompyuterdan foydalanish taqiqlangan.',
+    'ip.account_not_allowed': 'Bu kompyuterdan ushbu akkauntga kirish taqiqlangan.',
+    'ip.invalid_address': 'To‘g‘ri IP manzilni kiriting.',
+    'ip.loopback_forbidden': 'Asosiy kompyuter manzilini ro‘yxatga qo‘shib bo‘lmaydi.',
+    'ip.invalid_mode': 'Ruxsat rejimini tanlang.',
+    'ip.invalid_accounts': 'Ruxsat berilgan akkauntlar ro‘yxatini tekshiring.',
+    'ip.accounts_required': 'Kamida bitta akkauntni tanlang.',
+    'ip.rule_not_found': 'IP qoidasi topilmadi.',
+    'ip.rule_exists': 'Bu IP allaqachon qo‘shilgan.',
+    'ip.entry_not_found': 'IP yozuvi topilmadi.',
+    'ip.main_computer_required': 'Ro‘yxatni faqat asosiy kompyuterdan boshqarish mumkin.',
+    'ip.request_limit': 'IP yozuvlari limiti to‘ldi. Keraksiz yozuvlarni olib tashlang.',
     'http.not_found': 'Sahifa yoki yozuv topilmadi.',
     'http.body_too_large': 'So‘rov hajmi juda katta.',
     'http.json_required': 'JSON so‘rovi kutilgan edi.',
@@ -1695,7 +1767,7 @@ const permissionGroups = [
     pages: ['customers', 'receiptSearch'],
     permissions: ['view_customers', 'search_receipts'],
   },
-  { title: 'users.group.users', pages: ['users', 'connection'], permissions: ['users_manage'] },
+  { title: 'users.group.users', pages: ['users', 'connection'], permissions: ['users_manage', 'ip_manage'] },
 ];
 
 const state = {
@@ -2189,6 +2261,8 @@ async function api(path, options = {}) {
   const data = await response.json();
   if (!response.ok) {
     if (response.status === 401) showLogin(data.errorKey);
+    if (data.errorKey === 'ip.pending' || data.errorKey === 'ip.denied') window.location.reload();
+    if (data.errorKey === 'ip.account_not_allowed') showLogin(data.errorKey);
     throw new Error(data.errorKey ?? 'server.internal_error');
   }
   if (method !== 'GET') message('status.server_updated', 'success');
@@ -2323,6 +2397,8 @@ async function checkServerHealth() {
 
 function canAccessPage(name) {
   if (!state.user) return false;
+  if (name === 'connection' &&
+      (state.user.role === 'admin' || state.user.permissions.ip_manage === 1)) return true;
   if (state.user.pagePermissions?.[name] !== 1) return false;
   const permissionMap = {
     sales: 'sell',
@@ -2339,7 +2415,7 @@ function canAccessPage(name) {
     cash: ['cash_in', 'cash_out', 'expense', 'cash_collection', 'reports'],
     users: 'users_manage',
     warehouses: 'settings',
-    connection: 'admin',
+    connection: 'ip_manage',
   };
   const required = permissionMap[name];
   if (!required) return Boolean(pagePaths[name]);
@@ -2391,7 +2467,8 @@ function showPage(name, updateHistory = true) {
   if (name === 'stock') void loadStock();
   if (name === 'purchases') void loadPurchases();
   if (name === 'movements') void loadMovementHistory();
-  if (name === 'connection' && state.user?.role === 'admin') void loadConnectionInfo();
+  if (name === 'connection' &&
+      (state.user?.role === 'admin' || state.user?.permissions.ip_manage === 1)) void loadConnectionInfo();
   if (name === 'print' &&
       (state.user?.permissions.sell === 1 || state.user?.permissions.return === 1)) {
     void loadPrintJobs();
@@ -5112,6 +5189,173 @@ async function loadConnectionInfo() {
     });
     container.replaceChildren(...rows);
     $('#connection-warning').textContent = warningKey ? t(warningKey) : '';
+    if (state.user?.role === 'admin' || state.user?.permissions.ip_manage === 1) {
+      $('#ip-access-controls').hidden = false;
+      const access = await api('/api/ip-access');
+      renderIpAccess(access);
+      $('#ip-rule-form [name="userIds"]').hidden = $('#ip-rule-form [name="mode"]').value === 'any';
+    }
+  } catch (error) {
+    message(error.message);
+  }
+}
+
+function createIpRuleEditor(mode, selectedIds, users) {
+  const editor = document.createElement('div');
+  editor.className = 'ip-rule-editor';
+  const modeSelect = document.createElement('select');
+  modeSelect.setAttribute('aria-label', t('ip.mode'));
+  for (const value of ['any', 'selected']) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = t(`ip.${value}`);
+    modeSelect.append(option);
+  }
+  modeSelect.value = mode;
+  const accounts = document.createElement('select');
+  accounts.multiple = true;
+  accounts.size = Math.min(5, Math.max(2, users.length));
+  accounts.setAttribute('aria-label', t('ip.accounts'));
+  for (const user of users) {
+    const option = document.createElement('option');
+    option.value = user.id;
+    option.textContent = `${user.login} — ${user.fullName}`;
+    option.selected = selectedIds.includes(user.id);
+    accounts.append(option);
+  }
+  const updateVisibility = () => { accounts.hidden = modeSelect.value === 'any'; };
+  modeSelect.addEventListener('change', updateVisibility);
+  updateVisibility();
+  editor.append(modeSelect, accounts);
+  return {
+    element: editor,
+    values: () => ({
+      mode: modeSelect.value,
+      userIds: modeSelect.value === 'any' ? [] : [...accounts.selectedOptions].map((option) => option.value),
+    }),
+  };
+}
+
+function renderIpAccess(access) {
+  const usersById = new Map(access.users.map((user) => [user.id, user]));
+  const requests = $('#ip-pending-list');
+  const requestCards = access.requests.map((request) => {
+    const card = document.createElement('article');
+    card.className = 'connection-row ip-access-row';
+    const heading = document.createElement('strong');
+    heading.textContent = request.ip;
+    const details = document.createElement('p');
+    details.textContent = t(request.status === 'pending' ? 'ip.status_pending' : 'ip.status_denied') +
+      (request.status === 'pending'
+        ? ` · ${t('ip.first_seen').replace('{date}', formatDateTime(request.first_seen_at))}`
+        : '');
+    card.append(heading, details);
+    if (request.status === 'pending') {
+      const editor = createIpRuleEditor('any', [], access.users);
+      const actions = document.createElement('div');
+      actions.className = 'connection-actions';
+      const allow = document.createElement('button');
+      allow.type = 'button';
+      allow.textContent = t('ip.allow');
+      allow.addEventListener('click', () => {
+        const values = editor.values();
+        void saveIpRule(request.ip, values, false);
+      });
+      const deny = document.createElement('button');
+      deny.type = 'button';
+      deny.className = 'button-secondary';
+      deny.textContent = t('ip.deny_action');
+      deny.addEventListener('click', () => { void updateIpEntry(request.ip, 'deny'); });
+      actions.append(allow, deny);
+      card.append(editor.element, actions);
+    }
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'button-secondary';
+    remove.textContent = t('ip.remove');
+    remove.addEventListener('click', () => { void updateIpEntry(request.ip, 'remove'); });
+    card.append(remove);
+    return card;
+  });
+  if (requestCards.length === 0) {
+    const empty = document.createElement('p');
+    empty.textContent = t('ip.no_pending');
+    requestCards.push(empty);
+  }
+  requests.replaceChildren(...requestCards);
+
+  const ruleList = $('#ip-rules-list');
+  const ruleCards = access.rules.map((rule) => {
+    const card = document.createElement('article');
+    card.className = 'connection-row ip-access-row';
+    const heading = document.createElement('strong');
+    heading.textContent = rule.ip;
+    const details = document.createElement('p');
+    details.textContent = rule.mode === 'any'
+      ? t('ip.any_accounts')
+      : t('ip.selected_accounts').replace(
+        '{accounts}',
+        rule.userIds.map((id) => usersById.get(id)?.login ?? id).join(', '),
+      );
+    const editor = createIpRuleEditor(rule.mode, rule.userIds, access.users);
+    const actions = document.createElement('div');
+    actions.className = 'connection-actions';
+    const save = document.createElement('button');
+    save.type = 'button';
+    save.textContent = t('ip.update');
+    save.addEventListener('click', () => { void saveIpRule(rule.ip, editor.values(), true); });
+    const revoke = document.createElement('button');
+    revoke.type = 'button';
+    revoke.className = 'button-secondary';
+    revoke.textContent = t('ip.revoke');
+    revoke.addEventListener('click', () => { void updateIpEntry(rule.ip, 'revoke'); });
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'button-secondary';
+    remove.textContent = t('ip.remove');
+    remove.addEventListener('click', () => { void updateIpEntry(rule.ip, 'remove'); });
+    actions.append(save, revoke, remove);
+    card.append(heading, details, editor.element, actions);
+    return card;
+  });
+  if (ruleCards.length === 0) {
+    const empty = document.createElement('p');
+    empty.textContent = t('ip.no_rules');
+    ruleCards.push(empty);
+  }
+  ruleList.replaceChildren(...ruleCards);
+
+  const accountSelect = $('#ip-rule-form [name="userIds"]');
+  accountSelect.replaceChildren(...access.users.map((user) => {
+    const option = document.createElement('option');
+    option.value = user.id;
+    option.textContent = `${user.login} — ${user.fullName}`;
+    return option;
+  }));
+}
+
+async function saveIpRule(ip, values, update) {
+  try {
+    await api(update ? `/api/ip-access/${encodeURIComponent(ip)}` : '/api/ip-access', {
+      method: update ? 'PUT' : 'POST',
+      body: JSON.stringify({ ip, ...values }),
+    });
+    await loadConnectionInfo();
+    message('status.saved');
+    return true;
+  } catch (error) {
+    message(error.message);
+    return false;
+  }
+}
+
+async function updateIpEntry(ip, action) {
+  try {
+    const method = action === 'remove' ? 'DELETE' : 'POST';
+    const suffix = action === 'remove' ? '' : `/${action}`;
+    await api(`/api/ip-access/${encodeURIComponent(ip)}${suffix}`, { method });
+    await loadConnectionInfo();
+    message('status.saved');
   } catch (error) {
     message(error.message);
   }
@@ -5474,6 +5718,22 @@ $('#price-cancel').addEventListener('click', () => {
 $('#price-dialog').addEventListener('close', () => { editingProductId = null; });
 
 $('#refresh-connection-info').addEventListener('click', () => { void loadConnectionInfo(); });
+$('#ip-rule-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const formElement = event.currentTarget;
+  const form = new FormData(formElement);
+  void saveIpRule(form.get('ip'), {
+    mode: form.get('mode'),
+    userIds: form.get('mode') === 'any' ? [] : form.getAll('userIds'),
+  }, false).then((saved) => {
+    if (!saved) return;
+    formElement.reset();
+    $('#ip-rule-form [name="userIds"]').hidden = true;
+  });
+});
+$('#ip-rule-form [name="mode"]').addEventListener('change', (event) => {
+  $('#ip-rule-form [name="userIds"]').hidden = event.currentTarget.value === 'any';
+});
 $('#print-refresh').addEventListener('click', () => { void loadPrintJobs(); });
 $('#print-profile-form').addEventListener('submit', (event) => { void savePrintProfile(event); });
 $('#save-default-warehouse').addEventListener('click', () => { void saveSalesDefaultWarehouse(); });

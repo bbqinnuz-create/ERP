@@ -38,7 +38,7 @@ const EXPECTED_TABLES = [
   // деньги, долги, общая касса
   'payments', 'debt_ledger', 'debt_payment_allocations', 'cash_ledger', 'cash_operations', 'idempotency_keys',
   // служебные
-  'audit_log', 'print_jobs', 'sync_outbox', 'schema_migrations',
+  'audit_log', 'print_jobs', 'sync_outbox', 'ip_rules', 'ip_rule_users', 'ip_requests', 'schema_migrations',
 ];
 
 describe('миграции', () => {
@@ -52,6 +52,7 @@ describe('миграции', () => {
     expect(result.applied).toContain('006_sale_payment_permissions.sql');
     expect(result.applied).toContain('008_remove_counter_payment.sql');
     expect(result.applied).toContain('009_immutable_sales.sql');
+    expect(result.applied).toContain('011_ip_whitelist.sql');
 
     const tables = (db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as { name: string }[]).map(
       (r) => r.name,
@@ -86,6 +87,7 @@ describe('миграции', () => {
     expect(second.alreadyApplied).toContain('006_sale_payment_permissions.sql');
     expect(second.alreadyApplied).toContain('008_remove_counter_payment.sql');
     expect(second.alreadyApplied).toContain('009_immutable_sales.sql');
+    expect(second.alreadyApplied).toContain('011_ip_whitelist.sql');
   });
 
   it('загружает настройки по умолчанию', () => {

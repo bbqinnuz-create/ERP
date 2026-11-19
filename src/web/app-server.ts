@@ -1,12 +1,26 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { readFileSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
+import { networkInterfaces } from 'node:os';
 import { join } from 'node:path';
 import { TLSSocket } from 'node:tls';
 import { fileURLToPath } from 'node:url';
 import type { Db } from '../db/connection';
 import { AuthError, createUserForSession, listUsers, login, logout, setUserAccess, updateUserForSession, withAuthorizedUser } from '../modules/auth/service';
 import { hasPermission, type Permission } from '../modules/auth/permissions';
+import {
+  addIpRule,
+  allowIpAddress,
+  assertIpAccountAllowed,
+  denyIpAddress,
+  inspectIpAccess,
+  isLoopbackIp,
+  listIpAccess,
+  normalizeIpAddress,
+  removeIpEntry,
+  revokeIpRule,
+  updateIpRule,
+} from '../modules/ip-access/service';
 import {
   getCustomer,
   getReceiptDetails,
@@ -100,6 +114,7 @@ interface ServerOptions {
   now?: () => number;
   printEnabled?: boolean;
   backupDirectory?: string;
+  clientAddress?: (req: IncomingMessage) => string | undefined;
 }
 
 function isLocalAddress(address: string | undefined): boolean {
@@ -116,6 +131,21 @@ function isLocalAddress(address: string | undefined): boolean {
   const [a, b] = octets as [number, number, number, number];
   return a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) ||
     (a === 169 && b === 254);
+}
+
+function isMainComputerAddress(address: string, listenAddress: AddressInfo | string | null): boolean {
+  if (isLoopbackIp(address)) return true;
+  if (!listenAddress || typeof listenAddress === 'string') return false;
+  const localAddresses = Object.values(networkInterfaces()).flatMap((entries) =>
+    (entries ?? []).filter((entry) => !entry.internal).map((entry) => {
+      try {
+        return normalizeIpAddress(entry.address.split('%')[0]);
+      } catch {
+        return null;
+      }
+    }),
+  );
+  return localAddresses.includes(address);
 }
 
 function sendJson(res: ServerResponse, status: number, value: unknown): void {
@@ -232,6 +262,7 @@ async function handleApi(
   req: IncomingMessage,
   res: ServerResponse,
   now: () => number,
+  clientIp: string,
   listenAddress: AddressInfo | string | null,
   printEnabled: boolean,
   backupDirectory: string | undefined,
@@ -240,6 +271,9 @@ async function handleApi(
   const path = url.pathname;
   const method = req.method ?? 'GET';
   const token = sessionToken(req);
+  if (path.startsWith('/api/ip-access') && method !== 'GET' && !isMainComputerAddress(clientIp, listenAddress)) {
+    throw new AuthError(403, 'ip.main_computer_required');
+  }
 
   if (path === '/api/health' && method === 'GET') {
     sendJson(res, 200, { status: 'ok' });
@@ -248,7 +282,7 @@ async function handleApi(
 
   if (path === '/api/auth/login' && method === 'POST') {
     const body = await readJson(req);
-    const result = await login(db, body.login, body.password, now());
+    const result = await login(db, body.login, body.password, now(), clientIp);
     setSessionCookie(res, result.token);
     sendJson(res, 200, { user: result.user });
     return;
@@ -271,7 +305,9 @@ async function handleApi(
   }
   if (path === '/api/server-info' && method === 'GET') {
     const addresses = withAuthorizedUser(db, token, null, (session) => {
-      if (session.user.role !== 'admin') throw new AuthError(403, 'auth.permission_denied');
+      if (session.user.role !== 'admin' && !hasPermission(db, session.user.id, 'ip_manage')) {
+        throw new AuthError(403, 'auth.permission_denied');
+      }
       if (!listenAddress || typeof listenAddress === 'string') return [];
       return listLanConnectionAddresses(listenAddress.address, listenAddress.port);
     }, now());
@@ -279,6 +315,45 @@ async function handleApi(
       addresses,
       warningKey: addresses.length === 0 ? 'connection.no_lan_addresses' : null,
     });
+    return;
+  }
+
+  if (path === '/api/ip-access' && method === 'GET') {
+    const result = withAuthorizedUser(db, token, 'ip_manage', () => listIpAccess(db), now());
+    sendJson(res, 200, result);
+    return;
+  }
+  if (path === '/api/ip-access' && method === 'POST') {
+    const body = await readJson(req);
+    withAuthorizedUser(db, token, 'ip_manage', (session) => {
+      const ip = normalizeIpAddress(body.ip);
+      if (db.prepare('SELECT 1 FROM ip_requests WHERE ip = ?').get(ip)) {
+        allowIpAddress(db, session.user.id, ip, body.mode, body.userIds);
+      } else {
+        addIpRule(db, session.user.id, ip, body.mode, body.userIds);
+      }
+    }, now());
+    sendJson(res, 201, listIpAccess(db));
+    return;
+  }
+  const ipAccessMatch = /^\/api\/ip-access\/([^/]+)(?:\/(revoke|deny))?$/.exec(path);
+  if (ipAccessMatch && (method === 'PUT' || method === 'POST' || method === 'DELETE')) {
+    const ip = normalizeIpAddress(decodeURIComponent(ipAccessMatch[1]!));
+    const action = ipAccessMatch[2];
+    if (method === 'PUT' && !action) {
+      const body = await readJson(req);
+      withAuthorizedUser(db, token, 'ip_manage', (session) =>
+        updateIpRule(db, session.user.id, ip, body.mode, body.userIds), now());
+    } else if (method === 'POST' && action === 'revoke') {
+      withAuthorizedUser(db, token, 'ip_manage', (session) => revokeIpRule(db, session.user.id, ip), now());
+    } else if (method === 'POST' && action === 'deny') {
+      withAuthorizedUser(db, token, 'ip_manage', (session) => denyIpAddress(db, session.user.id, ip), now());
+    } else if (method === 'DELETE' && !action) {
+      withAuthorizedUser(db, token, 'ip_manage', (session) => removeIpEntry(db, session.user.id, ip), now());
+    } else {
+      throw new AuthError(404, 'http.not_found');
+    }
+    sendJson(res, 200, listIpAccess(db));
     return;
   }
 
@@ -1188,6 +1263,7 @@ const CLIENT_ROUTES = new Set([
 ]);
 
 function pagesForApiRequest(path: string, method: string, url: URL): AppPage[] | null {
+  if (path.startsWith('/api/ip-access')) return ['connection'];
   if (path === '/api/server-info') return ['connection'];
   if (path.startsWith('/api/users')) return ['users'];
   if (path.startsWith('/api/sales') || path.startsWith('/api/cart')) return ['sales'];
@@ -1243,6 +1319,36 @@ function serveStatic(req: IncomingMessage, res: ServerResponse): void {
   res.end(body);
 }
 
+function serveIpWait(req: IncomingMessage, res: ServerResponse): void {
+  const path = new URL(req.url ?? '/', 'http://localhost').pathname;
+  if (req.method !== 'GET') {
+    sendJson(res, 404, { errorKey: 'http.not_found' });
+    return;
+  }
+  const files: Record<string, { file: string; type: string }> = {
+    '/ip-wait.js': { file: 'ip-wait.js', type: 'text/javascript; charset=utf-8' },
+    '/ip-wait.css': { file: 'ip-wait.css', type: 'text/css; charset=utf-8' },
+  };
+  const entry = files[path];
+  if (entry) {
+    const body = readFileSync(join(STATIC_DIR, entry.file));
+    res.writeHead(200, {
+      'Content-Type': entry.type,
+      'Content-Length': body.byteLength,
+      'Cache-Control': 'no-store',
+    });
+    res.end(body);
+    return;
+  }
+  const body = readFileSync(join(STATIC_DIR, 'ip-wait.html'));
+  res.writeHead(200, {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Content-Length': body.byteLength,
+    'Cache-Control': 'no-store',
+  });
+  res.end(body);
+}
+
 export function createWebServer(db: Db, options: ServerOptions = {}): Server {
   const now = options.now ?? Date.now;
   let server: Server;
@@ -1251,17 +1357,69 @@ export function createWebServer(db: Db, options: ServerOptions = {}): Server {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'");
-    if (!isLocalAddress(req.socket.remoteAddress)) {
+    const remoteAddress = options.clientAddress
+      ? options.clientAddress(req)
+      : req.socket.remoteAddress;
+    if (!isLocalAddress(remoteAddress)) {
       sendJson(res, 403, { errorKey: 'http.local_network_only' });
       return;
     }
     const path = req.url?.split('?')[0] ?? '/';
+    const waitResource = path === '/ip-wait.js' || path === '/ip-wait.css';
+    if (path === '/ip-wait-status' && (req.method ?? 'GET') === 'GET') {
+      try {
+        const access = inspectIpAccess(db, remoteAddress, now());
+        sendJson(res, 200, access);
+      } catch (error) {
+        respondError(res, error);
+      }
+      return;
+    }
+    let access: ReturnType<typeof inspectIpAccess>;
+    try {
+      access = inspectIpAccess(db, remoteAddress, now());
+    } catch (error) {
+      respondError(res, error);
+      return;
+    }
+    if (access.status !== 'allowed') {
+      if (path.startsWith('/api/')) {
+        sendJson(res, 403, { errorKey: `ip.${access.status}`, ip: access.ip });
+        return;
+      }
+      serveIpWait(req, res);
+      return;
+    }
+    if (waitResource) {
+      serveStatic(req, res);
+      return;
+    }
     if (path.startsWith('/api/')) {
+      const token = sessionToken(req);
+      if (token && !(path === '/api/auth/login' && (req.method ?? 'GET') === 'POST')) {
+        try {
+          withAuthorizedUser(db, token, null, (session) =>
+            assertIpAccountAllowed(db, access.ip, session.user.id), now(), false);
+        } catch (error) {
+          if (error instanceof AuthError && error.status === 401) {
+            // The route handler returns the standard session error.
+          } else if (error instanceof AuthError && error.errorKey === 'ip.account_not_allowed') {
+            clearSessionCookie(res);
+            sendJson(res, 403, { errorKey: error.errorKey, ip: access.ip });
+            return;
+          } else {
+            respondError(res, error);
+            return;
+          }
+        }
+      }
       const pages = pagesForApiRequest(path, req.method ?? 'GET', new URL(req.url ?? '/', 'http://localhost'));
       if (pages) {
         try {
           withAuthorizedUser(db, sessionToken(req), null, (session) => {
             if (!pages.some((page) => {
+              if (page === 'connection' &&
+                  (session.user.role === 'admin' || hasPermission(db, session.user.id, 'ip_manage'))) return true;
               try {
                 requirePagePermission(db, session.user.id, page);
                 return true;
@@ -1276,7 +1434,7 @@ export function createWebServer(db: Db, options: ServerOptions = {}): Server {
           return;
         }
       }
-      void handleApi(db, req, res, now, server.address(), options.printEnabled ?? false,
+      void handleApi(db, req, res, now, access.ip, server.address(), options.printEnabled ?? false,
         options.backupDirectory ?? process.env.BACKUP_DIR)
         .catch((error: unknown) => respondError(res, error));
       return;
