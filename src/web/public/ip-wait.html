@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-i18n="title"></title>
+    <link rel="stylesheet" href="/ip-wait.css">
+    <script src="/ip-wait.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <label class="language">
+        <span data-i18n="language"></span>
+        <select id="language">
+          <option value="ru">Русский</option>
+          <option value="uz">O‘zbekcha</option>
+        </select>
+      </label>
+      <h1 data-i18n="title"></h1>
+      <p id="message" data-i18n="checking" aria-live="polite"></p>
+      <p id="client-ip"></p>
+      <p id="detail" data-i18n="pending"></p>
+    </main>
+  </body>
+</html>

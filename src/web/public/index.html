@@ -591,6 +591,32 @@
           <button id="refresh-connection-info" type="button" data-i18n="connection.refresh"></button>
           <p id="connection-warning" role="status" aria-live="polite"></p>
           <div id="connection-addresses"></div>
+          <section id="ip-access-controls" hidden>
+            <h3 data-i18n="ip.title"></h3>
+            <p data-i18n="ip.main_pc_only"></p>
+            <form id="ip-rule-form" class="form-grid">
+              <label>
+                <span data-i18n="ip.address"></span>
+                <input name="ip" inputmode="url" autocomplete="off" required>
+              </label>
+              <label>
+                <span data-i18n="ip.mode"></span>
+                <select name="mode">
+                  <option value="any" data-i18n="ip.any"></option>
+                  <option value="selected" data-i18n="ip.selected"></option>
+                </select>
+              </label>
+              <label>
+                <span data-i18n="ip.accounts"></span>
+                <select name="userIds" multiple size="5"></select>
+              </label>
+              <button type="submit" data-i18n="ip.add"></button>
+            </form>
+            <h3 data-i18n="ip.pending_title"></h3>
+            <div id="ip-pending-list"></div>
+            <h3 data-i18n="ip.rules_title"></h3>
+            <div id="ip-rules-list"></div>
+          </section>
         </section>
         <section id="warehouses-page" class="page" hidden>
           <h2 data-i18n="warehouses.title"></h2>

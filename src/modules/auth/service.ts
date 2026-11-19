@@ -7,6 +7,7 @@ import { uuidv7 } from '../../core/uuid';
 import { writeAudit } from '../../core/audit';
 import { AuthError } from './errors';
 export { AuthError } from './errors';
+import { assertIpAccountAllowed } from '../ip-access/service';
 import {
   getPagePermissionValues,
   listUserSalesWarehouses,
@@ -179,12 +180,12 @@ function sha256(token: string): string {
   return createHash('sha256').update(token, 'utf8').digest('hex');
 }
 
-function auditFailedLogin(db: Db, userId: string | null, login: string, at: string): void {
+function auditFailedLogin(db: Db, userId: string | null, login: string, at: string, ip?: string): void {
   writeAudit(db, {
     action: 'auth.login_failed',
     entity: 'users',
     entityId: userId,
-    after: { login, at },
+    after: { login, at, ...(ip ? { ip } : {}) },
   });
 }
 
@@ -193,6 +194,7 @@ export async function login(
   loginInput: unknown,
   password: unknown,
   nowMs: number = Date.now(),
+  clientIp?: string,
 ): Promise<{ token: string; user: AuthUser }> {
   let normalizedLogin: string;
   try {
@@ -228,6 +230,18 @@ export async function login(
   if (!validPassword) {
     inTransaction(db, () => auditFailedLogin(db, row.id, normalizedLogin, new Date(nowMs).toISOString()));
     throw new AuthError(401, 'auth.invalid_credentials');
+  }
+  if (clientIp) {
+    try {
+      assertIpAccountAllowed(db, clientIp, row.id);
+    } catch (error) {
+      if (error instanceof AuthError && error.errorKey.startsWith('ip.')) {
+        inTransaction(db, () =>
+          auditFailedLogin(db, row.id, normalizedLogin, new Date(nowMs).toISOString(), clientIp),
+        );
+      }
+      throw error;
+    }
   }
 
   const token = randomBytes(32).toString('base64url');

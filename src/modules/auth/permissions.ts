@@ -26,6 +26,7 @@ export const PERMISSIONS = [
   'expense',
   'cash_collection',
   'users_manage',
+  'ip_manage',
   'settings',
 ] as const;
 

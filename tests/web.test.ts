@@ -128,7 +128,7 @@ describe('HTTP API этапа 2', () => {
     expect(groupedPermissionKeys.sort()).toEqual([
       'cash_in', 'cash_out', 'cash_collection', 'debt_payment', 'debt_sale', 'discount_check',
       'discount_check_limit_bp', 'discount_manual', 'discount_manual_limit_bp', 'expense', 'hold_cart',
-      'pay_card', 'pay_cash', 'pay_transfer', 'price_edit', 'purchase', 'reports',
+      'ip_manage', 'pay_card', 'pay_cash', 'pay_transfer', 'price_edit', 'purchase', 'reports',
       'reserve_cart', 'return', 'search_receipts', 'sell', 'sell_below_cost', 'settings', 'stocktake',
       'users_manage', 'view_customers',
       'view_cost', 'write_off',
